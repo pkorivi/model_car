@@ -1,0 +1,13 @@
+catkin_ws_user/odroid-install/
+catkin_ws_user/odroid-devel/
+catkin_ws_user/odroid-build/
+catkin_ws_user/.catkin_tools/
+catkin_ws_user/build/
+catkin_ws_user/devel/
+catkin_ws_user/logs/
+catkin_ws_user/.metadata/
+catkin_ws/.catkin_tools/
+catkin_ws/build/
+catkin_ws/devel/
+catkin_ws/logs/
+catkin_ws/.metadata/
