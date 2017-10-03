@@ -20,7 +20,8 @@ size_t latency_cnt = 1;
 // presented in the classroom matched the previous radius.
 //
 // This is the length from front to CoG that has a similar radius.
-const double Lf = 2.67;
+//TODO - Tune this properly
+const double Lf = 0.25;
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -38,7 +39,8 @@ size_t a_start = delta_start + N - 1;
 double previous_throttle=0;
 double previous_steering=0;
 
-double ref_v = 0.4;
+//check this
+double ref_v = 2.4;
 
 class FG_eval {
  public:
@@ -56,8 +58,8 @@ class FG_eval {
     for(size_t t=0;t<N;t++){
       //multiply with a scalar to add more weight to these weights
       fg[0] += 900*CppAD::pow(vars[cte_start + t], 2); // cost to maintain trajectory with low error
-      fg[0] += 125*CppAD::pow(vars[epsi_start + t], 2); // cost to maintain orientation
-      fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2); //cost for maintaining velocity
+      fg[0] += 400*CppAD::pow(vars[epsi_start + t], 2); // cost to maintain orientation
+      fg[0] += 200*CppAD::pow(vars[v_start + t] - ref_v, 2); //cost for maintaining velocity
     }
     //cost based on actuators- Minimize the use
     for(size_t t=0;t<N-1;t++){
@@ -68,12 +70,13 @@ class FG_eval {
     for(size_t t=0;t<N-2;t++){
       //here multiplying with a number adds weight to this error and it reduces the fluctuations in this values
       fg[0] += 500*CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-      fg[0] += CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+      fg[0] += 100*CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
+
     //change in angle vs the velocity, psi and velocity
     for(size_t t=0;t<N-1;t++){
-      fg[0] += 150*CppAD::pow(vars[delta_start + t]*vars[v_start + t], 2);
-      fg[0] += 10*CppAD::pow(vars[epsi_start + t]*vars[v_start + t], 2);
+      fg[0] += CppAD::pow(vars[delta_start + t]*vars[v_start + t], 2);
+      fg[0] += CppAD::pow(vars[epsi_start + t]*vars[v_start + t], 2);
     }
 
     //
@@ -114,6 +117,7 @@ class FG_eval {
       AD<double> a0 = vars[a_start+t -1];
 
       //evaluate the y and psi for calculating error
+      //co + c1*x + c2*x*x +c3*x*x*x
       AD<double> f0 = coeffs[0] + coeffs[1]*x0 + coeffs[2]*x0*x0 + coeffs[3]*x0*x0*x0;
       AD<double> psides0 = CppAD::atan(coeffs[1] + 2*coeffs[2]*x0 + 3*coeffs[3]*x0*x0);
 
@@ -192,20 +196,22 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     vars_lowerbound[i] = previous_steering;
     vars_upperbound[i] = previous_steering;
   }
+  // -45:45 degrees
   for (size_t i = delta_start+latency_cnt; i < a_start; i++) {
-    vars_lowerbound[i] = -0.436332;
-    vars_upperbound[i] = 0.436332;
+    vars_lowerbound[i] = -0.785398;
+    vars_upperbound[i] = 0.785398;
   }
 
   // Acceleration/decceleration upper and lower limits.
-  // NOTE: Feel free to change this to something else.
+  //assuming 100ms latency in giving command and driving forward
   for (size_t i = a_start; i < a_start+latency_cnt; i++) {
     vars_lowerbound[i] = previous_throttle;
     vars_upperbound[i] = previous_throttle;
   }
+  // [-0.5:0.5] //TODO update the calculations
   for (size_t i = a_start+latency_cnt; i < n_vars; i++) {
-    vars_lowerbound[i] = -1.0;
-    vars_upperbound[i] = 1.0;
+    vars_lowerbound[i] = -0.5;
+    vars_upperbound[i] = 0.5;
   }
 
   // Lower and upper limits for the constraints
