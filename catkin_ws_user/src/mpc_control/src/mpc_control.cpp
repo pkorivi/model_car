@@ -21,7 +21,8 @@ double rad2deg(double x) { return x * 180 / pi(); }
 
 //TODO - find a better place to place this function
 //Markers to Display - Predicted Path from MPC
-ros::Publisher marker_pub;
+ros::Publisher pred_path_marker_pub;
+ros::Publisher ref_path_marker_pub;
 // Evaluate a polynomial.
 double polyeval(Eigen::VectorXd coeffs, double x) {
   double result = 0.0;
@@ -126,9 +127,9 @@ void mpc_control::odom_callback(const nav_msgs::Odometry::ConstPtr& msg){
   velocity = msg->twist.twist.linear.x;
 }
 
-void visulize_path(std::vector<double> pts_pred){
+void visulize_pred_path(std::vector<double> pts_pred){
     visualization_msgs::Marker points, line_strip;
-    points.header.frame_id = line_strip.header.frame_id = "/map";
+    points.header.frame_id = line_strip.header.frame_id = "/base_link";
     points.header.stamp = line_strip.header.stamp = ros::Time::now();
     points.ns = line_strip.ns = "points_and_lines";
     points.action = line_strip.action = visualization_msgs::Marker::ADD;
@@ -162,14 +163,57 @@ void visulize_path(std::vector<double> pts_pred){
       p.x = pts_pred[i];
       p.y = pts_pred[i+1];
       p.z = 0;
-
       points.points.push_back(p);
       line_strip.points.push_back(p);
     }
+    pred_path_marker_pub.publish(points);
+    pred_path_marker_pub.publish(line_strip);
 
-    marker_pub.publish(points);
-    marker_pub.publish(line_strip);
+}
 
+void visulize_ref_path(std::vector<double> pts_ref){
+    visualization_msgs::Marker points, line_strip;
+    points.header.frame_id = line_strip.header.frame_id = "/map";
+    points.header.stamp = line_strip.header.stamp = ros::Time::now();
+    points.ns = line_strip.ns = "points_and_lines";
+    points.action = line_strip.action = visualization_msgs::Marker::ADD;
+    points.pose.orientation.w = line_strip.pose.orientation.w = 1.0;
+
+    points.id = 0;
+    line_strip.id = 1;
+
+    points.type = visualization_msgs::Marker::POINTS;
+    line_strip.type = visualization_msgs::Marker::LINE_STRIP;
+
+    // POINTS markers use x and y scale for width/height respectively
+    points.scale.x = 0.1;
+    points.scale.y = 0.1;
+
+    // LINE_STRIP/LINE_LIST markers use only the x component of scale, for the line width
+    line_strip.scale.x = 0.1;
+
+    // Points are green + blue
+    points.color.g = 1.0f;
+    points.color.b = 1.0f;
+    points.color.a = 1.0;
+
+    // Line strip is green + red
+    line_strip.color.g = 1.0;
+    line_strip.color.r = 1.0;
+    line_strip.color.a = 1.0;
+
+    // Create the vertices for the points and lines
+    for (uint32_t i = 0; i < pts_ref.size(); i = i+2)
+    {
+      geometry_msgs::Point p;
+      p.x = pts_ref[i];
+      p.y = pts_ref[i+1];
+      p.z = 0;
+      points.points.push_back(p);
+      line_strip.points.push_back(p);
+    }
+    ref_path_marker_pub.publish(points);
+    ref_path_marker_pub.publish(line_strip);
 }
 
 int main(int argc, char **argv)
@@ -181,7 +225,8 @@ int main(int argc, char **argv)
   // MPC is initialized here!
   MPC mpc;
 
-  marker_pub = nh.advertise<visualization_msgs::Marker>("mpc_pred_points", 10);
+  pred_path_marker_pub = nh.advertise<visualization_msgs::Marker>("mpc_pred_points", 20);
+  ref_path_marker_pub = nh.advertise<visualization_msgs::Marker>("mpc_ref_points", 20);
   //5 Hz loop rate - for calculating a predicted path and publishing steering and speed
   ros::Rate loop_rate(10);
   while(ros::ok()){
@@ -230,7 +275,8 @@ int main(int argc, char **argv)
 
     //TODO - define the scales properly
     // assuming steering to be in -45 to 45 in radians convert it to degrees and as 90 is straight, this values convert as required by car
-    steer_value.data  = (int)(90  + 57.2958*vars[0]);
+    //TODO substrcted from 90 as car was steering in opposite - just check again if it's fine
+    steer_value.data  = (int)(90  - 57.2958*vars[0]);
     //TODO - use a proper value as per rate
     float loop_time = 0.1; //period of loop - convert based on loop rate
     //calculate the required velocity - then convert to rotations per min by multiplying with 5.1366 and 60
@@ -245,20 +291,27 @@ int main(int argc, char **argv)
     }
     //As the robot takes negative values
     speed_value.data = -speed_value.data;
-    ROS_INFO("pos:: (%f,%f) , steer : %f %d, throttle : %f speed  %d  %f",l_px,l_py, vars[0], steer_value.data, vars[1], speed_value.data, control1.velocity);
+    ROS_INFO("pos:: (%0.2f,%0.2f) , steer: %d, throttle : %0.2f speed  %d %0.2f cte : %0.3f, epsi %0.3f",l_px,l_py,steer_value.data, vars[1], speed_value.data, control1.velocity, cte, epsi);
     //cout<< "result st "<< steer_value<<" th"<<throttle_value<<endl;
 
     //convert points to map coordinates
     //psi is in radians
     std::vector<double> disp_pts;
     for(size_t i=2; i<vars.size();i=i+2){
-      double tx = (vars[i] + l_px)*cos(l_psi) - (vars[i+1] + l_py)*sin(l_psi);
-      double ty = (vars[i] + l_px)*sin(l_psi) + (vars[i+1] + l_py)*cos(l_psi);
-      disp_pts.push_back(tx);
-      disp_pts.push_back(ty);
+      //double tx = (vars[i] + l_px)*cos(l_psi) - (vars[i+1] + l_py)*sin(l_psi);
+      //double ty = (vars[i] + l_px)*sin(l_psi) + (vars[i+1] + l_py)*cos(l_psi);
+      disp_pts.push_back(vars[i]);
+      disp_pts.push_back(vars[i+1]);
     }
     //Visulaize the predicted path
-    visulize_path(disp_pts);
+    visulize_pred_path(disp_pts);
+    //Visulaize reference path
+    std::vector<double> ref_pts;
+    for(size_t i =0; i< control1.ptsx.size();i++){
+      ref_pts.push_back(control1.ptsx[i]);
+      ref_pts.push_back(control1.ptsy[i]);
+    }
+    visulize_ref_path(ref_pts);
 
     //Publish steering, throttle - for robot to drive
     control1.pub_steering_.publish(steer_value);
