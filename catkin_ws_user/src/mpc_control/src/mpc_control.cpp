@@ -221,6 +221,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "mpc_control_node");
   ros::NodeHandle nh;
   mpc_control control1(nh);
+  int prev_speed;
 
   // MPC is initialized here!
   MPC mpc;
@@ -235,7 +236,8 @@ int main(int argc, char **argv)
     Eigen::VectorXd t_ptsy(control1.ptsy.size());
     //Copy data to local variable as px,py, psi will be updated at very fast rate and might cause trouble in calculation
     //This will help have same set of values for one cycle
-    //pts_x/y are not updated at fast rate it should be ok- TODO - check if it needs a copy
+    //pts_x/y are not updated at fast rate it should be ok- TODO - check if it needs a Copy
+    //TODO Stop robot when the goal is within 15cm of the destination
     double l_px = control1.px;
     double l_py = control1.py;
     double l_psi = control1.psi;
@@ -281,6 +283,7 @@ int main(int argc, char **argv)
     float loop_time = 0.1; //period of loop - convert based on loop rate
     //calculate the required velocity - then convert to rotations per min by multiplying with 5.1366 and 60
     speed_value.data = (int)((control1.velocity + vars[1]*loop_time)*5.1366*60);
+    //speed_value.data = (int)(prev_speed + vars[1]*loop_time*5.1366*60); //TODO
     //TODO - Come up with better logic
     if (speed_value.data < 50 && speed_value.data > 0) {
       speed_value.data = 50;
@@ -289,6 +292,8 @@ int main(int argc, char **argv)
     else if (speed_value.data > -50 && speed_value.data < 0) {
       speed_value.data = -50;
     }
+    //If required use the previous given speed instead of the speed from
+    prev_speed = speed_value.data;
     //As the robot takes negative values
     speed_value.data = -speed_value.data;
     ROS_INFO("pos:: (%0.2f,%0.2f) , steer: %d, throttle : %0.2f speed  %d %0.2f cte : %0.3f, epsi %0.3f",l_px,l_py,steer_value.data, vars[1], speed_value.data, control1.velocity, cte, epsi);
