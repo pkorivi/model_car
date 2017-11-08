@@ -1,0 +1,140 @@
+/* Sample RNDF change log*/
+/*                                                 */
+/* Aug 1, 2017 - RNDF - Anticlockwise road selection*/
+/*                                                 */
+/*                                                 */
+RNDF_name RNDF_Rev_1.0
+num_segments 3
+num_zones 0
+format_version 1.0
+creation_date 1-Aug-17
+segment 1
+num_lanes 2
+segment_name Outer_Loop
+lane 1.1 /*2 exits*/
+num_waypoints 21
+lane_width 0.35
+left_boundary broken_white
+right_boundary solid_white
+exit 1.1.13 3.1.1 l
+exit 1.1.13 3.2.1 l
+exit 1.1.18 2.1.1 l
+exit 1.1.18 2.2.1 l
+1.1.1 0.00 -0.17
+1.1.2 0.50 -0.17
+1.1.3 0.88 -0.17
+1.1.4 1.54 -0.18
+1.1.5 2.27 -0.13
+1.1.6 3.14 0.00
+1.1.7 3.73 0.68
+1.1.8 3.78 1.25
+1.1.9 3.78 1.95
+1.1.10 3.69 2.55
+1.1.11 3.05 3.18
+1.1.12 2.16 3.24
+1.1.13 1.55 2.96
+1.1.14 0.90 2.95
+1.1.15 0.21 3.23
+1.1.16 -0.65 3.13
+1.1.17 -1.21 2.44
+1.1.18 -1.24 1.88
+1.1.19 -1.24 1.18
+1.1.20 -1.14 0.58
+1.1.21 -0.53 -0.07
+1.1.22 0.00 -0.17
+end_lane
+lane 1.2
+num_waypoints 21
+lane_width 0.35
+left_boundary solid_white
+right_boundary broken_white
+exit 1.2.13 3.1.1 l
+exit 1.2.13 3.2.1 l
+exit 1.2.18 2.1.1 l
+exit 1.2.18 2.2.1 l
+1.2.1 0.00 0.18
+1.2.2 0.47 0.18
+1.2.3 0.88 0.18
+1.2.4 1.54 0.17
+1.2.5 2.27 0.21
+1.2.6 2.96 0.30
+1.2.7 3.40 0.80
+1.2.8 3.43 1.25
+1.2.9 3.43 1.95
+1.2.10 3.37 2.40
+1.2.11 2.92 2.85
+1.2.12 2.28 2.90
+1.2.13 1.55 2.61
+1.2.14 0.90 2.61
+1.2.15 0.14 2.89
+1.2.16 -0.46 2.84
+1.2.17 -0.87 2.36
+1.2.18 -0.90 1.88
+1.2.19 -0.90 1.18
+1.2.20 -0.81 0.71
+1.2.21 -0.39 0.26
+1.2.22 0.00 0.18
+end_lane
+end_segment
+segment 2
+num_lanes 2
+segment_name Horizontal_Drive
+lane 2.1
+num_waypoints 6
+lane_width 0.35
+stop 2.1.3
+exit 2.1.3 3.1.3 r
+exit 2.1.3 3.2.3 r
+exit 2.1.6 1.1.9 l
+exit 2.1.6 1.2.9 l
+2.1.1 -0.70 1.38
+2.1.2 -0.02 1.38
+2.1.3 0.80 1.38
+2.1.4 1.62 1.44
+2.1.5 2.38 1.44
+2.1.6 3.19 1.44
+end_lane
+lane 2.2
+num_waypoints 6
+exit 2.2.3 3.1.3 r
+exit 2.2.3 3.2.3 r
+exit 2.2.6 1.1.9 l
+exit 2.2.6 1.2.9 l
+2.2.1 -0.70 1.72
+2.2.2 0.01 1.72
+2.2.3 0.80 1.72
+2.2.4 1.62 1.79
+2.2.5 2.37 1.79
+2.2.6 3.19 1.79
+end_lane
+end_segment
+segment 3
+num_lanes 2
+segment_name Vertical_Road
+lane 3.1
+num_waypoints 4
+lane_width 0.35
+exit 3.1.2 2.1.4 l
+exit 3.1.2 2.2.4 l
+exit 3.1.4 1.1.4 l
+exit 3.1.4 1.2.4 l
+3.1.1 1.04 2.38
+3.1.2 1.04 1.95
+3.1.3 1.04 1.18
+3.1.4 1.03 0.38
+end_lane
+lane 3.2
+num_waypoints 4
+lane_width 0.35
+exit 3.2.2 2.1.4 l
+exit 3.2.2 2.2.4 l
+exit 3.2.4 1.1.4 l
+exit 3.2.4 1.2.4 l
+3.2.1 1.40 2.38
+3.2.2 1.38 1.95
+3.2.3 1.39 1.18
+3.2.4 1.39 0.38
+end_lane
+end_segment
+end_file
+</html>

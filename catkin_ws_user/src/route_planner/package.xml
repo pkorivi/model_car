@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package>
+  <name>route_planner</name>
+  <version>0.0.0</version>
+  <description>The path_pt_publisher package</description>
+
+  <maintainer email="pradeepkorivi@gmail.com">Pradeep korivi</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>visualization_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>visualization_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>rospy</run_depend>
+
+  <export>
+
+  </export>
+</package>
