@@ -26,7 +26,7 @@ right_turn_weight = 2
 
 
 ##Publisher
-path_pub = rospy.Publisher("/route_planner_sub_path",Path,queue_size=100)
+path_pub = rospy.Publisher("/route_planner/sub_path",Path,queue_size=100)
 
 ##gloabl
 seg_sub_paths = None
@@ -231,7 +231,7 @@ def completed_sub_path(data):
         #path to send the Rviz
         my_path = Path()
         my_path.header.stamp = rospy.Time.now()
-        my_path.header.frame_id = '/odom'
+        my_path.header.frame_id = '/map'
 
         for pt in seg_sub_paths[sub_path_number]:
             pose = PoseStamped()
@@ -256,8 +256,8 @@ def start():
     #Save the Grah & rndf to a pickled file for easy retreive next time
     graph, rndf = create_graph()
     ###Find the shortest path from source to Destination
-    src_coordi = [1,0]
-    dst_coordi = [-1,0]
+    src_coordi = [-0.75,0]
+    dst_coordi = [-2.0,0]
     closest_way_pt_src  = closest_node(graph,src_coordi)
     closest_way_pt_dst = closest_node(graph,dst_coordi)
     # The indexes start from 0 and the names start from 1, check indexes and refer to map for points
@@ -276,8 +276,6 @@ def start():
         #print G.get_edge_data(prev,node,default=0)
         prev = node
     """
-    # TODO: from here - what to do once I have sub paths
-
     #Sleep for a while to let all nodes Initialize
     time.sleep(.300)
     #posestamped list
