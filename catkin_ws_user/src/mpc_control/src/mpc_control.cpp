@@ -231,6 +231,7 @@ int main(int argc, char **argv)
   //5 Hz loop rate - for calculating a predicted path and publishing steering and speed
   ros::Rate loop_rate(10);
   while(ros::ok()){
+    auto start = std::chrono::high_resolution_clock::now();
     //Transform received Path to Car Frame of reference
     Eigen::VectorXd t_ptsx(control1.ptsx.size());
     Eigen::VectorXd t_ptsy(control1.ptsy.size());
@@ -279,11 +280,15 @@ int main(int argc, char **argv)
     // assuming steering to be in -45 to 45 in radians convert it to degrees and as 90 is straight, this values convert as required by car
     //TODO substrcted from 90 as car was steering in opposite - just check again if it's fine
     steer_value.data  = (int)(90  - 57.2958*vars[0]);
+    if(steer_value.data  < 90){
+      steer_value.data  = (int)(steer_value.data/1.5);
+    }
     //TODO - use a proper value as per rate
     float loop_time = 0.1; //period of loop - convert based on loop rate
     //calculate the required velocity - then convert to rotations per min by multiplying with 5.1366 and 60
-    speed_value.data = (int)((control1.velocity + vars[1]*loop_time)*5.1366*60);
-    //speed_value.data = (int)(prev_speed + vars[1]*loop_time*5.1366*60); //TODO
+    //TODO - this is a fix, nedd to improve
+    //speed_value.data = (int)((control1.velocity + vars[1]*loop_time)*5.1366*60);
+    speed_value.data = (int)(prev_speed + vars[1]*loop_time*5.1366*60); //TODO
     //TODO - Come up with better logic
     if (speed_value.data < 50 && speed_value.data > 0) {
       speed_value.data = 50;
@@ -292,6 +297,15 @@ int main(int argc, char **argv)
     else if (speed_value.data > -50 && speed_value.data < 0) {
       speed_value.data = -50;
     }
+
+    if (speed_value.data > 200) {
+      speed_value.data = 200;
+    }
+    //TODO - can car go reverse ?? set these limits in the solver.
+    else if (speed_value.data < -200) {
+      speed_value.data = -200;
+    }
+
     //If required use the previous given speed instead of the speed from
     prev_speed = speed_value.data;
     //As the robot takes negative values
@@ -321,6 +335,10 @@ int main(int argc, char **argv)
     //Publish steering, throttle - for robot to drive
     control1.pub_steering_.publish(steer_value);
     control1.pub_speed_.publish(speed_value);
+
+    auto elapsed = std::chrono::high_resolution_clock::now() - start;
+    long long microseconds = std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    ROS_INFO("exec time :: %llu", microseconds);
 
     ros::spinOnce();
     loop_rate.sleep();
