@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/install_isolated
+
+Name: ecl_threads
+Description: Description of ecl_threads
+Version: 0.61.18
+Cflags: -I/home/korivi/model_car/ecl_lib/install_isolated/include
+Libs: -L/home/korivi/model_car/ecl_lib/install_isolated/lib -lecl_threads -lpthread
+Requires: ecl_config ecl_errors ecl_concepts ecl_exceptions ecl_time ecl_utilities

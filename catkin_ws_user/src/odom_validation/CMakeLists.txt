@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   std_msgs
   cmake_modules
-  nodelet
   nav_msgs
   rospy
   roscpp
@@ -37,7 +36,7 @@ find_package(OpenCV REQUIRED)
 catkin_package(
   INCLUDE_DIRS
   LIBRARIES
-  CATKIN_DEPENDS image_transport roscpp sensor_msgs geometry_msgs tf cv_bridge message_runtime std_msgs nodelet
+  CATKIN_DEPENDS image_transport roscpp sensor_msgs geometry_msgs tf cv_bridge message_runtime std_msgs
   DEPENDS Eigen
 )
 
@@ -69,5 +68,5 @@ install(DIRECTORY launch
 )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
-install(FILES nodelet_plugins.xml
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+#install(FILES nodelet_plugins.xml
+#        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

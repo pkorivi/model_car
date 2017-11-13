@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/korivi/model_car/ecl_lib/devel_isolated/ecl_time_lite/setup.sh

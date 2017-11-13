@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC   -shared -Wl,-soname,libgtest.so -o libgtest.so CMakeFiles/gtest.dir/src/gtest-all.cc.o  -L/home/korivi/model_car/ecl_lib/build_isolated/ecl_streams/gtest/src -lpthread -Wl,-rpath,/home/korivi/model_car/ecl_lib/build_isolated/ecl_streams/gtest/src 

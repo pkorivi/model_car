@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/test_char_sign.dir/char_sign.cpp.o  -o /home/korivi/model_car/ecl_lib/devel/lib/ecl_config/test_char_sign  -L/home/korivi/model_car/ecl_lib/build/gtest -rdynamic ../../../gtest/libgtest.so -lpthread -Wl,-rpath,/home/korivi/model_car/ecl_lib/build/gtest 

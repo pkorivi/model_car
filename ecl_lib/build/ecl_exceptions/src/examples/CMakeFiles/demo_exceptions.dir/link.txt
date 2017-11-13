@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/demo_exceptions.dir/exceptions.cpp.o  -o /home/korivi/model_car/ecl_lib/devel/lib/ecl_exceptions/demo_exceptions -rdynamic /home/korivi/model_car/ecl_lib/devel/lib/libecl_exceptions.so /home/korivi/model_car/ecl_lib/devel/lib/libecl_errors.so -Wl,-rpath,/home/korivi/model_car/ecl_lib/devel/lib: 

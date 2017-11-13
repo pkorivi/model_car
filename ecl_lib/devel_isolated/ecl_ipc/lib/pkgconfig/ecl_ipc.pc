@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_ipc
+
+Name: ecl_ipc
+Description: Description of ecl_ipc
+Version: 0.61.18
+Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_ipc/include
+Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_ipc/lib -lecl_ipc
+Requires: ecl_config ecl_errors ecl_time_lite ecl_exceptions ecl_time

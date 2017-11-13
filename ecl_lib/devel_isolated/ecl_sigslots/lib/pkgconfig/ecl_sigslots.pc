@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_sigslots
+
+Name: ecl_sigslots
+Description: Description of ecl_sigslots
+Version: 0.61.18
+Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_sigslots/include
+Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_sigslots/lib 
+Requires: ecl_config ecl_threads

@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/test_portable_types.dir/portable_types.cpp.o  -o /home/korivi/model_car/ecl_lib/devel_isolated/ecl_config/lib/ecl_config/test_portable_types  -L/home/korivi/model_car/ecl_lib/build_isolated/ecl_config/gtest -rdynamic ../../gtest/libgtest.so -lpthread -Wl,-rpath,/home/korivi/model_car/ecl_lib/build_isolated/ecl_config/gtest 

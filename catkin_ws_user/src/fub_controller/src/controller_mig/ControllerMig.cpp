@@ -85,7 +85,7 @@ void ControllerMig::update(VehicleState const & currentVehicleState)
 
     //update spline for path following
     mPathFollower.updateSplineAndClosestPoints(currentVehicleState);
-    
+
     // get bearing angle
     double const angleBearing = mPathFollower.getBearingAngle(currentVehicleState);
 
@@ -134,12 +134,14 @@ void ControllerMig::publishWantedSpeedAndFrontWheelAngle(double speed, double wh
 {
     // publish wanted speed
         std_msgs::Int16 wantedSpeedMsg;
-        wantedSpeedMsg.data        = static_cast<int16_t>(speed *(-1489.36));
+        //TODO korivi . updating max speed to 1000 from 1489.36
+        wantedSpeedMsg.data        = static_cast<int16_t>(speed *(-1000.00));
         mWantedSpeedPublisher.publish(wantedSpeedMsg);
 
     // publish wanted steering angle
         std_msgs::Int16 wantedAngleMsg;
-        wantedAngleMsg.data = static_cast<int16_t>(90.0 * wheelAngle) + 90;
+        //TODO : Korivi - the eqn (90.0 * wheelAngle) + 90 changed to below for making them suitable for the model car
+        wantedAngleMsg.data = static_cast<int16_t>(80.0 * -wheelAngle) + 81;
         mWantedSteeringAnglePublisher.publish(wantedAngleMsg);
 }
 

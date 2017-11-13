@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_config
+
+Name: ecl_config
+Description: Description of ecl_config
+Version: 0.61.6
+Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_config/include -I/home/korivi/model_car/ecl_lib/devel_isolated/ecl_config/include
+Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_config/lib 
+Requires: 

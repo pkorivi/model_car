@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/install_isolated
+
+Name: ecl_type_traits
+Description: Description of ecl_type_traits
+Version: 0.61.18
+Cflags: -I/home/korivi/model_car/ecl_lib/install_isolated/include
+Libs: -L/home/korivi/model_car/ecl_lib/install_isolated/lib -lecl_type_traits
+Requires: ecl_config ecl_mpl

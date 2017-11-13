@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/devel
+
+Name: ecl_mpl
+Description: Description of ecl_mpl
+Version: 0.61.18
+Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_mpl/include
+Libs: -L/home/korivi/model_car/ecl_lib/devel/lib 
+Requires: 

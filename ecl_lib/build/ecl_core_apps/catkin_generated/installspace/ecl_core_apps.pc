@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/install
+
+Name: ecl_core_apps
+Description: Description of ecl_core_apps
+Version: 0.61.18
+Cflags: 
+Libs: -L/home/korivi/model_car/ecl_lib/install/lib 
+Requires: 

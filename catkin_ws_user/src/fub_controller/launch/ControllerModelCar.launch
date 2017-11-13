@@ -3,7 +3,7 @@
     <arg name="use_nodelets"    default="$(optenv USE_NODELETS false)" />
     <arg name="nodelet_manager" default="$(optenv controller_NODELET_MANAGER controller_nodelet_manager)" />
     <remap from="planned_path"                     to="/model_car/trajectory" />
-    <group ns="test">
+    <!-- group ns="test" -->
     <node unless="$(arg use_nodelets)"
         pkg="fub_controller"
         name="fub_controller_mig"
@@ -22,5 +22,5 @@
     >
         <param name="odom_frame" value="$(arg odom_frame)" />
     </node>
-</group>
+<!--/group-->
 </launch>

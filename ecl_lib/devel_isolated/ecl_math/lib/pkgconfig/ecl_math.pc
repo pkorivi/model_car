@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_math
+
+Name: ecl_math
+Description: Description of ecl_math
+Version: 0.61.18
+Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_math/include
+Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_math/lib 
+Requires: ecl_type_traits

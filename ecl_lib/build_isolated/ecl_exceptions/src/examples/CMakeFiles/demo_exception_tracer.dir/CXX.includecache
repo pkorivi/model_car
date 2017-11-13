@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/korivi/model_car/ecl_lib/install_isolated/include/ecl/config/ecl.hpp
+ecl_unknown.hpp
+/home/korivi/model_car/ecl_lib/install_isolated/include/ecl/config/ecl_unknown.hpp
+
+/home/korivi/model_car/ecl_lib/install_isolated/include/ecl/config/ecl_unknown.hpp
+limits
+-
+climits
+-
+cstdint
+-
+stdint.h
+-
+stdint.h
+-
+
+/home/korivi/model_car/ecl_lib/src/ecl_exceptions/src/examples/exception_tracer.cpp
+ecl/config/ecl.hpp
+-
+execinfo.h
+-
+signal.h
+-
+cstdlib
+-
+exception
+-
+iostream
+-
+iostream
+-
+

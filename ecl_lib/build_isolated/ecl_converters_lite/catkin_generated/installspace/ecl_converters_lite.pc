@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/install_isolated
+
+Name: ecl_converters_lite
+Description: Description of ecl_converters_lite
+Version: 0.61.6
+Cflags: -I/home/korivi/model_car/ecl_lib/install_isolated/include
+Libs: -L/home/korivi/model_car/ecl_lib/install_isolated/lib 
+Requires: 

@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_errors
+
+Name: ecl_errors
+Description: Description of ecl_errors
+Version: 0.61.6
+Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_errors/include
+Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_errors/lib -lecl_errors
+Requires: 

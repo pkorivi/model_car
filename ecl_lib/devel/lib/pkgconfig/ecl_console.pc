@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/devel
+
+Name: ecl_console
+Description: Description of ecl_console
+Version: 0.61.6
+Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_console/include
+Libs: -L/home/korivi/model_car/ecl_lib/devel/lib 
+Requires: ecl_build ecl_config

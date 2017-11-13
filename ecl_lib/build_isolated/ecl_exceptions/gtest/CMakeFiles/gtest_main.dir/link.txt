@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC   -shared -Wl,-soname,libgtest_main.so -o libgtest_main.so CMakeFiles/gtest_main.dir/src/gtest_main.cc.o  -L/home/korivi/model_car/ecl_lib/build_isolated/ecl_exceptions/gtest/src -lpthread libgtest.so -lpthread -Wl,-rpath,/home/korivi/model_car/ecl_lib/build_isolated/ecl_exceptions/gtest/src:/home/korivi/model_car/ecl_lib/build_isolated/ecl_exceptions/gtest 

@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_exceptions
+
+Name: ecl_exceptions
+Description: Description of ecl_exceptions
+Version: 0.61.18
+Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_exceptions/include
+Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_exceptions/lib -lecl_exceptions
+Requires: ecl_config ecl_errors

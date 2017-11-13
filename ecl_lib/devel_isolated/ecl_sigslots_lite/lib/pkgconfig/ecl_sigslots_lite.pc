@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_sigslots_lite
+
+Name: ecl_sigslots_lite
+Description: Description of ecl_sigslots_lite
+Version: 0.61.6
+Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_sigslots_lite/include
+Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_sigslots_lite/lib -lecl_sigslots_lite
+Requires: 

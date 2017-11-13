@@ -22,12 +22,14 @@ void twistCallback(const geometry_msgs::Twist& msg)
   float vx_=round(msg.linear.x / (5.5))*(0.031);//rad/s and gear ratio: 5.5  and the wheel Radius 0.031 meter
   vx = roundf(vx_ * 100) / 100;  /* Result: 37.78 */
 }
+
+//TODO Removed the negative sign in in calculaing the heading angle, it is needed to suit simulator, update this back to original for testing on car
 void headingCallback(const std_msgs::Float32& msg)
 {
   if (init==false)
   {
     init=true;
-    head=msg.data* (-3.14/180.0); //rad
+    head=msg.data* (3.14/180.0); //rad
     initial_head=head;
     vth=0.0;
     current_time_twist = ros::Time::now();
@@ -38,7 +40,7 @@ void headingCallback(const std_msgs::Float32& msg)
     // last_time_twist=current_time_twist;
     // current_time_twist = ros::Time::now();
     //last_head=head;
-    head=msg.data* (-3.14/180.0); //rad
+    head=msg.data* (3.14/180.0); //rad
     // double dt_twist = (current_time_twist - last_time_twist).toSec();
     double delta_head=head-initial_head;
     if (delta_head>3.14)

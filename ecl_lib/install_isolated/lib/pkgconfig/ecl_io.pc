@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/install_isolated
+
+Name: ecl_io
+Description: Description of ecl_io
+Version: 0.61.6
+Cflags: -I/home/korivi/model_car/ecl_lib/install_isolated/include
+Libs: -L/home/korivi/model_car/ecl_lib/install_isolated/lib -lecl_io
+Requires: 

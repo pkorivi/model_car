@@ -1,0 +1,8 @@
+prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_build
+
+Name: ecl_build
+Description: Description of ecl_build
+Version: 0.61.6
+Cflags: 
+Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_build/lib 
+Requires: 
