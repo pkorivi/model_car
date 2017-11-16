@@ -65,8 +65,8 @@ if __name__=="__main__":
                 speed_val +=  speedBindings[key]
                 if (speed_val > 800):
                     speed_val = 800
-                elif (speed_val <0):
-                    speed_val = 0
+                elif (speed_val <-800):
+                    speed_val = -800
             elif key in turnBindings.keys():
                 #print "sp key!!",key,"!!"
                 turn_val += turnBindings[key]
@@ -75,11 +75,11 @@ if __name__=="__main__":
                 elif turn_val <0:
                     turn_val =0;
             elif key in stopBindings.keys():
-                turn_val = 0
+                turn_val = 81
                 speed_val = 0
             if (key == '\x03'):
                 speed.publish(0)
-                turn.publish(0)
+                turn.publish(81)
                 break
 
             print vels(speed_val,turn_val)
