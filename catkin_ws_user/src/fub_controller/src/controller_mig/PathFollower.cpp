@@ -34,7 +34,7 @@ void PathFollower::updateSplineAndClosestPoints(VehicleState const & currentVehi
     mSpline.createSpline(currentVehicleState.mPath);
     mSpline.publishSampledSpline(mSplineSamplePublisher, mFrameID);
     mSpline.publishSampledSplineDerivative(mSplineDerivativeSamplePublisher, mFrameID);
-    
+
     //update closest point in space
     mClosestParamInSpace = mSpline.getClosestParam(currentVehicleState.mVehiclePosition);
 
@@ -51,16 +51,18 @@ void PathFollower::updateSplineAndClosestPoints(VehicleState const & currentVehi
     mClosestPointInTime.setX(mSpline.getX(mClosestParamInTime));
     mClosestPointInTime.setY(mSpline.getY(mClosestParamInTime));
     mClosestPointInTime.setZ(mSpline.getZ(mClosestParamInTime));
-    
+
     publishClosestPointInTimeMarker();
 }
 
-
+/*
+Bearing angle is slope of the line connecting the current position with steering look ahead point
+*/
 double PathFollower::getBearingAngle(VehicleState const & currentVehicleState)
 {
     calcSteeringLookaheadPoint(currentVehicleState);
     publishSteeringLookAheadPointMarker();
-    
+
     //calc bearing
     tf::Vector3 diffPosTrajCarVec = mSteeringLookaheadPoint - currentVehicleState.mVehiclePosition;
     double angleBearing = atan2(diffPosTrajCarVec[1], diffPosTrajCarVec[0]);
@@ -79,19 +81,19 @@ void PathFollower::calcSteeringLookaheadPoint(VehicleState const & currentVehicl
     mSteeringLookaheadPoint.setZ(mSpline.getZ(param));
 
     double lookaheadDist = mClosestPointInSpace.distance(mSteeringLookaheadPoint);
-    
+
     //we want to look ahead at least min_lookahead_dist in space (if the plan is long enough)
     while (lookaheadDist < mConfig.steering_min_lookahead_dist and (mClosestParamInSpace + lookaheadTime) <= mSpline.getLastParam()) {
         lookaheadTime += 0.0001;  //TODO make this a binary search
         param = fmax(mSpline.getFirstParam(), fmin(mClosestParamInSpace + lookaheadTime, mSpline.getLastParam()));
-    
+
         mSteeringLookaheadPoint.setX(mSpline.getX(param));
         mSteeringLookaheadPoint.setY(mSpline.getY(param));
         mSteeringLookaheadPoint.setZ(mSpline.getZ(param));
-        
+
         lookaheadDist = mClosestPointInSpace.distance(mSteeringLookaheadPoint);
     }
-    
+
     //check if lookahead point is still too close
     if (lookaheadDist < mConfig.steering_min_lookahead_dist) {
         double distMissing = mConfig.steering_min_lookahead_dist - lookaheadDist;
@@ -103,23 +105,23 @@ void PathFollower::calcSteeringLookaheadPoint(VehicleState const & currentVehicl
         double carPosY = currentVehicleState.mVehiclePosition[1];
         double closestPosX = mClosestPointInSpace[0];
         double closestPosY = mClosestPointInSpace[1];
-        
+
         double fromCarToClosestX = closestPosX - carPosX;
         double fromCarToClosestY = closestPosY - carPosY;
-        
+
         double dotProduct = (fromCarToClosestX*carOrientVecX)+(fromCarToClosestY*carOrientVecY);
-        
+
         if (dotProduct < 0) { //we are at the end of the plan
             double distCarToLookahead = sqrt((carPosX-closestPosX)*(carPosX-closestPosX) + (carPosY-closestPosY)*(carPosY-closestPosY));
             distMissing += distCarToLookahead;
         }
-        
+
         //use orientation of last point of plan to project a point the min dist
         tf::Quaternion lastOrientationQuat;
         tf::quaternionMsgToTF(currentVehicleState.mPath.trajectory.back().pose.orientation, lastOrientationQuat);
         tf::Vector3 orientationVec = tf::Vector3(1,0,0).rotate(lastOrientationQuat.getAxis(),lastOrientationQuat.getAngle());
         mSteeringLookaheadPoint = mSteeringLookaheadPoint + orientationVec.normalized()* distMissing;
-        
+
     }
 }
 
@@ -136,27 +138,27 @@ double PathFollower::getWantedVelocity(VehicleState const & currentVehicleState)
     //get velocity at lookahead param
     tf::Vector3 velocityVectorAtLookahead(mSpline.getVelX(lookaheadParam),mSpline.getVelY(lookaheadParam),mSpline.getVelZ(lookaheadParam));
     double wantedVelocity = velocityVectorAtLookahead.length();//*meters/seconds;
-    
+
     //get lookahead point
     mVelocityLookaheadPoint.setX(mSpline.getX(lookaheadParam));
     mVelocityLookaheadPoint.setY(mSpline.getY(lookaheadParam));
     mVelocityLookaheadPoint.setZ(mSpline.getZ(lookaheadParam));
 
     publishVelocityLookAheadPointMarker();
-    
+
     //adjust velocity due to error between current position in space and planned position in time
     double distToPlannedPoint = mClosestPointInSpace.distance(mVelocityLookaheadPoint);
     double factor = mConfig.velocity_lookahead_dist_error_factor;
-    
+
     double maxCorrection = mConfig.velocity_max_offset;
     double velocityCorrection = fmin(distToPlannedPoint*factor, maxCorrection);//meters/seconds
-    
+
     if (lookaheadParam>mClosestParamInSpace) {
         wantedVelocity += velocityCorrection;
     } else {
         wantedVelocity -= velocityCorrection;
     }
-    
+
     //reduce velocity if we are to far away from the spline
     double x = mClosestPointInSpace.x()-currentVehicleState.mVehiclePosition.x();
     double y = mClosestPointInSpace.y()-currentVehicleState.mVehiclePosition.y();
@@ -165,7 +167,7 @@ double PathFollower::getWantedVelocity(VehicleState const & currentVehicleState)
     double safetyVel = 0.3;//*meters/seconds;
     double safeDist = 0.2; //within this distance from the spline it is ok to drive the wanted velocity
     double safeDist2 = 2.0; //above this distance from the spline we want to drive with safety velocity
-    
+
     double safeWantedVelocity = safetyVel;
     if (distCarToTrajectory2d < safeDist) {
         //ok, we are safe
@@ -174,6 +176,7 @@ double PathFollower::getWantedVelocity(VehicleState const & currentVehicleState)
         //interpolate
         safeWantedVelocity = ((((safeDist2-distCarToTrajectory2d) - safeDist2)/(safeDist-safeDist2))*(wantedVelocity-safetyVel)+safetyVel);//*meters/seconds;
     }
+    ROS_INFO("lookaheadTime %f, lookaheadParam %f, wvel_crkt %f, safe_vel %f  ",lookaheadTime,lookaheadParam,wantedVelocity,safeWantedVelocity );
     return safeWantedVelocity;
 }
 
@@ -192,7 +195,7 @@ int PathFollower::getClosestIdxOnPlan(tf::Point const & referencePoint, fub_traj
             indexOfCurrentBestPoint = i;
         }
     }
-    
+
     return indexOfCurrentBestPoint;
 }
 

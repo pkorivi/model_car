@@ -51,7 +51,8 @@ protected:
 
 
     /** This function checks for IMU orientation error while comparing motion vector with orientation vector
-     ** idea - given three gps poses, the middle pose orientation should roughly equal the difference vector between first and last gps pose, assuming the pose is on rear axis
+     ** idea - given three gps poses, the middle pose orientation should roughly equal the difference vector
+     ** between first and last gps pose, assuming the pose is on rear axis
      **
      ** @param currentVehicleState  The current vehicle state.
      **

@@ -134,14 +134,26 @@ void ControllerMig::publishWantedSpeedAndFrontWheelAngle(double speed, double wh
 {
     // publish wanted speed
         std_msgs::Int16 wantedSpeedMsg;
-        //TODO korivi . updating max speed to 1000 from 1489.36
-        wantedSpeedMsg.data        = static_cast<int16_t>(speed *(-1000.00));
+        //TODO korivi . updating max speed to 308 from 1489.36
+        // This conversion is made on basis that speed is calculated in mps and the output to the motor is in rpm of wheel.
+        /* TODO - verify these conversions - this is basis for chosing 308
+        1000rpm for motor - then
+        wheel speed max =  1000/(5.5*60) = 3.03rot per sec => 3.03*2*3.14*0.031 = 0.5899 mps
+        if 1000rpm is wheel speed then
+        wheel speed max  =  1000/60 ==> 3.244 mps. From simulation - this is correct
+        if 3.24 mps is max velocity, whats the time I want to attain it?
+        lets say in 5s then -> 3.24/5 = 0.65 mpss
+        min max accc =  [-0.65, 0.65] lets limit it to [-0.5:0.5]
+        1m - 5.1366 rotations of wheel.
+        */
+        wantedSpeedMsg.data        = static_cast<int16_t>(speed *(-308.26));
         mWantedSpeedPublisher.publish(wantedSpeedMsg);
 
     // publish wanted steering angle
         std_msgs::Int16 wantedAngleMsg;
         //TODO : Korivi - the eqn (90.0 * wheelAngle) + 90 changed to below for making them suitable for the model car
-        wantedAngleMsg.data = static_cast<int16_t>(80.0 * -wheelAngle) + 81;
+        //TODO - looks like the original 0 is left and 180 is right, simulator is reservse. change this
+        wantedAngleMsg.data = static_cast<int16_t>(80.0 * wheelAngle) + 81;
         mWantedSteeringAnglePublisher.publish(wantedAngleMsg);
 }
 

@@ -9,9 +9,9 @@ namespace mig {
 
 void VehicleState::setup(ros::NodeHandle & nh)
 {
-    // todo: increase odom queue to at least 32
+    // TODO: increase odom queue to at least 32
     mSubscriberOdom         = nh.subscribe("/odom", 1, &VehicleState::odometryCallback, this, ros::TransportHints().tcpNoDelay());
-    mSubscriberPlannedPath  = nh.subscribe("planned_path", 1, &VehicleState::plannedPathCallback, this, ros::TransportHints().tcpNoDelay());
+    mSubscriberPlannedPath  = nh.subscribe("planned_path", 1, &VehicleState::plannedPathCallback, this, ros::TransportHints().tcpNoDelay()); 
 }
 
 void VehicleState::plannedPathCallback(const fub_trajectory_msgs::TrajectoryConstPtr & msg)

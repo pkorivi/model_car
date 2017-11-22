@@ -28,18 +28,18 @@ void Spline::createSpline(fub_trajectory_msgs::Trajectory const & plan)
     tf::Quaternion frontOrientation;
     tf::quaternionMsgToTF(plan.trajectory.front().pose.orientation, frontOrientation);
     frontVelocity = frontVelocity.rotate(frontOrientation.getAxis(), frontOrientation.getAngle());
-    
+
     tf::Vector3 backVelocity;
     tf::vector3MsgToTF(plan.trajectory.back().velocity.linear, backVelocity);
     tf::Quaternion backOrientation;
     tf::quaternionMsgToTF(plan.trajectory.back().pose.orientation, backOrientation);
     backVelocity = backVelocity.rotate(backOrientation.getAxis(), backOrientation.getAngle());
-    
+
     //create splines for each dimension from the arrays
     mSpline_x = ecl::CubicSpline::ContinuousDerivatives(x_set, y_set_x, frontVelocity.getX(), backVelocity.getX());
     mSpline_y = ecl::CubicSpline::ContinuousDerivatives(x_set, y_set_y, frontVelocity.getY(), backVelocity.getY());
     mSpline_z = ecl::CubicSpline::ContinuousDerivatives(x_set, y_set_z, frontVelocity.getZ(), backVelocity.getZ());
-    
+
     mFirstParam = plan.trajectory.front().time_from_start.toSec();
     mLastParam = plan.trajectory.back().time_from_start.toSec();
 }
@@ -126,9 +126,9 @@ void Spline::publishSampledSplineDerivative(ros::Publisher & publisher, std::str
 
     for (float i = mFirstParam; i < mLastParam; i = i + xSampleDistance) {
         geometry_msgs::PoseStamped examplePose;
-
-        examplePose.pose.position.x = 0;
-        examplePose.pose.position.y = i;
+        //TODO : Korivi - changed from 0,i to (x,y) position so that we can see how velocity varies over the lenth of the spline - may be change back to (0,i) later
+        examplePose.pose.position.x = mSpline_x(i);//0;
+        examplePose.pose.position.y = mSpline_y(i);//i;
         examplePose.pose.position.z = tf::Vector3(mSpline_x.derivative(i),mSpline_y.derivative(i),mSpline_z.derivative(i)).length();
         examplePose.pose.orientation.x = 0.0f;
         examplePose.pose.orientation.y = 0.0f;

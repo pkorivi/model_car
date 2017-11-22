@@ -12,7 +12,19 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import Int16
 from std_msgs.msg import Float32
 
-file2write=open("odom_car.txt",'w')
+file2write=open("odom_car_2.txt",'w')
+
+speed = 0
+steer = 0
+
+def speed_callback(data):
+    global speed
+    speed = data.data
+
+def steer_callback(data):
+    global steer
+    steer = data.data
+
 
 def odom_callback(data):
     global x,y,z
@@ -21,12 +33,20 @@ def odom_callback(data):
     file2write.write(str(data.pose.pose.position.x))
     file2write.write(",")
     file2write.write(str(data.pose.pose.position.y))
+    file2write.write(",")
+    file2write.write(str(data.twist.twist.linear.x))
+    file2write.write(",")
+    file2write.write(str(speed))
+    file2write.write(",")
+    file2write.write(str(steer))
     file2write.write("\n")
 
 def main(args):
     rospy.init_node('odom_plotter', anonymous = False)
     print('Publish odometry from car/rosbag to record to odom_car.txt ')
     image_sub = rospy.Subscriber("/odom",Odometry, odom_callback)
+    image_sub = rospy.Subscriber("/manual_control/speed",Int16, speed_callback)
+    image_sub = rospy.Subscriber("/manual_control/steering",Int16, steer_callback)
     rospy.spin()
 
 
