@@ -9,10 +9,10 @@
 #include <nodelet/nodelet.h>
 
 namespace fub_motion_planner{
-  class motion_planner : public nodelet::Nodelet{
+  class MotionPlanner : public nodelet::Nodelet{
     public:
-        motion_planner();
-        ~motion_planner();
+        MotionPlanner();
+        ~MotionPlanner();
         virtual void onInit();
   };
 } // namespace sample_nodelet_ns

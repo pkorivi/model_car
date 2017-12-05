@@ -4,10 +4,10 @@
     name="mp_nodelet_manager" output="screen" />
 
 	<!-- $ rosrun nodelet nodelet load sample_nodelet/SampleNodeletClass sample_nodelet_manager __name:=SampleNodeletClass_loader-->
-	<node pkg="nodelet" type="nodelet" args="load motion_planner/motion_planner mp_nodelet_manager"
-    name="motion_planner" output="screen">
+	<node pkg="nodelet" type="nodelet" args="load MotionPlanner/MotionPlanner mp_nodelet_manager"
+    name="MotionPlanner" output="screen">
 	</node>
-	<node pkg="nodelet" type="nodelet" args="load motion_planner/Vehicle_state mp_nodelet_manager"
-		name="Vehicle_state" output="screen">
+	<node pkg="nodelet" type="nodelet" args="load MotionPlanner/VehicleState mp_nodelet_manager"
+		name="VehicleState" output="screen">
 	</node>
 </launch>

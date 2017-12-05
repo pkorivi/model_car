@@ -1,14 +1,14 @@
-<library path="lib/libmotion_planner">
-	<class name="motion_planner/motion_planner" type="fub_motion_planner::motion_planner"
+<library path="lib/libMotionPlanner">
+	<class name="MotionPlanner/MotionPlanner" type="fub_motion_planner::MotionPlanner"
 		base_class_type="nodelet::Nodelet">
 		<description>
-			motion_planner.
+			MotionPlanner.
 		</description>
 	</class>
-	<class name="motion_planner/Vehicle_state" type="fub_motion_planner::Vehicle_state"
+	<class name="MotionPlanner/VehicleState" type="fub_motion_planner::VehicleState"
 		base_class_type="nodelet::Nodelet">
 		<description>
-			Vehicle_state.
+			VehicleState.
 		</description>
 	</class>
 </library>

@@ -37,11 +37,11 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(motion_planner
-  src/motion_planner.cpp
-  src/Vehicle_state.cpp
+add_library(MotionPlanner
+  src/MotionPlanner.cpp
+  src/VehicleState.cpp
 )
-target_link_libraries(motion_planner ${catkin_LIBRARIES})
+target_link_libraries(MotionPlanner ${catkin_LIBRARIES})
 if(catkin_EXPORTED_LIBRARIES)
-  add_dependencies(motion_planner ${catkin_EXPORTED_LIBRARIES})
+  add_dependencies(MotionPlanner ${catkin_EXPORTED_LIBRARIES})
 endif()
