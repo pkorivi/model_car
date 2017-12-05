@@ -1,0 +1,14 @@
+<launch>
+  <arg name="map_file" default="$(find dummy_cpp)/launch/map2.yaml"/>
+  <!-- Run the map server -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
+    </node>
+  <node name="tf" pkg="tf" type="static_transform_publisher"
+      args="0 0 0 0 0 0 map my_frame 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="odom_to_map"
+      args="0 0 0 0 0 0 /map /odom 100" />
+  <node pkg="rviz" type="rviz" name="rviz" output="screen">
+    </node>
+  <node pkg="dummy_cpp" type="dummy_cpp" name="dummy_cpp" output="screen">
+    </node>
+</launch>
