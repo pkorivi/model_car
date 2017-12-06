@@ -14,11 +14,11 @@
 #include <tf/tf.h>
 
 namespace fub_motion_planner{
-  class VehicleState : public nodelet::Nodelet{
+  class VehicleState {    //: public nodelet::Nodelet
     public:
         VehicleState();
         ~VehicleState();
-        virtual void onInit();
+        //virtual void onInit();
 
         void setup(ros::NodeHandle & nh);
         /** Retrieve the vehicle's yaw orientation in the world

@@ -7,7 +7,7 @@
 	<node pkg="nodelet" type="nodelet" args="load MotionPlanner/MotionPlanner mp_nodelet_manager"
     name="MotionPlanner" output="screen">
 	</node>
-	<node pkg="nodelet" type="nodelet" args="load MotionPlanner/VehicleState mp_nodelet_manager"
+	<!--node pkg="nodelet" type="nodelet" args="load MotionPlanner/VehicleState mp_nodelet_manager"
 		name="VehicleState" output="screen">
-	</node>
+	</node-->
 </launch>
