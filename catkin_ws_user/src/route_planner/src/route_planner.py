@@ -24,7 +24,17 @@ turn_weight = 1 # This makes the car to choose longer path over turns
 left_turn_weight = 5
 right_turn_weight = 2
 
-
+#TODO
+"""
+Chnage the path to something where you can convey some information
+header - time, frame_id
+list of
+point - (x,y)
+significance - each point as stop, intersection(T,Y,X,+, any other), turn(l,r,s,round about) etc
+road type -  one way, two way
+road width -
+road available to left
+"""
 ##Publisher
 path_pub = rospy.Publisher("/route_planner/sub_path",Path,queue_size=100)
 
@@ -283,14 +293,14 @@ def start():
     #path to send the Rviz
     my_path = Path()
     my_path.header.stamp = rospy.Time.now()
-    my_path.header.frame_id = '/odom'
+    my_path.header.frame_id = '/map'
     for pt in seg_sub_paths[0]:
         pose = PoseStamped()
         pose.pose.position.x =pt[0]
         pose.pose.position.y =pt[1]
         pose_list.append(pose)
         my_path.poses.append(pose)
-
+    #TODO Add a way point which is bfore the start line to keep the flow
     path_pub.publish(my_path)
     #This keeps the  active till it is killed
     rospy.spin()

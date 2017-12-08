@@ -1,8 +1,6 @@
 /*
  * sample_nodelet_class.cpp
- *
- *  Created on: 2016/09/18
- *      Author: cryborg21
+
  */
 #include "MotionPlanner.h"
 #include <pluginlib/class_list_macros.h>

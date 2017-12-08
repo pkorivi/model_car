@@ -1,8 +1,4 @@
 /*
- * sample_nodelet_class.h
- *
- *  Created on: 2016/09/18
- *      Author: cryborg21
  */
 #ifndef MOTION_PLANNER_H_
 #define MOTION_PLANNER_H_
@@ -25,4 +21,4 @@ namespace fub_motion_planner{
   };
 } // namespace sample_nodelet_ns
 
-#endif /* SAMPLE_NODELET_CLASS_SRC_SAMPLE_NODELET_CLASS_H_ */
+#endif /*  */
