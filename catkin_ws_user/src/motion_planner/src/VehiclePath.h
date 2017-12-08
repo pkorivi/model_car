@@ -35,8 +35,8 @@ namespace fub_motion_planner{
       double slope(tf::Point a, tf::Point b){
         return atan2((b[1]-a[1]),(b[0]-a[0]));
       }
-
-    protected:
+    //TODO change to protected or private
+    public:
       void RoutePlannerCallback(const nav_msgs::Path & msg);
       //returns slope given two points in radians
 
@@ -48,6 +48,7 @@ namespace fub_motion_planner{
     public:
       //Currently planned path
       nav_msgs::Path m_path;
+      bool route_path_exists=false;
       //path in points only
       std::vector<tf::Point> xy_path;
       //Frenet Path

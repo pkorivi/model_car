@@ -6,11 +6,13 @@ namespace fub_motion_planner{
   VehiclePath::VehiclePath(){}
   VehiclePath::~VehiclePath(){}
   void VehiclePath::setup(ros::NodeHandle & nh){
+      ROS_INFO("Vehicle_Path setup");
       m_subscribe_route_planner  = nh.subscribe("/route_planner/sub_path", 1, &VehiclePath::RoutePlannerCallback, this, ros::TransportHints().tcpNoDelay());
   }
   //route planner callback
   void VehiclePath::RoutePlannerCallback(const nav_msgs::Path & msg){
     ROS_INFO("path_received");
+    route_path_exists = true;
     m_path = msg;
     //Trigger transormation to frenet function
     transformToXYandFrenet();
