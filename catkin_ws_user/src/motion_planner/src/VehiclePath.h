@@ -44,6 +44,7 @@ namespace fub_motion_planner{
       int closestWayPoint(tf::Point pt);
       /*returns index of he next way point to given point*/
       int NextWayPoint(tf::Point pt,double theta);
+      double calc_curvature(tf::Point pts0,tf::Point pts1,tf::Point pts2);
     public:
       //Currently planned path
       nav_msgs::Path m_path;

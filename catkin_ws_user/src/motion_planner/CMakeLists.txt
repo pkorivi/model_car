@@ -40,6 +40,7 @@ include_directories(
 add_library(MotionPlanner
   src/MotionPlanner.cpp
   src/VehicleState.cpp
+  src/VehiclePath.cpp
 )
 target_link_libraries(MotionPlanner ${catkin_LIBRARIES})
 if(catkin_EXPORTED_LIBRARIES)
