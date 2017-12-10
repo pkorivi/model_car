@@ -42,10 +42,10 @@ namespace fub_motion_planner{
       //Vehicle Path
       if (m_vehicle_path.route_path_exists == true) {
 
-        tf::Point a =tf::Point{0.0,1.0,0.0};
-        tf::Point b =tf::Point{0.0,-2.0,0.0};
-        tf::Point c =tf::Point{6.3,-0.6,0.0};
-        tf::Point d =tf::Point{5.6,-0.6,0.0};
+        tf::Point a =tf::Point{0.35,-0.23,0.0};
+        tf::Point b =tf::Point{2.43,0.26,0.0};
+        tf::Point c =tf::Point{3.7,-2.6,0.0};
+        tf::Point d =tf::Point{5.4,-1.6,0.0};
         /*
         for (size_t i = 0; i < m_vehicle_path.xy_path.size(); i++) {
           ROS_INFO("x,y : (%f,%f)  s,d,k : (%f,%f,%f)",m_vehicle_path.xy_path[i][0], \
@@ -63,10 +63,10 @@ namespace fub_motion_planner{
 
         std::vector<FrenetCoordinate> vec_fre;
         vec_fre.push_back(FrenetCoordinate(0.1,0,0));
-        vec_fre.push_back(FrenetCoordinate(3.0,0.15,0));
-        vec_fre.push_back(FrenetCoordinate(5.2,-0.15,0));
+        vec_fre.push_back(FrenetCoordinate(4.8,0.56,0));
+        vec_fre.push_back(FrenetCoordinate(5.7,-0.15,0));
         //TODO - debug why wrong values for 8.1, what line fault is causing this error
-        vec_fre.push_back(FrenetCoordinate(8.3,-0.15,0));
+        vec_fre.push_back(FrenetCoordinate(8.1,-0.15,0));
         for (size_t i = 0; i < vec_fre.size(); i++) {
           tf::Point p1 = m_vehicle_path.getXY(vec_fre[i]);
           ROS_INFO("%d xy %f,%f,%f ",i,p1[0],p1[1],p1[2]);
@@ -75,34 +75,17 @@ namespace fub_motion_planner{
         }
 
         /*
-        FrenetCoordinate f1 = m_vehicle_path.getFenet(a,0);
-        ROS_INFO("frenet1 %f,%f,%f ",f1.s,f1.d,f1.k);
-        FrenetCoordinate f2 = m_vehicle_path.getFenet(b,0);
-        ROS_INFO("frenet2 %f,%f,%f ",f2.s,f2.d,f2.k);
-        FrenetCoordinate f3 = m_vehicle_path.getFenet(c,0);
-        ROS_INFO("frenet1 %f,%f,%f ",f3.s,f3.d,f3.k);
-        FrenetCoordinate f4 = m_vehicle_path.getFenet(d,0);
-        ROS_INFO("frenet2 %f,%f,%f ",f4.s,f4.d,f4.k);
-        tf::Point p1 = m_vehicle_path.getXY(f1);
-        ROS_INFO("xy %f,%f,%f ",p1[0],p1[1],p1[2]);
-        tf::Point p2 = m_vehicle_path.getXY(f2);
-        ROS_INFO("xy %f,%f,%f ",p2[0],p2[1],p2[2]);
-        tf::Point p3 = m_vehicle_path.getXY(f3);
-        ROS_INFO("xy %f,%f,%f ",p3[0],p3[1],p3[2]);
-        tf::Point p4 = m_vehicle_path.getXY(f4);
-        ROS_INFO("xy %f,%f,%f ",p4[0],p4[1],p4[2]);
-        */
+        std::vector<tf::Point> vec_xy ;
+        vec_xy.push_back(a);vec_xy.push_back(b);vec_xy.push_back(c);vec_xy.push_back(d);
+        for (size_t i = 0; i < vec_xy.size(); i++) {
+          FrenetCoordinate p2 = m_vehicle_path.getFenet(vec_xy[i],0);
+          ROS_INFO("%d frenet %f,%f,%f ",i,p2.s,p2.d,p2.k);
+          tf::Point p3 = m_vehicle_path.getXY(p2);
+          ROS_INFO("%d xy %f,%f,%f ",i,p3[0],p3[1],p3[2]);
+        }*/
 
-        /*
-        tf::Point p1 = m_vehicle_path.getXY(FrenetCoordinate(0.0,0,0));
-        ROS_INFO("xy %f,%f,%f ",p1[0],p1[1],p1[2]);
-        tf::Point p2 = m_vehicle_path.getXY(FrenetCoordinate(0.0,0.2,0));
-        ROS_INFO("xy %f,%f,%f ",p2[0],p2[1],p2[2]);
-        tf::Point p3 = m_vehicle_path.getXY(FrenetCoordinate(1.0,-0.2,0));
-        ROS_INFO("xy %f,%f,%f ",p3[0],p3[1],p3[2]);
-        tf::Point p4 = m_vehicle_path.getXY(FrenetCoordinate(2.0,0,0));
-        ROS_INFO("xy %f,%f,%f ",p4[0],p4[1],p4[2]);
-        */
+
+
     }
     else{
       ROS_INFO("waiting for route path");

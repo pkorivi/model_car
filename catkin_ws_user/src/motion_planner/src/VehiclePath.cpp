@@ -41,6 +41,7 @@ namespace fub_motion_planner{
 
       //https://math.stackexchange.com/questions/175896/finding-a-point-along-a-line-a-certain-distance-away-from-another-point
       //trying https://stackoverflow.com/questions/133897/how-do-you-find-a-point-at-a-given-perpendicular-distance-from-a-line
+      //http://mathworld.wolfram.com/PerpendicularVector.html
       double dx = xy_path[next_wp][0] - xy_path[prev_wp][0];
       double dy = xy_path[next_wp][1] - xy_path[prev_wp][1];
       double dist = sqrt(dx*dx + dy*dy);//magnitude for unit vector in this direction
@@ -50,8 +51,9 @@ namespace fub_motion_planner{
       //Point at a distance x along the line
       double seg_x = xy_path[prev_wp][0] + seg_s*dx;
       double seg_y = xy_path[prev_wp][1] + seg_s*dy;
-      //return a point at a perpendicular distance from a point
-      return tf::Point{seg_x - frenet_pt.d*dy,seg_y + frenet_pt.d*dx,0.0};
+      //return a point at a perpendicular distance from a point - frenet distance is positive on right side and negative on left side
+      // thus if the unit vector is (a,b) then perpendicular is (-b,a) but as frenet values are reversed. we will negate here.
+      return tf::Point{seg_x + frenet_pt.d*dy, seg_y - frenet_pt.d*dx,0.0};
     }
     else{
       ROS_INFO("ooops no point found - something wrong");
@@ -78,14 +80,7 @@ namespace fub_motion_planner{
     //vector formed by the line joining prev_wp and the given point lets say m
     double m_x = xy_pt[0] -  xy_path[prev_wp][0];
     double m_y = xy_pt[1] -  xy_path[prev_wp][1];
-    /*
-    //dor product of m,n
-    double mdotn = n_x*m_x + n_y*m_y;
-    //squared length n
-    double len2 = n_x*n_x + n_y*n_y;
 
-    double proj_x = xy_path[prev_wp][0]+
-    */
     //TODO Check this
     //n.m = dotproduct(n,m)
     //projection of line m onto n is given by p = (n.m/n.n)n
