@@ -24,25 +24,40 @@ namespace fub_motion_planner{
   at lateral distnace d
   */
   tf::Point VehiclePath::getXY(FrenetCoordinate frenet_pt){
-    int prev_wp = -1;
+    //ROS_INFO("fp s %f, d %f ",frenet_pt.s,frenet_pt.d);
+    int next_wp = 0;
+    //ROS_INFO("s: %f %f %f %f",frenet_path[next_wp].s,frenet_path[next_wp+1].s,frenet_path[next_wp+2].s,frenet_path[next_wp+3].s);
     //find the closest waypoint index behind the given frenet point
-    while((frenet_pt.s > frenet_path[prev_wp+1].s) && \
-            (prev_wp < frenet_path.size()-1)){
-      prev_wp++;
+    while((frenet_pt.s > frenet_path[next_wp].s) && \
+            (next_wp < (frenet_path.size()))){
+      next_wp++;
     }
-    //next waypoint index
-    int next_wp = (prev_wp+1)%frenet_path.size();
-    //slop of the line segment
-    double heading = slope(xy_path[next_wp],xy_path[prev_wp]);
-    //distance along this segment
-    double seg_s = (frenet_pt.s- frenet_path[prev_wp].s);
-    //x,y on the path
-    double seg_x = xy_path[prev_wp][0] + seg_s*cos(heading);
-    double seg_y = xy_path[prev_wp][1] + seg_s*sin(heading);
-    //angle of line perpendicular to the current segment
-    double perp_heading = heading - M_PI/2;
-    //Point at a distance perpendicular to a line segment
-    return tf::Point{seg_x + frenet_pt.d*cos(perp_heading),seg_y+frenet_pt.d*sin(perp_heading),0.0};
+    if(next_wp>0){
+      //TODO modify point at a distance also
+      //next waypoint index
+      int prev_wp = (next_wp-1)%frenet_path.size();
+      //distance along this segment
+      double seg_s = (frenet_pt.s- frenet_path[prev_wp].s);
+
+      //https://math.stackexchange.com/questions/175896/finding-a-point-along-a-line-a-certain-distance-away-from-another-point
+      //trying https://stackoverflow.com/questions/133897/how-do-you-find-a-point-at-a-given-perpendicular-distance-from-a-line
+      double dx = xy_path[next_wp][0] - xy_path[prev_wp][0];
+      double dy = xy_path[next_wp][1] - xy_path[prev_wp][1];
+      double dist = sqrt(dx*dx + dy*dy);//magnitude for unit vector in this direction
+      // unit vector along the line described by the sampling points
+      dx /= dist;
+      dy /= dist;
+      //Point at a distance x along the line
+      double seg_x = xy_path[prev_wp][0] + seg_s*dx;
+      double seg_y = xy_path[prev_wp][1] + seg_s*dy;
+      //return a point at a perpendicular distance from a point
+      return tf::Point{seg_x - frenet_pt.d*dy,seg_y + frenet_pt.d*dx,0.0};
+    }
+    else{
+      ROS_INFO("ooops no point found - something wrong");
+      return tf::Point{0,0,0};
+
+    }
   }
 
   FrenetCoordinate VehiclePath::getFenet(tf::Point xy_pt, double theta){
@@ -58,21 +73,30 @@ namespace fub_motion_planner{
     //http://www.sunshine2k.de/coding/java/PointOnLine/PointOnLine.html#step5
     //https://math.la.asu.edu/~surgent/mat272/dotcross.pdf (refer to dot product and orthogonal projection sections)
     //vector formed by line segment on map lets say n
-    double n_y = xy_path[next_wp][1] - xy_path[prev_wp][1];
     double n_x = xy_path[next_wp][0] - xy_path[prev_wp][0];
+    double n_y = xy_path[next_wp][1] - xy_path[prev_wp][1];
     //vector formed by the line joining prev_wp and the given point lets say m
     double m_x = xy_pt[0] -  xy_path[prev_wp][0];
     double m_y = xy_pt[1] -  xy_path[prev_wp][1];
+    /*
+    //dor product of m,n
+    double mdotn = n_x*m_x + n_y*m_y;
+    //squared length n
+    double len2 = n_x*n_x + n_y*n_y;
+
+    double proj_x = xy_path[prev_wp][0]+
+    */
+    //TODO Check this
     //n.m = dotproduct(n,m)
     //projection of line m onto n is given by p = (n.m/n.n)n
     //multiplication facto of dot product
     double proj_norm = (m_x*n_x+m_y*n_y)/(n_x*n_x+n_y*n_y);
     //projected points onto the line segment
-    double proj_x = proj_norm*n_x;
-  	double proj_y = proj_norm*n_y;
+    double proj_x = xy_path[prev_wp][0] + proj_norm*n_x;
+  	double proj_y = xy_path[prev_wp][1] + proj_norm*n_y;
+
     tf::Point pt_on_line = tf::Point{proj_x,proj_y,0.0};
     //double frenet_d = sqrt((proj_x-xy_pt[0])*(proj_x-xy_pt[0]) +(proj_y-xy_pt[1])*(proj_y-xy_pt[1]));
-
     double frenet_d = distance(pt_on_line,xy_pt);
     //TODO from here
     // Check point is on left or right side of the lane information //cross product
@@ -85,6 +109,9 @@ namespace fub_motion_planner{
       frenet_d *= -1; //lets say frenet coordinates are -ve on left side of reference driving line.
 
     double frenet_s = frenet_path[prev_wp].s + distance(xy_path[prev_wp],pt_on_line);
+    //TODO remove debug
+    //ROS_INFO("nxt_wp %d, pt_on_line %f %f",next_wp,pt_on_line[0],pt_on_line[1]);
+    //ROS_INFO("prev_wp %d , prev_wp_s %f , dist to the projected pt %f",prev_wp,frenet_path[prev_wp].s,distance(xy_path[prev_wp],pt_on_line));
     return FrenetCoordinate(frenet_s,frenet_d,0);
   }
 
@@ -125,14 +152,23 @@ namespace fub_motion_planner{
     0 for a line and increases as radius decreases.
   */
   double VehiclePath::calc_curvature(tf::Point pts0,tf::Point pts1,tf::Point pts2){
-    //for a triancle abc, area_twice = (b.x-a.x)*(c.y-a.y) - (b.y-a.y)*(c.x-a.x)
-    double area = ((pts1[0]-pts0[0])*(pts2[1]-pts0[1]) - \
-                    (pts1[0]-pts0[0])*(pts2[1]-pts0[1]))/2;
-   //curvature = 4*triangleArea/(sideLength1*sideLength2*sideLength3)
+    //for a triancle abc, area_twice = (a.x-c.x)*(b.y-a.y) - (a.x-b.x)*(c.y-a.y)
+    double area = ((pts0[0]-pts2[0])*(pts1[1]-pts0[1]) - \
+                    (pts0[0]-pts1[0])*(pts2[1]-pts0[1]))/2;
+    //TODO Remove this debug information
+    /*
+    double a=distance(pts0,pts1);
+    double b=distance(pts1,pts2);
+    double c=distance(pts2,pts0);
+    */
+   //formula for curvature = 4*triangleArea/(sideLength1*sideLength2*sideLength3)
    double curvature = 0;
    if(area !=0){
      curvature = 4*area/(distance(pts0,pts1)*distance(pts1,pts2)*distance(pts2,pts0));
+     //curvature = 4*area/(a*b*c);
    }
+
+   //ROS_INFO("curvature: %f area: %f, dist a: %f, b: %f , c: %f",curvature, area,a,b,c);
    return curvature;
   }
 
