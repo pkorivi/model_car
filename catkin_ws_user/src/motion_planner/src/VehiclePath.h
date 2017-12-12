@@ -25,6 +25,10 @@ namespace fub_motion_planner{
       VehiclePath();
       ~VehiclePath();
       void setup(ros::NodeHandle & nh);
+
+      //TODO These functions are working but needs further improvement to make them work better.
+      //TODO  It loses track sometimes and conversion is mess with 5-20cms of error which is terrible sometimes
+      // Observe each step of xy and frenet transform and fix the issue 
       FrenetCoordinate getFenet(tf::Point xy_pt, double theta);
       tf::Point getXY(FrenetCoordinate frenet_pt);
       //creates a frenet coordinate frame using the m_path and fills up frenet_path
@@ -38,8 +42,6 @@ namespace fub_motion_planner{
     //TODO change to protected or private
     public:
       void RoutePlannerCallback(const nav_msgs::Path & msg);
-      //returns slope given two points in radians
-
       /*returns index of he closest way point to given point*/
       int closestWayPoint(tf::Point pt);
       /*returns index of he next way point to given point*/

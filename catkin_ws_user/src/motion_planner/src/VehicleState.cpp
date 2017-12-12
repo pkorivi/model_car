@@ -23,7 +23,7 @@ namespace fub_motion_planner{
       // TODO: increase odom queue to at least 32
       //TODO change d_odom to odom when subscribing to proper node
       ROS_INFO("Vehicle_State setup");
-      m_subscribe_odom         = nh.subscribe("/d_odom", 1, &VehicleState::odometryCallback, this, ros::TransportHints().tcpNoDelay());
+      m_subscribe_odom  = nh.subscribe("/d_odom", 1, &VehicleState::odometryCallback, this, ros::TransportHints().tcpNoDelay());
       //ROS_INFO("Vehicle state setup");
   }
 
