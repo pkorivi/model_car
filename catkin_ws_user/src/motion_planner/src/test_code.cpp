@@ -48,3 +48,23 @@ for (size_t i = 0; i < vec_xy.size(); i++) {
   tf::Point p3 = m_vehicle_path.getXY(p2);
   ROS_INFO("%d xy %f,%f,%f ",i,p3[0],p3[1],p3[2]);
 }*/
+
+
+
+std::vector<tf::Point> vec_xy ;
+std::vector<double> vec_xy_slope ;
+ vec_xy.push_back(tf::Point{3.46,-0.0,0.0});vec_xy_slope.push_back(0.01);
+ vec_xy.push_back(tf::Point{5.07,-1.31,0.0});vec_xy_slope.push_back(-1.55);
+ vec_xy.push_back(tf::Point{4.003,-2.78,0.0});vec_xy_slope.push_back(-2.59);
+ vec_xy.push_back(tf::Point{2.28,-3.81,0.0});vec_xy_slope.push_back(-2.61);
+ vec_xy.push_back(tf::Point{5.180000,-1.590000, 0.0});vec_xy_slope.push_back(-1.89);
+ vec_xy.push_back(tf::Point{4.5600000,-2.420000, 0.0});vec_xy_slope.push_back(-2.59);
+ vec_xy.push_back(tf::Point{3.110000,-3.630000, 0.0});vec_xy_slope.push_back(-2.61);
+ vec_xy.push_back(tf::Point{1.710000,-4.350000, 0.0});vec_xy_slope.push_back(-2.63);
+
+for (size_t i = 0; i < vec_xy.size(); i++) {
+  FrenetCoordinate p2 = m_vehicle_path.getFenet(vec_xy[i],vec_xy_slope[i]);
+  ROS_INFO("%lu frenet %f,%f,%f ",i,p2.s,p2.d,p2.k);
+  tf::Point p3 = m_vehicle_path.getXY(p2);
+  ROS_INFO("%lu xy %f,%f,%f ",i,p3[0],p3[1],p3[2]);
+}

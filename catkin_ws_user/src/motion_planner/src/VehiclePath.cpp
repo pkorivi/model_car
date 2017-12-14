@@ -49,11 +49,11 @@ namespace fub_motion_planner{
       dx /= dist;
       dy /= dist;
       //Point at a distance x along the line
-      double seg_x = xy_path[prev_wp][0] + seg_s*dx;
-      double seg_y = xy_path[prev_wp][1] + seg_s*dy;
+      double seg_x = xy_path[prev_wp][0] + (seg_s*dx); //normalizing for unit vector of dx.
+      double seg_y = xy_path[prev_wp][1] + (seg_s*dy);
       //return a point at a perpendicular distance from a point - frenet distance is positive on right side and negative on left side
-      // thus if the unit vector is (a,b) then perpendicular is (-b,a) but as frenet values are reversed. we will negate here.
-      return tf::Point{seg_x + frenet_pt.d*dy, seg_y - frenet_pt.d*dx,0.0};
+      // thus if the unit vector is (a,b) then perpendicular is (-b,a) but as frenet d values have opposite sign. we will negate here.
+      return tf::Point{seg_x + (frenet_pt.d*dy), seg_y - (frenet_pt.d*dx),0.0};
     }
     else{
       ROS_INFO("ooops no point found - something wrong");
@@ -86,14 +86,12 @@ namespace fub_motion_planner{
     //projection of line m onto n is given by p = (n.m/n.n)n
     //multiplication facto of dot product
     double proj_norm = (m_x*n_x+m_y*n_y)/(n_x*n_x+n_y*n_y);
-    //projected points onto the line segment
-    double proj_x = xy_path[prev_wp][0] + proj_norm*n_x;
-  	double proj_y = xy_path[prev_wp][1] + proj_norm*n_y;
+    double proj_x = xy_path[prev_wp][0] + (proj_norm*n_x);
+  	double proj_y = xy_path[prev_wp][1] + (proj_norm*n_y);
 
     tf::Point pt_on_line = tf::Point{proj_x,proj_y,0.0};
-    //double frenet_d = sqrt((proj_x-xy_pt[0])*(proj_x-xy_pt[0]) +(proj_y-xy_pt[1])*(proj_y-xy_pt[1]));
     double frenet_d = distance(pt_on_line,xy_pt);
-    //TODO from here
+
     // Check point is on left or right side of the lane information //cross product
     // https://stackoverflow.com/questions/1560492/how-to-tell-whether-a-point-is-to-the-right-or-left-side-of-a-line
     double direction_val = n_x*m_y - n_y*m_x;
@@ -105,8 +103,8 @@ namespace fub_motion_planner{
 
     double frenet_s = frenet_path[prev_wp].s + distance(xy_path[prev_wp],pt_on_line);
     //TODO remove debug
-    //ROS_INFO("nxt_wp %d, pt_on_line %f %f",next_wp,pt_on_line[0],pt_on_line[1]);
-    //ROS_INFO("prev_wp %d , prev_wp_s %f , dist to the projected pt %f",prev_wp,frenet_path[prev_wp].s,distance(xy_path[prev_wp],pt_on_line));
+    //ROS_INFO("Gt Frnt projxy %f, %f, prev_x,y %f, %f , next_xy %f %f", proj_x,proj_y,xy_path[prev_wp][0],xy_path[prev_wp][1],xy_path[next_wp][0],xy_path[next_wp][1]);
+    //ROS_INFO("nwp %d pwp %d , pwp_s %f , ",next_wp,prev_wp,frenet_path[prev_wp].s,distance(xy_path[prev_wp],pt_on_line));
     return FrenetCoordinate(frenet_s,frenet_d,0);
   }
 
@@ -134,10 +132,16 @@ namespace fub_motion_planner{
     double heading = slope(pt,xy_path[closest_way_pt]);
     //If the orientation of the point/car position and closest_way_pt is more than
     // 45 degrees, then the point is behind the car. so choose the next point
-    double angle = abs(theta - heading);
-    if(angle>(M_PI/4))
+    double angle = theta - heading;
+    if (angle>3.14)
+      angle=angle-6.28;
+    else if (angle<-3.14)
+      angle=angle+6.28;
+    angle = abs(angle);
+    if((angle>(M_PI/4)) && (closest_way_pt < (xy_path.size()-1))) //If the closest point is already the end point dont increment it
       closest_way_pt++;
-
+    //TODO Remove debug
+    //ROS_INFO("NW closest_wp %d , heading = %f , angle = %f ",closest_way_pt, heading, angle);
     return closest_way_pt;
   }
 

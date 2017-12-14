@@ -83,7 +83,7 @@ namespace fub_motion_planner{
         geometry_msgs::PoseStamped examplePose;
         examplePose.pose.position.x = xy[0];
         examplePose.pose.position.y = xy[1];
-        examplePose.pose.position.z = v(0.25*i); //velocity in z direction
+        examplePose.pose.position.z = 0;//v(0.25*i); //velocity in z direction
         examplePose.pose.orientation.x = 0.0f;
         examplePose.pose.orientation.y = 0.0f;
         examplePose.pose.orientation.z = 0.0f;
@@ -103,7 +103,6 @@ namespace fub_motion_planner{
       //Vehicle Path
       if (m_vehicle_path.route_path_exists == true) {
         create_traj(current_vehicle_state);
-
       }
       else{
         ROS_INFO("waiting for route path");
