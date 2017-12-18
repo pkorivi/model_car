@@ -29,15 +29,19 @@ namespace fub_motion_planner{
   void MotionPlanner::create_traj(VehicleState current_state){
     tk::spline s;
     tk::spline v;
+    //Amax for profiles TODO : Update the Amax based on current velocity
     double acc[] = {-0.2,0,0.2};
-    double c_vel = current_state.m_current_speed_front_axle_center;
+    double v_current = current_state.m_current_speed_front_axle_center;
     tf::Point cp = current_state.m_vehicle_position;
     double c_yaw = current_state.getVehicleYaw();
-    double v_max = 1.3;//1mps
+    double v_max = 1.1;//1mps - TODO Velocity limit gathered from the map speed limit
+    double v_target = v_max; // TODO Optimal target velocity for driving from behavioral layer- currently set to v_max
     double v_min = 0; // stand still, no negative speeds
+    double a_current = 0; // TODO update this value from the odometry info
     std::vector<double> spts;
-    std::vector<double> tpts = {0,1,2,3,4,5};
+    std::vector<double> tpts;
     std::vector<double> vpts;
+    std::vector<double> acc_pts;
     std::vector<double> traj_x;
     std::vector<double> traj_y;
     //get current position in frenet frame
@@ -45,26 +49,81 @@ namespace fub_motion_planner{
       std::cout<<"New evaluation"<<std::endl;
       //current point in frenet
       FrenetCoordinate frenet_val =  m_vehicle_path.getFenet(cp,c_yaw);
+      //Initial time and
       spts.push_back(frenet_val.s);
-      vpts.push_back(c_vel);
-      //TODO remove this: 6 points in time, thus 5 Durations of 1s. for loop
-      for(int i=1;i<tpts.size();i++){
-        //s = ut+0.5at², //v = u+at
-        double n_vel = vpts[i-1] + acc[2]*1; //TODO - chnage time based on further assumtpions or equations for continious values
-        if(n_vel<= v_max && n_vel > 0){
-          spts.push_back(spts[i-1] + vpts[i-1]*1 + 0.5*acc[2]*1*1 );
-          vpts.push_back(n_vel);
+      vpts.push_back(v_current);
+      tpts.push_back(0);
+      acc_pts.push_back(a_current);
+      double n_vel = v_current;
+      double jerk_val = acc[2]; //slope is (acc[2] - 0)/time to reach there assuming our acceleration chnages form 0-0.2 in 1s
+      //Time samples of 100ms each, so for 5 seconds we have 50 samples - TODO this as tunable parameter
+      double number_of_samples = 50;
+      double t_sample = 5/number_of_samples;
+      for(int i=1;i<number_of_samples;i++){
+        tpts.push_back(i*t_sample);
+        //s = ut+0.5at², //v = u+at   .. t_s - t_Sample
+        //a_ref = a_current + a_slope*t_s; v_ref = v_cur + a_ref*t_s, p_ref  = p_current + v_ref*t_sample   :: ref is the value the robot should go to next
+        // trapezoidal acceleration /'''''''\  .. if a<a_max and v< v_max-0.1 ;
+        //phase of increase acceleration if the current acceleration is less than target profile acceleration
+        //TODO incorporate v<v_max stuff if needed
+        //TODO check which formula to use for calculation of s. Both work good with slight approximation
+        double a_ref, v_ref, s_ref;
+        //acceleration = a_slope*t_Sample ; a_Slope = Jerk is change in acceleration from zero by time to change
+        //current acc is less than target of profile and velocity didnt reach max
+        if(acc_pts[i-1]<acc[2] && vpts[i-1] < (v_max-0.1)){  //TODO 0.2mps will be increased in speed if we make our acceleration 0 from 0.2
+          a_ref = acc_pts[i-1] + jerk_val*t_sample;
+          //if the value increases over limit, limit it to alimit
+          if(a_ref > acc[2]){
+            a_ref = acc[2];
+          }
+          acc_pts.push_back(a_ref);
+          v_ref = vpts[i-1] + a_ref*t_sample;// increased velocity is the area of rectangle formed by acceleration and time sample
+          vpts.push_back(v_ref);
+          //TODO as per paper they use v_ref*t_sample - As the sample size is small, even this can be chosen. Compare both values and choose best possible
+          //acceleration is a function of time - This can be simply approximated I think
+          //spts.push_back(spts[i-1] + vpts[i-1]*t_sample + 0.5*jerk_val*t_sample*t_sample*t_sample);
+          spts.push_back(spts[i-1] + v_ref*t_sample);
         }
-        else if(n_vel> v_max){
-          n_vel = v_max;
-          //TODO sample spts properly, this will cause the s to be reachable only with more than vmax
-          spts.push_back(spts[i-1] + vpts[i-1]*1 + 0.5*acc[2]*1*1 );
-          vpts.push_back(n_vel);
+        //The constant acceleration phase of trapezoid , keep the velocity to a point where it is slightly below threshold, which is increased while making acceleration to zero
+        else if(acc_pts[i-1] == acc[2] && vpts[i-1] < (v_max-0.1)){
+          //constant acceleration
+          acc_pts.push_back(a_ref);
+          v_ref = vpts[i-1] + acc[2]*t_sample;
+          vpts.push_back(v_ref);
+          spts.push_back(spts[i-1] + vpts[i-1]*t_sample + 0.5*acc[2]*t_sample*t_sample);
+          //spts.push_back(spts[i-1] + v_ref*t_sample);
         }
-        else{
-          //same position -TODO improve to see how much distance travelled before stopping or know that with some equation later
+        //acceleration to Zero phase - the last -ve jerk ramp
+        else if((vpts[i-1] > (v_max-0.2)) && vpts[i-1] < v_max){
+          //acceleration should decrease, thus jerk_val is negative
+          a_ref = acc_pts[i-1] - jerk_val*t_sample;
+          //if the value increases over limit, limit it to alimit
+          if(a_ref <= 0){
+            a_ref = 0;
+          }
+          acc_pts.push_back(a_ref);
+          v_ref = vpts[i-1] + a_ref*t_sample;// increased velocity is the area of rectangle formed by acceleration and time sample
+          vpts.push_back(v_ref);
+          //TODO as per paper they use v_ref*t_sample - As the sample size is small, even this can be chosen. Compare both values and choose best possible
+          //acceleration is a function of time - This can be simply approximated I think
+          //spts.push_back(spts[i-1] + vpts[i-1]*t_sample + 0.5*jerk_val*t_sample*t_sample*t_sample);
+          spts.push_back(spts[i-1] + v_ref*t_sample);
+        }
+        //Max velocity achieved then drop acceleration to zero
+        else if(vpts[i-1]>=v_max){
+          acc_pts.push_back(0);
+          vpts.push_back(v_max);
+          //TODO as per paper they use v_ref*t_sample - As the sample size is small, even this can be chosen. Compare both values and choose best possible
+          //acceleration is a function of time - This can be simply approximated I think
+          spts.push_back(spts[i-1] + v_max*t_sample);
+        }
+        //If velocity goes negative - dont drive back wards. Backward driving is not included
+        else if(vpts[i-1]<= v_min){
+          acc_pts.push_back(0);
+          vpts.push_back(v_min);
+          //TODO as per paper they use v_ref*t_sample - As the sample size is small, even this can be chosen. Compare both values and choose best possible
+          //acceleration is a function of time - This can be simply approximated I think
           spts.push_back(spts[i-1]);
-          vpts.push_back(0);
         }
       }
       s.set_points(tpts,spts);    // currently it is required that X is already sorted. evaluating s with respect to time
@@ -73,13 +132,13 @@ namespace fub_motion_planner{
       nav_msgs::Path m_sampled_traj;
       m_sampled_traj.header.stamp = ros::Time::now();
       m_sampled_traj.header.frame_id = "/map";
-      //0-10, sample every 0.25s
-      for(double i=0;i<21;i++){
-        double s_v = s(0.25*i);
+      //sample every 0.2s
+      for(double i=0;i<=25;i++){
+        double s_v = s(0.2*i);
         double d_v = 0;
-        //std::cout<<"s-frame(t,s) : "<<i<<','<<sv;
         tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(s_v,d_v,0)); //TODO check yaw stuff
-        std::cout<<"  (x,y) : "<<xy[0]<<','<<xy[1]<<std::endl;
+        //std::cout<<"  (x,y) : "<<xy[0]<<','<<xy[1]<<', (s,d)'<<s_v<<std::endl;
+        std::cout<<"acc : "<<acc_pts[i*2]<<" vel : "<<vpts[i*2]<<" posi : "<<spts[i*2]<<std::endl;
         geometry_msgs::PoseStamped examplePose;
         examplePose.pose.position.x = xy[0];
         examplePose.pose.position.y = xy[1];
