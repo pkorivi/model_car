@@ -32,12 +32,13 @@ namespace fub_motion_planner{
     //Amax for profiles TODO : Update the Amax based on current velocity
     double acc[] = {-0.2,0,0.2};
     double v_current = current_state.m_current_speed_front_axle_center;
+    v_current = 0.5; //TODO remove it after testing
     tf::Point cp = current_state.m_vehicle_position;
     double c_yaw = current_state.getVehicleYaw();
     double v_max = 1.1;//1mps - TODO Velocity limit gathered from the map speed limit
     double v_target = v_max; // TODO Optimal target velocity for driving from behavioral layer- currently set to v_max
     double v_min = 0; // stand still, no negative speeds
-    double a_current = 0; // TODO update this value from the odometry info
+    double a_current = 0.05; // TODO update this value from the odometry info
     std::vector<double> spts;
     std::vector<double> tpts;
     std::vector<double> vpts;
@@ -59,6 +60,7 @@ namespace fub_motion_planner{
       //Time samples of 100ms each, so for 5 seconds we have 50 samples - TODO this as tunable parameter
       double number_of_samples = 50;
       double t_sample = 5/number_of_samples;
+      double v_change=0;
       for(int i=1;i<number_of_samples;i++){
         tpts.push_back(i*t_sample);
         //s = ut+0.5at², //v = u+at   .. t_s - t_Sample
@@ -70,7 +72,9 @@ namespace fub_motion_planner{
         double a_ref, v_ref, s_ref;
         //acceleration = a_slope*t_Sample ; a_Slope = Jerk is change in acceleration from zero by time to change
         //current acc is less than target of profile and velocity didnt reach max
-        if(acc_pts[i-1]<acc[2] && vpts[i-1] < (v_max-0.1)){  //TODO 0.2mps will be increased in speed if we make our acceleration 0 from 0.2
+        //v_change indicates the increase/decrease in velocity while the acceleration changes to zero from curent value
+        //TODO check how this works if aceleration decreases from 1mpss to -3mpss then to 0 or from 3mpss to 2mpss
+        if(acc_pts[i-1]<acc[2] && vpts[i-1] < (v_max-v_change)){
           a_ref = acc_pts[i-1] + jerk_val*t_sample;
           //if the value increases over limit, limit it to alimit
           if(a_ref > acc[2]){
@@ -83,18 +87,20 @@ namespace fub_motion_planner{
           //acceleration is a function of time - This can be simply approximated I think
           //spts.push_back(spts[i-1] + vpts[i-1]*t_sample + 0.5*jerk_val*t_sample*t_sample*t_sample);
           spts.push_back(spts[i-1] + v_ref*t_sample);
+
+          v_change = (0.5*a_ref*acc[2]/jerk_val);  // TODO replace acc[2] with target velocity everwhere
         }
         //The constant acceleration phase of trapezoid , keep the velocity to a point where it is slightly below threshold, which is increased while making acceleration to zero
-        else if(acc_pts[i-1] == acc[2] && vpts[i-1] < (v_max-0.1)){
+        else if(acc_pts[i-1] == acc[2] && vpts[i-1] < (v_max-v_change)){
           //constant acceleration
-          acc_pts.push_back(a_ref);
+          acc_pts.push_back(acc[2]);
           v_ref = vpts[i-1] + acc[2]*t_sample;
           vpts.push_back(v_ref);
           spts.push_back(spts[i-1] + vpts[i-1]*t_sample + 0.5*acc[2]*t_sample*t_sample);
           //spts.push_back(spts[i-1] + v_ref*t_sample);
         }
         //acceleration to Zero phase - the last -ve jerk ramp
-        else if((vpts[i-1] > (v_max-0.2)) && vpts[i-1] < v_max){
+        else if((vpts[i-1] >= (v_max-v_change)) && vpts[i-1] < v_max){
           //acceleration should decrease, thus jerk_val is negative
           a_ref = acc_pts[i-1] - jerk_val*t_sample;
           //if the value increases over limit, limit it to alimit
@@ -126,6 +132,7 @@ namespace fub_motion_planner{
           spts.push_back(spts[i-1]);
         }
       }
+      std::cout << "v_change :" << v_change << '\n';
       s.set_points(tpts,spts);    // currently it is required that X is already sorted. evaluating s with respect to time
       v.set_points(tpts,vpts);   // spline for velocity
 
