@@ -2,9 +2,9 @@
 <package>
   <name>motion_planner</name>
   <version>0.1.0</version>
-  <description>Simple example of ROS nodelet</description>
+  <description>trajectory planner for model car</description>
 
-  <maintainer email="cryborg21@gmail.com">cryborg21</maintainer>
+  <maintainer email="pradeepkorivi@gmail.com">Pradeep Korivi</maintainer>
 
   <license>BSD</license>
 
