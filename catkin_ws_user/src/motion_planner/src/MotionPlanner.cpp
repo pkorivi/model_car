@@ -6,7 +6,11 @@
 #include <pluginlib/class_list_macros.h>
 #include "spline.h"
 #include "math.h"
+#include <vector>
+#include "Eigen-3.3/Eigen/Core"
+#include "Eigen-3.3/Eigen/QR"
 #include "CreateTraj.cpp"
+
 
 namespace fub_motion_planner{
   MotionPlanner::MotionPlanner(){
@@ -24,7 +28,11 @@ namespace fub_motion_planner{
       //TODO change execution frequency to a bigger value and also parameter of a config file
       //double execution_frequency = 0.02;
       ros::Duration timerPeriod = ros::Duration(2);
-      m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_1", 10);
+      m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj", 10);
+      mp_traj1 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_1", 10);
+      mp_traj2 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_2", 10);
+      mp_traj3 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_3", 10);
+      mp_traj4 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_4", 10);
       m_timer = getNodeHandle().createTimer(timerPeriod, &MotionPlanner::callbackTimer, this);
   }
 
@@ -36,7 +44,26 @@ namespace fub_motion_planner{
       //Vehicle Path
       if (m_vehicle_path.route_path_exists == true) {
         ros::Time t = ros::Time::now();
-        create_traj(current_vehicle_state);
+        //Amax for profiles TODO : Update the Amax based on current velocity
+        double acc[] = {0.2,0,-0.2};
+        //TODO min_max Update this values from map
+        double v_max = 1.1;
+        double v_min = 0; // stand still, no negative speeds
+        //target values
+        //V_ Target indicated by behavioral layer
+        double v_target = 1.1;
+        //TODO a_tgt and d_tgt - part of matrix
+        double a_target = acc[0];
+        double d_target = 0.3;
+        int polynomial_order = 3;
+        create_traj(current_vehicle_state,mp_traj2,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+         //For testing
+        d_target = -0.3;
+        create_traj(current_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+        d_target = -0.15;
+        create_traj(current_vehicle_state,mp_traj3,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+        d_target = 0.15;
+        create_traj(current_vehicle_state,mp_traj4,v_target,a_target,d_target,v_max,v_min,polynomial_order);
         std::cout<<"elapsed :: "<< ros::Time::now()-t<< '\n';
       }
       else{

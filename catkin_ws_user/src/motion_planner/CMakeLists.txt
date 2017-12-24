@@ -1,4 +1,3 @@
-#cmake_minimum_required(VERSION 2.8.3)
 cmake_minimum_required(VERSION 3.5)
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 project(motion_planner)
@@ -38,6 +37,8 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
+include_directories(/usr/local/include)
+link_directories(/usr/local/lib)
 
 ## Declare a C++ library
 add_library(MotionPlanner

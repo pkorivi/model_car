@@ -17,7 +17,14 @@ namespace fub_motion_planner{
       VehiclePath m_vehicle_path;
       //motion planner trajectory output
       ros::Publisher m_mp_traj;
-      void create_traj(VehicleState current_state);
+      ros::Publisher mp_traj1;
+      ros::Publisher mp_traj2;
+      ros::Publisher mp_traj3;
+      ros::Publisher mp_traj4;
+
+      //void create_traj(VehicleState current_state);
+      void create_traj(VehicleState current_state, ros::Publisher&  traj_pub, \
+              double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
       /** The callback for the timer that triggers the update.
       */
       void callbackTimer(const ros::TimerEvent&);
