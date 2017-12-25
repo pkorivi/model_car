@@ -27,13 +27,13 @@ namespace fub_motion_planner{
         void odometryCallback(const nav_msgs::OdometryConstPtr & msg);
 
     public:
-        /// last received pose (from odometry message)
+        // last received pose (from odometry message)
         geometry_msgs::PoseWithCovariance m_ego_state_pose;
 
-        /// last received position (from odometry message)
+        // last received position (from odometry message)
         tf::Point m_vehicle_position;
 
-        /// timestamp of last received odometry message
+        // timestamp of last received odometry message
         ros::Time m_last_odom_time_stamp_received;
         //Vehicle Speed
         double m_current_speed_front_axle_center;

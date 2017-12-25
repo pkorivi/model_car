@@ -54,21 +54,24 @@ namespace fub_motion_planner{
         double v_target = 1.1;
         //TODO a_tgt and d_tgt - part of matrix
         double a_target = acc[0];
-        double d_target = 0.3;
+        double d_target = -0.4;
         int polynomial_order = 3;
+        //create_traj_spline(current_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
         create_traj(current_vehicle_state,mp_traj2,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-         //For testing
-        d_target = -0.3;
-        create_traj(current_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-        d_target = -0.15;
+        /*a_target = 0;
+        a_target = -0.15;
+        v_target = 0;
         create_traj(current_vehicle_state,mp_traj3,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-        d_target = 0.15;
-        create_traj(current_vehicle_state,mp_traj4,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+        a_target = -0.3;
+        v_target = 0;
+        create_traj(current_vehicle_state,mp_traj4,v_target,a_target,d_target,v_max,v_min,polynomial_order);*/
         std::cout<<"elapsed :: "<< ros::Time::now()-t<< '\n';
       }
       else{
         ROS_INFO("waiting for route path");
       }
+      //Store the current state to previous planning state
+      m_prev_vehicle_state = current_vehicle_state;
   }
 
 } // namespace sample_nodelet_ns

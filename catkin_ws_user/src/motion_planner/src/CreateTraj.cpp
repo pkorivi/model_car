@@ -43,7 +43,7 @@ void MotionPlanner::create_traj(VehicleState current_state, ros::Publisher&  tra
   //current values
   tf::Point cp = current_state.m_vehicle_position;
   double v_current = current_state.m_current_speed_front_axle_center;
-  v_current = 0.0; //TODO remove it after testing
+  //v_current = 0.8; //TODO remove it after testing
   double a_current = 0.0; // TODO update this value from the odometry info
   double c_yaw = current_state.getVehicleYaw();
   //TODO Add condition to skip if v_current > v_target and a_target > 0
@@ -260,25 +260,19 @@ Incorporate distance travelled as a parameter, currently if the min dist to goal
 Use pointers and avoid variables copies when ever possible
 return a score for each trajectory here after testing the obstacle avoidance etc
 */
-/*
-void MotionPlanner::create_traj(VehicleState current_state){
+///*
+
+void MotionPlanner::create_traj_spline(VehicleState current_state, ros::Publisher&  traj_pub, \
+        double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order){
   tk::spline s;
   tk::spline v;
   tk::spline a;
   tk::spline d;
   //Amax for profiles TODO : Update the Amax based on current velocity
-  double acc[] = {0.2,0,-0.2};
   tf::Point cp = current_state.m_vehicle_position;
-  //min_max
-  double v_max = 1.1;//1mps - TODO Velocity limit gathered from the map speed limit
-  double v_min = 0; // stand still, no negative speeds
-  //target values
-  double v_target = 1.1; // TODO Optimal target velocity for driving from behavioral layer- currently set to v_max
-  double a_target = acc[0];
-  double d_target = 0.2;
   //current values
   double v_current = current_state.m_current_speed_front_axle_center;
-  v_current = 0.0; //TODO remove it after testing
+  //v_current = 0.0; //TODO remove it after testing
   double a_current = 0.0; // TODO update this value from the odometry info
   double c_yaw = current_state.getVehicleYaw();
   //TODO Add condition to skip if v_current > v_target and a_target > 0
@@ -462,9 +456,9 @@ void MotionPlanner::create_traj(VehicleState current_state){
     m_sampled_traj.poses.push_back(examplePose);
   }
   //Publish as path with velocity in z dimension
-  m_mp_traj.publish(m_sampled_traj);
+  traj_pub.publish(m_sampled_traj);
 
 }//end of create trajectory
-*/
+//*/
 
 }//namespace end

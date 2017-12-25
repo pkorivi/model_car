@@ -14,6 +14,7 @@ namespace fub_motion_planner{
         virtual void onInit();
     protected:
       VehicleState m_vehicle_state;
+      VehicleState m_prev_vehicle_state;
       VehiclePath m_vehicle_path;
       //motion planner trajectory output
       ros::Publisher m_mp_traj;
@@ -22,7 +23,8 @@ namespace fub_motion_planner{
       ros::Publisher mp_traj3;
       ros::Publisher mp_traj4;
 
-      //void create_traj(VehicleState current_state);
+      void create_traj_spline(VehicleState current_state, ros::Publisher&  traj_pub, \
+              double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
       void create_traj(VehicleState current_state, ros::Publisher&  traj_pub, \
               double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
       /** The callback for the timer that triggers the update.
