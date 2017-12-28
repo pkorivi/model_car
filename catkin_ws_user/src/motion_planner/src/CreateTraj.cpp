@@ -262,8 +262,8 @@ void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_sta
     examplePose.pose.position.x = xy[0];
     examplePose.pose.position.y = xy[1];
     //Currently this velocity is used in trajectory converted to publish velocity at a point
-    examplePose.pose.position.z = 0;//v(t_pt); //velocity saved in z direction
-    examplePose.pose.orientation.x = 0.0f;//a(t_pt); // save accleration in orientation
+    examplePose.pose.position.z = v_val;//v(t_pt); //velocity saved in z direction
+    examplePose.pose.orientation.x = a_val;//0.0f;//a(t_pt); // save accleration in orientation
     examplePose.pose.orientation.y = 0.0f;
     examplePose.pose.orientation.z = 0.0f;
 
@@ -492,6 +492,9 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
     double t_pt = 0.2*i;//time
     double s_val = s(t_pt);
     double d_val = d(t_pt);
+    double v_val = v(t_pt);
+    double a_val = a(t_pt);
+    std::cout <<i << " Spline eval : s v a " <<s_val<<" , "<<v_val<<" , "<<a_val<<" , "<< '\n';
     tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(s_val,d_val,0)); //TODO check yaw stuff
     //std::cout<<"  (x,y) : "<<xy[0]<<','<<xy[1]<<std::endl;//',    (s,d)'<<s_val<<",",<<d_val
     //TODO printing the calculated values in array - check this indexing
@@ -500,8 +503,8 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
     examplePose.pose.position.x = xy[0];
     examplePose.pose.position.y = xy[1];
     //Currently this velocity is used in trajectory converted to publish velocity at a point
-    examplePose.pose.position.z = 0;//v(t_pt); //velocity saved in z direction
-    examplePose.pose.orientation.x = 0.0f;//a(t_pt); // save accleration in orientation
+    examplePose.pose.position.z = v_val;//v(t_pt); //velocity saved in z direction
+    examplePose.pose.orientation.x = a_val;//a(t_pt); // save accleration in orientation
     examplePose.pose.orientation.y = 0.0f;
     examplePose.pose.orientation.z = 0.0f;
 
