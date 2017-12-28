@@ -28,7 +28,9 @@ namespace fub_motion_planner{
     int next_wp = 0;
     //ROS_INFO("s: %f %f %f %f",frenet_path[next_wp].s,frenet_path[next_wp+1].s,frenet_path[next_wp+2].s,frenet_path[next_wp+3].s);
     //find the closest waypoint index behind the given frenet point
-    while((frenet_pt.s > frenet_path[next_wp].s) && \
+    //TODO check if >= is fine, made condition >= from >, to accomodate origin or zero distance
+    //std::cout <<"get xy _ frenet s :  "<< frenet_pt.s << '\n';
+    while((frenet_pt.s >= frenet_path[next_wp].s) && \
             (next_wp < (frenet_path.size()))){
       next_wp++;
     }
@@ -56,7 +58,7 @@ namespace fub_motion_planner{
       return tf::Point{seg_x + (frenet_pt.d*dy), seg_y - (frenet_pt.d*dx),0.0};
     }
     else{
-      ROS_INFO("ooops no point found - something wrong");
+      ROS_INFO("ooops no point found - something wrong (s,d) %f %f ",frenet_pt.s,frenet_pt.d);
       return tf::Point{0,0,0};
 
     }
@@ -65,10 +67,12 @@ namespace fub_motion_planner{
   FrenetCoordinate VehiclePath::getFenet(tf::Point xy_pt, double theta){
     //the line segment closest to the current point
     int next_wp = NextWayPoint(xy_pt, theta);
-    int prev_wp = next_wp -1;
     if(next_wp==0){
-      ROS_ERROR("Oops something is wrong, the vehicle is away from the map");
+      ROS_ERROR("Oops something is wrong, the vehicle is away from the map, next pt is made 1");
+      //TODO - This is done if the source is origin then the next waypoint is zero - may be add condition for origin
+      next_wp = 1;
     }
+    int prev_wp = next_wp -1;
     //Then find the projection of point on the above found line segment.
     // Distance till projected point provides s and distance between projected
     // and actual point is d.

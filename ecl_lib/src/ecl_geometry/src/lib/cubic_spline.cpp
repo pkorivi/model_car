@@ -27,7 +27,8 @@ namespace ecl {
 *****************************************************************************/
 
 double CubicSpline::operator()(const double &x) const ecl_assert_throw_decl(StandardException) {
-    std::cout<<"x"<<"discretised_domain.front(), back  " << x <<"  , " << discretised_domain.front()<<"  , "<< discretised_domain.back()<<std::endl;
+    //TODO - pkorivi removed this printout - this is printing lot of junk data
+    //std::cout<<"x"<<"discretised_domain.front(), back  " << x <<"  , " << discretised_domain.front()<<"  , "<< discretised_domain.back()<<std::endl;
     ecl_assert_throw( ( ( x >= discretised_domain.front() ) && ( x <= discretised_domain.back() ) ), StandardException(LOC,OutOfRangeError) );
     int index = 0;
     while ( x > discretised_domain[index+1] ) {

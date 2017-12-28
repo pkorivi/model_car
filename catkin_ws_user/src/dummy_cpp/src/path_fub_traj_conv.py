@@ -24,7 +24,7 @@ def conv_to_traj(data):
     sequence += 1 #increment counter
     new_traj.header.stamp = rospy.Time.now()
     new_traj.header.frame_id = "/map" #TODO change to /map frame
-    new_traj.child_frame_id = "/odom"
+    new_traj.child_frame_id = "/base_link"
     no_of_poses = len(data.poses)
     print "no_of_poses : ",no_of_poses
     for i in range(no_of_poses):
@@ -61,6 +61,7 @@ def conv_to_traj(data):
 
         #Append this point to the array of traj points
         new_traj.trajectory.append(tp)
+
     traj_publisher.publish(new_traj)
 
     ##End of function

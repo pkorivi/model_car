@@ -95,7 +95,6 @@ void Spline::publishSampledSpline(ros::Publisher & publisher, std::string const 
 
     for (float i = mFirstParam; i < mLastParam; i = i + xSampleDistance) {
         geometry_msgs::PoseStamped examplePose;
-
         examplePose.pose.position.x = mSpline_x(i);
         examplePose.pose.position.y = mSpline_y(i);
         examplePose.pose.position.z = mSpline_z(i);

@@ -113,8 +113,8 @@ def create_graph():
     #pullData = open('rndf_1_way_loop.txt',"r").read()
     #pullData = open('rndf_2_way_road.txt',"r").read()
     #pullData = open('rndf_simulator_map_2way.txt',"r").read()
-    #pullData = open('/home/korivi/Desktop/frei_traj/code/RNDF_Creation/rndf_files/rndf_1_way_simulator.txt',"r").read()
-    pullData = open('/home/korivi/model_car/catkin_ws_user/src/route_planner/src/rndf_1_way_simulator.txt',"r").read()
+    pullData = open('/home/korivi/Desktop/frei_traj/code/RNDF_Creation/rndf_files/rndf_1_way_simulator.txt',"r").read()
+    #pullData = open('/home/korivi/model_car/catkin_ws_user/src/route_planner/src/sample_map_origin_map_1.txt',"r").read()
     dataArray = pullData.split('\n')
     node_counter = 0
     index = 0

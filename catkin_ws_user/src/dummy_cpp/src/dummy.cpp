@@ -38,14 +38,14 @@ void pub_odom(ros::Publisher&  odom_pub){
   odom.header.frame_id = "odom";
 
   //set the position
-  odom.pose.pose.position.x = 0;
-  odom.pose.pose.position.y = 0;
+  odom.pose.pose.position.x = 1.0;
+  odom.pose.pose.position.y = 0.0;
   odom.pose.pose.position.z = 0.0;
   odom.pose.pose.orientation = odom_quat;
 
   //set the velocity
   odom.child_frame_id = "base_link";
-  odom.twist.twist.linear.x = 0;
+  odom.twist.twist.linear.x = 0.00;
   odom.twist.twist.linear.y = 0;
   odom.twist.twist.angular.z = 0;
 
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "dummy");
   ros::NodeHandle nh;
-  ros::Publisher odom_pub = nh.advertise<nav_msgs::Odometry>("d_odom", 50);
+  ros::Publisher odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 50);
   ros::Publisher s_path_pub = nh.advertise<nav_msgs::Path>("s_path", 3);
   //ros::Publisher disp_pred_path;//,ref_path;
   //disp_pred_path = nh.advertise<visualization_msgs::Marker>("/pred_path_marker", 20);

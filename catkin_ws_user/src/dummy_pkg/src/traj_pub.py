@@ -29,8 +29,8 @@ def main(args):
         new_traj = Trajectory()
         new_traj.header.seq = seq
         new_traj.header.stamp = rospy.Time.now()
-        new_traj.header.frame_id = "/odom" #TODO change to /map frame
-        new_traj.child_frame_id = "/odom"
+        new_traj.header.frame_id = "/map" #TODO change to /map frame
+        new_traj.child_frame_id = "/base_link"
         #some points for road to follow
         points = [(-0.20, 0.00),
         (1.32, 0.01),

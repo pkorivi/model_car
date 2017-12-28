@@ -37,7 +37,7 @@ namespace fub_motion_planner{
 //Traj with polynomials_ no splines
 //TODO this will return the cost and trajectory - If stored it will take up lot of space
 //void MotionPlanner::create_traj(VehicleState current_state){
-void MotionPlanner::create_traj(VehicleState current_state, ros::Publisher&  traj_pub, \
+void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
         double v_target,double a_target,double d_target,double v_max, double v_min,int polynomial_order){
 
   //current values
@@ -262,7 +262,7 @@ return a score for each trajectory here after testing the obstacle avoidance etc
 */
 ///*
 
-void MotionPlanner::create_traj_spline(VehicleState current_state, ros::Publisher&  traj_pub, \
+void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState prev_state, ros::Publisher&  traj_pub, \
         double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order){
   tk::spline s;
   tk::spline v;

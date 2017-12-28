@@ -40,6 +40,7 @@ namespace fub_motion_planner{
       // create a copy of the vehicle state - we do NOT want these values to
       // change while we are working with them
       // TODO: ensure that data does not change during copying
+      std::cout << "VS in cb tmr " <<m_vehicle_state.m_vehicle_position[0]<<" , "<<m_vehicle_state.m_vehicle_position[1]<< '\n';
       VehicleState current_vehicle_state = m_vehicle_state;
       //Vehicle Path
       if (m_vehicle_path.route_path_exists == true) {
@@ -54,10 +55,10 @@ namespace fub_motion_planner{
         double v_target = 1.1;
         //TODO a_tgt and d_tgt - part of matrix
         double a_target = acc[0];
-        double d_target = -0.4;
+        double d_target = 0.0;
         int polynomial_order = 3;
         //create_traj_spline(current_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-        create_traj(current_vehicle_state,mp_traj2,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+        create_traj_spline(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
         /*a_target = 0;
         a_target = -0.15;
         v_target = 0;

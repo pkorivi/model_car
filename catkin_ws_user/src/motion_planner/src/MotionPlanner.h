@@ -23,9 +23,9 @@ namespace fub_motion_planner{
       ros::Publisher mp_traj3;
       ros::Publisher mp_traj4;
 
-      void create_traj_spline(VehicleState current_state, ros::Publisher&  traj_pub, \
+      void create_traj_spline(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
               double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
-      void create_traj(VehicleState current_state, ros::Publisher&  traj_pub, \
+      void create_traj(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
               double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
       /** The callback for the timer that triggers the update.
       */

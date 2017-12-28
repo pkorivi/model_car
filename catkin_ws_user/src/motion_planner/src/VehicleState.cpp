@@ -21,9 +21,8 @@ namespace fub_motion_planner{
   void VehicleState::setup(ros::NodeHandle & nh)
   {
       // TODO: increase odom queue to at least 32
-      //TODO change d_odom to odom when subscribing to proper node
       ROS_INFO("Vehicle_State setup");
-      m_subscribe_odom  = nh.subscribe("/d_odom", 1, &VehicleState::odometryCallback, this, ros::TransportHints().tcpNoDelay());
+      m_subscribe_odom  = nh.subscribe("/odom", 1, &VehicleState::odometryCallback, this, ros::TransportHints().tcpNoDelay());
       //ROS_INFO("Vehicle state setup");
   }
 
@@ -32,7 +31,7 @@ namespace fub_motion_planner{
     m_ego_state_pose = msg->pose;
     m_current_speed_front_axle_center = (double) msg->twist.twist.linear.x;
     tf::pointMsgToTF(m_ego_state_pose.pose.position, m_vehicle_position);
-    //ROS_INFO("x: %f, y: %f, %f", m_vehicle_position[0],m_vehicle_position[1], msg->pose.pose.position.x);
+    //ROS_INFO("x,y: %f, %f,x,y %f, %f", m_vehicle_position[0],m_vehicle_position[1], msg->pose.pose.position.x,msg->pose.pose.position.y);
     m_last_odom_time_stamp_received = msg->header.stamp;
   }
 
