@@ -40,12 +40,38 @@ namespace fub_motion_planner{
 void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
         double v_target,double a_target,double d_target,double v_max, double v_min,int polynomial_order){
 
+  geometry_msgs::PointStamped pt_Stamped_in,pt_stamped_out;
+  pt_Stamped_in.header.seq =1;
+  pt_Stamped_in.header.stamp = ros::Time::now();
+  pt_Stamped_in.header.frame_id= "/odom";
+  pt_Stamped_in.point.x = current_state.m_vehicle_position[0];
+  pt_Stamped_in.point.y = current_state.m_vehicle_position[1];
+  pt_Stamped_in.point.z = 0;
+  //tf::StampedTransform transform;
+  try{
+    m_tf_listener.listener.transformPoint("/map", pt_Stamped_in, pt_stamped_out);
+    //listener.lookupTransform("/turtle2", "/turtle1",ros::Time(0), transform);
+  }
+  catch (tf::TransformException &ex) {
+    ROS_ERROR("%s",ex.what());
+  }
+
   //current values
-  tf::Point cp = current_state.m_vehicle_position;
+  tf::Point cp ;//= current_state.m_vehicle_position;
+  cp[0] =  pt_stamped_out.point.x;
+  cp[1] =  pt_stamped_out.point.y;
+  std::cout << "map transformed cp "<< cp[0]<<" , "<<cp[1] << '\n';
   double v_current = current_state.m_current_speed_front_axle_center;
   //v_current = 0.8; //TODO remove it after testing
-  double a_current = 0.0; // TODO update this value from the odometry info
   double c_yaw = current_state.getVehicleYaw();
+
+  double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();
+  //prev velocity value
+  double prev_vel = prev_state.m_current_speed_front_axle_center;
+  double a_current =0;
+  if(time_from_prev_cycle > 0.001)
+    a_current = (v_current-prev_vel)/time_from_prev_cycle; // TODO update this value from the odometry info
+  std::cout <<" time :  "<< time_from_prev_cycle<<"  acc_current : " << a_current <<'\n';
   //TODO Add condition to skip if v_current > v_target and a_target > 0
 
   int number_of_samples = 25;
@@ -268,12 +294,39 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
   tk::spline v;
   tk::spline a;
   tk::spline d;
-  //Amax for profiles TODO : Update the Amax based on current velocity
-  tf::Point cp = current_state.m_vehicle_position;
+  geometry_msgs::PointStamped pt_Stamped_in,pt_stamped_out;
+  pt_Stamped_in.header.seq =1;
+  pt_Stamped_in.header.stamp = ros::Time::now();
+  pt_Stamped_in.header.frame_id= "/odom";
+  pt_Stamped_in.point.x = current_state.m_vehicle_position[0];
+  pt_Stamped_in.point.y = current_state.m_vehicle_position[1];
+  pt_Stamped_in.point.z = 0;
+  //tf::StampedTransform transform;
+  try{
+    m_tf_listener.listener.transformPoint("/map", pt_Stamped_in, pt_stamped_out);
+    //listener.lookupTransform("/turtle2", "/turtle1",ros::Time(0), transform);
+  }
+  catch (tf::TransformException &ex) {
+    ROS_ERROR("%s",ex.what());
+  }
+
+  //current values
+  tf::Point cp ;//= current_state.m_vehicle_position;
+  cp[0] =  pt_stamped_out.point.x;
+  cp[1] =  pt_stamped_out.point.y;
+  std::cout << "map transformed cp "<< cp[0]<<" , "<<cp[1] << '\n';
   //current values
   double v_current = current_state.m_current_speed_front_axle_center;
   //v_current = 0.0; //TODO remove it after testing
-  double a_current = 0.0; // TODO update this value from the odometry info
+  double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();
+  //prev velocity value
+  double prev_vel = prev_state.m_current_speed_front_axle_center;
+  double a_current =0;
+  if(time_from_prev_cycle > 0.001)
+    a_current = (v_current-prev_vel)/time_from_prev_cycle; // TODO update this value from the odometry info
+
+  std::cout <<" time :  "<< time_from_prev_cycle<<"  acc_current : " << a_current <<'\n';
+
   double c_yaw = current_state.getVehicleYaw();
   //TODO Add condition to skip if v_current > v_target and a_target > 0
   std::vector<double> spts;

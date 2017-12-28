@@ -9,6 +9,7 @@
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
 #include <tf/tf.h>
+#include <tf/transform_listener.h>
 
 namespace fub_motion_planner{
   class VehicleState {    //: public nodelet::Nodelet
@@ -43,6 +44,12 @@ namespace fub_motion_planner{
         ros::Subscriber m_subscribe_odom;
 
   };
+
+  class TfListener{
+    public:
+      tf::TransformListener listener;
+  };
+
 } // namespace sample_nodelet_ns
 
 #endif /* */

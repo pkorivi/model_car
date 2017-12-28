@@ -10,6 +10,9 @@
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
 #include "CreateTraj.cpp"
+#include <geometry_msgs/PointStamped.h>
+#include <tf/tf.h>
+#include <tf/transform_listener.h>
 
 
 namespace fub_motion_planner{

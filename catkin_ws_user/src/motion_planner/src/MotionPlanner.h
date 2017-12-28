@@ -16,6 +16,7 @@ namespace fub_motion_planner{
       VehicleState m_vehicle_state;
       VehicleState m_prev_vehicle_state;
       VehiclePath m_vehicle_path;
+      TfListener m_tf_listener;
       //motion planner trajectory output
       ros::Publisher m_mp_traj;
       ros::Publisher mp_traj1;
