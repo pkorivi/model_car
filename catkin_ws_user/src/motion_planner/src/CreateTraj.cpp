@@ -60,7 +60,7 @@ void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_sta
   tf::Point cp ;//= current_state.m_vehicle_position;
   cp[0] =  pt_stamped_out.point.x;
   cp[1] =  pt_stamped_out.point.y;
-  std::cout << "map transformed cp "<< cp[0]<<" , "<<cp[1] << '\n';
+  //std::cout << "map transformed cp "<< cp[0]<<" , "<<cp[1] << '\n';
   double v_current = current_state.m_current_speed_front_axle_center;
   //v_current = 0.8; //TODO remove it after testing
   double c_yaw = current_state.getVehicleYaw();
@@ -71,7 +71,7 @@ void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_sta
   double a_current =0;
   if(time_from_prev_cycle > 0.001)
     a_current = (v_current-prev_vel)/time_from_prev_cycle; // TODO update this value from the odometry info
-  std::cout <<" time :  "<< time_from_prev_cycle<<"  acc_current : " << a_current <<'\n';
+  //std::cout <<" time :  "<< time_from_prev_cycle<<"  acc_current : " << a_current <<'\n';
   //TODO Add condition to skip if v_current > v_target and a_target > 0
 
   int number_of_samples = 25;
@@ -88,7 +88,7 @@ void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_sta
   AccStates c_acc_phase = TO_REQ;
   //get current position in frenet frame
   //Adding a condition to perform traj generation when there is path to be followed
-  std::cout<<"New evaluation"<<std::endl;
+  //std::cout<<"New evaluation"<<std::endl;
   //current point in frenet
   FrenetCoordinate frenet_val =  m_vehicle_path.getFenet(cp,c_yaw);
   //Initial time and
@@ -314,7 +314,7 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
   tf::Point cp ;//= current_state.m_vehicle_position;
   cp[0] =  pt_stamped_out.point.x;
   cp[1] =  pt_stamped_out.point.y;
-  std::cout << "map transformed cp "<< cp[0]<<" , "<<cp[1] << '\n';
+  //std::cout << "map transformed cp "<< cp[0]<<" , "<<cp[1] << '\n';
   //current values
   double v_current = current_state.m_current_speed_front_axle_center;
   //v_current = 0.0; //TODO remove it after testing
@@ -325,7 +325,7 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
   if(time_from_prev_cycle > 0.001)
     a_current = (v_current-prev_vel)/time_from_prev_cycle; // TODO update this value from the odometry info
 
-  std::cout <<" time :  "<< time_from_prev_cycle<<"  acc_current : " << a_current <<'\n';
+  //std::cout <<" time :  "<< time_from_prev_cycle<<"  acc_current : " << a_current <<'\n';
 
   double c_yaw = current_state.getVehicleYaw();
   //TODO Add condition to skip if v_current > v_target and a_target > 0
@@ -341,9 +341,18 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
   AccStates c_acc_phase = TO_REQ;
   //get current position in frenet frame
   //Adding a condition to perform traj generation when there is path to be followed
-  std::cout<<"New evaluation"<<std::endl;
+  //std::cout<<"New evaluation"<<std::endl;
   //current point in frenet
   FrenetCoordinate frenet_val =  m_vehicle_path.getFenet(cp,c_yaw);
+  ROS_INFO("map-xy %.3f,%.3f , odom x,y : %.3f,%.3f , cur a: %.3f v: %.3f ",cp[0],cp[1],current_state.m_vehicle_position[0],current_state.m_vehicle_position[1],a_current,v_current);
+  ROS_INFO("frenet s,d %.3f %.3f ", frenet_val.s, frenet_val.d);
+
+  //TODO remove this - just to check if lane chnages are happening
+  ROS_INFO("Remove the below lane change logic");
+  if(frenet_val.d > 0.17)
+    d_target = -0.2;
+  else if(frenet_val.d < -0.17)
+    d_target = 0.2;
   //Initial time and
   spts.push_back(frenet_val.s);
   dpts.push_back(frenet_val.d);
@@ -494,11 +503,14 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
     double d_val = d(t_pt);
     double v_val = v(t_pt);
     double a_val = a(t_pt);
-    std::cout <<i << " Spline eval : s v a " <<s_val<<" , "<<v_val<<" , "<<a_val<<" , "<< '\n';
+    //std::cout <<i << " Spline eval : s v a " <<s_val<<" , "<<v_val<<" , "<<a_val<<" , "<< '\n';
     tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(s_val,d_val,0)); //TODO check yaw stuff
     //std::cout<<"  (x,y) : "<<xy[0]<<','<<xy[1]<<std::endl;//',    (s,d)'<<s_val<<",",<<d_val
     //TODO printing the calculated values in array - check this indexing
     //std::cout<<"acc : "<<acc_pts[i]<<" vel : "<<vpts[i]<<" posi : "<<spts[i]<<std::endl;
+
+    ROS_INFO("xy %.3f,%.3f , s,d %.3f, %.3f , a: %.3f v: %.3f ",xy[0],xy[1], s_val, d_val, a_val, v_val);
+
     geometry_msgs::PoseStamped examplePose;
     examplePose.pose.position.x = xy[0];
     examplePose.pose.position.y = xy[1];

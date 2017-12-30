@@ -103,7 +103,7 @@ void ControllerMig::update(VehicleState const & currentVehicleState)
         ROS_ERROR("angleBearing: %f angleHead: %f current speed: %f", angleBearing, angleHead, currentVehicleState.mCurrentSpeedFrontAxleCenter);
         mSteeringAngleNormalized = 0;
     }
-        ROS_INFO("steerOutput%f",mSteeringAngleNormalized);
+        //ROS_INFO("steerOutput%f",mSteeringAngleNormalized);
 
     // TODO: this makes no sense: shouldn't this be mGear or better yet, the
     //       current gear?
@@ -115,7 +115,8 @@ void ControllerMig::update(VehicleState const & currentVehicleState)
         steerAngle = steerAngle * 3.0;
     }
 */
-
+    ROS_INFO("x,y = %.3f, %.3f v_cur %.3f, v_req %.3f steer %.3f ",currentVehicleState.mVehiclePosition[0],currentVehicleState.mVehiclePosition[1],\
+    currentVehicleState.mCurrentSpeedFrontAxleCenter, wantedSpeed, mSteeringAngleNormalized);
     publish(currentVehicleState);
 
     publishWantedSpeedAndFrontWheelAngle(wantedSpeed, mSteeringAngleNormalized);

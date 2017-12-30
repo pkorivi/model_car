@@ -29,13 +29,13 @@ def main(args):
         new_traj = Trajectory()
         new_traj.header.seq = seq
         new_traj.header.stamp = rospy.Time.now()
-        new_traj.header.frame_id = "/map" #TODO change to /map frame
+        new_traj.header.frame_id = "/odom" #TODO change to /map frame
         new_traj.child_frame_id = "/base_link"
         #some points for road to follow
-        points = [(-0.20, 0.00),
-        (1.32, 0.01),
-        (2.82, 0.00),
-        (3.82, -0.01),
+        points = [(-0.20, -0.0),
+        (1.32, -0.0),
+        (2.82, -0.0),
+        (3.82, -0.0),
         (4.53, -0.26),
         (4.87, -0.63),
         (5.07, -1.09),
@@ -52,7 +52,7 @@ def main(args):
             #pose-position
             tp.pose.position.x = points[i][0]
             tp.pose.position.y = points[i][1]
-            tp.pose.position.z = -1
+            tp.pose.position.z = 0.01
             #pose - orientation
             #make orientation towards next point at every point
             #yaw - gives orientation of car, which is slope of the line or tangent of spline
@@ -69,7 +69,7 @@ def main(args):
             # RPY to convert: 0deg, 0, slope of line as rotation- yaw
             #sxyz - roll, pitch, yaw
             yaw = yaw*180.0/math.pi
-            print "yaw ::",yaw
+            #print "yaw ::",yaw
             qat = quaternion_from_euler(0, 0, yaw,axes='sxyz')
             #print "qat ",qat[0]," ",qat[1]," ",qat[2]," ",qat[3]
             tp.pose.orientation.x = qat[0]
@@ -79,7 +79,7 @@ def main(args):
             #tp.pose.orientation.w = 1
             #TODO check if orientation of pose is needed
             #TODO check what can be done to the velocity, is it needed
-            #tp.velocity.linear.x = 1
+            tp.velocity.linear.x = i/15.0 #factoring to some extant
             #TODO - velocity is of type twist, check if other linear and angular velocities are needed
             tp.acceleration.linear.x = 0
             #TODO - check if complete accleration is needed
@@ -94,6 +94,7 @@ def main(args):
         #print "qat ",qat[0]," ",qat[1]," ",qat[2]," ",qat[3]
 
         traj_publisher.publish(new_traj)
+        print "published "
         rate.sleep()
     #rospy.spin()
 

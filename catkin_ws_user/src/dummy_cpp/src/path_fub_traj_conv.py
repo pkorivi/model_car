@@ -13,9 +13,11 @@ from fub_trajectory_msgs.msg import TrajectoryPoint
 import math
 from nav_msgs.msg import Path
 from tf.transformations import quaternion_from_euler
+import tf
 
 traj_publisher = rospy.Publisher("/model_car/trajectory", Trajectory, queue_size =10)
 sequence =0
+listener = tf.TransformListener()
 
 def conv_to_traj(data):
     global sequence
@@ -23,17 +25,27 @@ def conv_to_traj(data):
     new_traj.header.seq = sequence
     sequence += 1 #increment counter
     new_traj.header.stamp = rospy.Time.now()
-    new_traj.header.frame_id = "/map" #TODO change to /map frame
+    new_traj.header.frame_id = "/odom" #TODO change to /map frame
     new_traj.child_frame_id = "/base_link"
     no_of_poses = len(data.poses)
+    time_ = rospy.Time.now()
     print "no_of_poses : ",no_of_poses
     for i in range(no_of_poses):
+        pt_Stamped_in = PointStamped()
+        pt_Stamped_in.header.seq =1
+        pt_Stamped_in.header.stamp =time_
+        pt_Stamped_in.header.frame_id= "/map"
+        pt_Stamped_in.point.x = data.poses[i].pose.position.x
+        pt_Stamped_in.point.y = data.poses[i].pose.position.y
+        pt_Stamped_in.point.z = 0;
+        print "x,y ", data.poses[i].pose.position.x, data.poses[i].pose.position.y
+        tpt = listener.transformPoint("/odom",pt_Stamped_in)
         tp = TrajectoryPoint()
         #pose-position
-        tp.pose.position.x = data.poses[i].pose.position.x
-        tp.pose.position.y = data.poses[i].pose.position.y
+        tp.pose.position.x = tpt.point.x
+        tp.pose.position.y = tpt.point.y
         #print "xy :: ",tp.pose.position.x,"  ",tp.pose.position.y
-        tp.pose.position.z = -1
+        tp.pose.position.z = 0.01
         if(i < (no_of_poses-1)):
             #slope = ((points[i+1][1]-points[i][1])/(points[i+1][0] - points[i][0]))
             #print "il::",i,"slope::",slope
@@ -54,8 +66,8 @@ def conv_to_traj(data):
         tp.pose.orientation.z = qat[2]
         tp.pose.orientation.w = qat[3]
 
-        tp.velocity.linear.x = data.poses[i].pose.position.z
-        tp.acceleration.linear.x = data.poses[i].pose.orientation.x
+        tp.velocity.linear.x = 0#data.poses[i].pose.position.z
+        tp.acceleration.linear.x = 0#data.poses[i].pose.orientation.x
         #25 points are published with 0.2s of time gap
         tp.time_from_start =rospy.Duration(0.2*i)
 

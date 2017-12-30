@@ -176,7 +176,7 @@ double PathFollower::getWantedVelocity(VehicleState const & currentVehicleState)
         //interpolate
         safeWantedVelocity = ((((safeDist2-distCarToTrajectory2d) - safeDist2)/(safeDist-safeDist2))*(wantedVelocity-safetyVel)+safetyVel);//*meters/seconds;
     }
-    ROS_INFO("lookaheadTime %f, lookaheadParam %f, wvel_crkt %f, safe_vel %f  ",lookaheadTime,lookaheadParam,wantedVelocity,safeWantedVelocity );
+    //ROS_INFO("lookaheadTime %f, lookaheadParam %f, wvel_crkt %f, safe_vel %f  ",lookaheadTime,lookaheadParam,wantedVelocity,safeWantedVelocity );
     return safeWantedVelocity;
 }
 
