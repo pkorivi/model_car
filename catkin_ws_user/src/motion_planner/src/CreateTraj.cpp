@@ -34,12 +34,19 @@ namespace fub_motion_planner{
     return result;
   }
 
-//Traj with polynomials_ no splines
+//Traj with polynomials_
 //TODO this will return the cost and trajectory - If stored it will take up lot of space
 //void MotionPlanner::create_traj(VehicleState current_state){
 void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
         double v_target,double a_target,double d_target,double v_max, double v_min,int polynomial_order){
 
+  //current values
+  double v_current = current_state.m_current_speed_front_axle_center;
+  //Condition added to prevent speeding up if current velocity is greater than target and positive acceleration is requested
+  if(v_current > v_target && a_target > 0){
+    ROS_ERROR("V_Cur is > v_tgt and acceleration is requested");
+    return;
+  }
   geometry_msgs::PointStamped pt_Stamped_in,pt_stamped_out;
   pt_Stamped_in.header.seq =1;
   pt_Stamped_in.header.stamp = ros::Time::now();
@@ -61,8 +68,6 @@ void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_sta
   cp[0] =  pt_stamped_out.point.x;
   cp[1] =  pt_stamped_out.point.y;
   //std::cout << "map transformed cp "<< cp[0]<<" , "<<cp[1] << '\n';
-  double v_current = current_state.m_current_speed_front_axle_center;
-  //v_current = 0.8; //TODO remove it after testing
   double c_yaw = current_state.getVehicleYaw();
 
   double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();
@@ -91,6 +96,8 @@ void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_sta
   //std::cout<<"New evaluation"<<std::endl;
   //current point in frenet
   FrenetCoordinate frenet_val =  m_vehicle_path.getFenet(cp,c_yaw);
+  ROS_INFO("map-xy %.3f,%.3f , odom x,y : %.3f,%.3f , cur a: %.3f v: %.3f ",cp[0],cp[1],current_state.m_vehicle_position[0],current_state.m_vehicle_position[1],a_current,v_current);
+  ROS_INFO("frenet s,d %.3f %.3f ", frenet_val.s, frenet_val.d);
   //Initial time and
   spts[0] = (frenet_val.s);
   dpts[0] = (frenet_val.d);
@@ -255,9 +262,8 @@ void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_sta
     double a_val = polyeval( a_coeffs, t_pt);
 
     tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(s_val,d_val,0)); //TODO check yaw stuff
-    //std::cout<<"  (x,y) : "<<xy[0]<<','<<xy[1]<<std::endl;//',    (s,d)'<<s_val<<",",<<d_val
-    //TODO printing the calculated values in array - check this indexing
-    //std::cout<<"acc : "<<acc_pts[i]<<" vel : "<<vpts[i]<<" posi : "<<spts[i]<<std::endl;
+    //TODO - remove this
+    ROS_INFO("xy %.3f,%.3f , s,d %.3f, %.3f , a: %.3f v: %.3f ",xy[0],xy[1], s_val, d_val, a_val, v_val);
     geometry_msgs::PoseStamped examplePose;
     examplePose.pose.position.x = xy[0];
     examplePose.pose.position.y = xy[1];
@@ -290,10 +296,15 @@ return a score for each trajectory here after testing the obstacle avoidance etc
 
 void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState prev_state, ros::Publisher&  traj_pub, \
         double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order){
-  tk::spline s;
-  tk::spline v;
-  tk::spline a;
-  tk::spline d;
+
+  //current values
+  double v_current = current_state.m_current_speed_front_axle_center;
+  //Condition added to prevent speeding up if current velocity is greater than target and positive acceleration is requested
+  if(v_current > v_target && a_target > 0){
+    ROS_ERROR("V_Cur is > v_tgt and acceleration is requested");
+    return;
+  }
+
   geometry_msgs::PointStamped pt_Stamped_in,pt_stamped_out;
   pt_Stamped_in.header.seq =1;
   pt_Stamped_in.header.stamp = ros::Time::now();
@@ -315,9 +326,6 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
   cp[0] =  pt_stamped_out.point.x;
   cp[1] =  pt_stamped_out.point.y;
   //std::cout << "map transformed cp "<< cp[0]<<" , "<<cp[1] << '\n';
-  //current values
-  double v_current = current_state.m_current_speed_front_axle_center;
-  //v_current = 0.0; //TODO remove it after testing
   double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();
   //prev velocity value
   double prev_vel = prev_state.m_current_speed_front_axle_center;
@@ -325,7 +333,11 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
   if(time_from_prev_cycle > 0.001)
     a_current = (v_current-prev_vel)/time_from_prev_cycle; // TODO update this value from the odometry info
 
-  //std::cout <<" time :  "<< time_from_prev_cycle<<"  acc_current : " << a_current <<'\n';
+  //TODO - remove this - this is introduced as the current acceleration calculation is not working, so instead of ramp
+  // upto target acceleration. Start the process at constannt acceleration or reducing accaleration
+  a_current = a_target;
+
+  std::cout <<" time :  "<< time_from_prev_cycle<<"  acc_current : " << a_current <<'\n';
 
   double c_yaw = current_state.getVehicleYaw();
   //TODO Add condition to skip if v_current > v_target and a_target > 0
@@ -349,10 +361,13 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
 
   //TODO remove this - just to check if lane chnages are happening
   ROS_INFO("Remove the below lane change logic");
-  if(frenet_val.d > 0.17)
-    d_target = -0.2;
-  else if(frenet_val.d < -0.17)
-    d_target = 0.2;
+  if(frenet_val.d > 0.17){
+    d_target = -0.21;}
+  else if(frenet_val.d < -0.17){
+    d_target = 0.21;}
+  else{
+
+  }
   //Initial time and
   spts.push_back(frenet_val.s);
   dpts.push_back(frenet_val.d);
@@ -481,6 +496,11 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
     }
   }//for loop
   //std::cout << "v_change :" << v_change << '\n';
+  //Create splines
+  tk::spline s;
+  tk::spline v;
+  tk::spline a;
+  tk::spline d;
   s.set_points(tpts,spts);    // currently it is required that X is already sorted. evaluating s with respect to time
   v.set_points(tpts,vpts);   // spline for velocity
   a.set_points(tpts,acc_pts);

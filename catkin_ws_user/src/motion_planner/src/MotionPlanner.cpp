@@ -43,7 +43,7 @@ namespace fub_motion_planner{
       // create a copy of the vehicle state - we do NOT want these values to
       // change while we are working with them
       // TODO: ensure that data does not change during copying
-      std::cout << "VS in cb tmr " <<m_vehicle_state.m_vehicle_position[0]<<" , "<<m_vehicle_state.m_vehicle_position[1]<< '\n';
+      //std::cout << "VS in cb tmr " <<m_vehicle_state.m_vehicle_position[0]<<" , "<<m_vehicle_state.m_vehicle_position[1]<< '\n';
       VehicleState current_vehicle_state = m_vehicle_state;
       //Vehicle Path
       if (m_vehicle_path.route_path_exists == true) {
@@ -51,7 +51,7 @@ namespace fub_motion_planner{
         //Amax for profiles TODO : Update the Amax based on current velocity
         double acc[] = {0.15,0,-0.2};
         //TODO min_max Update this values from map
-        double v_max = 1.1;
+        double v_max = 0.6;
         double v_min = 0; // stand still, no negative speeds
         //target values
         //V_ Target indicated by behavioral layer
@@ -69,7 +69,7 @@ namespace fub_motion_planner{
         a_target = -0.3;
         v_target = 0;
         create_traj(current_vehicle_state,mp_traj4,v_target,a_target,d_target,v_max,v_min,polynomial_order);*/
-        std::cout<<"elapsed :: "<< ros::Time::now()-t<< '\n';
+        std::cout<<"elapsed :: "<< (ros::Time::now()-t).toSec()<< '\n';
       }
       else{
         ROS_INFO("waiting for route path");
