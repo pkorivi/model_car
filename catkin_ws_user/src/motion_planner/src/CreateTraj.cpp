@@ -10,6 +10,24 @@ namespace fub_motion_planner{
     return result;
   }
 
+  // Evaluate a polynomial Derivative.
+  double polyeval_derivative(Eigen::VectorXd coeffs, double x) {
+    double result = 0.0;
+    for (int i = 1; i < coeffs.size(); i++) {
+      result += i*coeffs[i] * pow(x, i-1);
+    }
+    return result;
+  }
+
+  // Evaluate a polynomial Double derivative.
+  double polyeval_double_derivative(Eigen::VectorXd coeffs, double x) {
+    double result = 0.0;
+    for (int i = 2; i < coeffs.size(); i++) {
+      result += i*(i-1)*coeffs[i] * pow(x, i-2);
+    }
+    return result;
+  }
+
   // Fit a polynomial.
   // Adapted from
   // https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716
@@ -577,82 +595,62 @@ void MotionPlanner::create_traj_const_acc(VehicleState current_state,VehicleStat
   pt_Stamped_in.point.z = 0;
   try{
     m_tf_listener.listener.transformPoint("/map", pt_Stamped_in, pt_stamped_out);
-    //listener.lookupTransform("/turtle2", "/turtle1",ros::Time(0), transform);
   }
   catch (tf::TransformException &ex) {
     ROS_ERROR("%s",ex.what());
   }
 
   //current values in Map frame
-  tf::Point cp ;//= current_state.m_vehicle_position;
+  tf::Point cp ;
   cp[0] =  pt_stamped_out.point.x;
   cp[1] =  pt_stamped_out.point.y;
   //std::cout << "map transformed cp "<< cp[0]<<" , "<<cp[1] << '\n';
   double c_yaw = current_state.getVehicleYaw();
-
   double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();
-
+  //TODO - read from confug file
   int number_of_samples = 25;
   Eigen::VectorXd spts(number_of_samples);
   Eigen::VectorXd tpts(number_of_samples);
-  Eigen::VectorXd vpts(number_of_samples);
-  Eigen::VectorXd acc_pts(number_of_samples);
   //TODO change the number
   Eigen::VectorXd dpts(6);
 
   double a_ref, v_ref, s_ref;
-  //Accelerate with target Acceleration
+  //Different Acceleraton States
   enum AccStates { CONSTANT_ACC, ZERO_ACC, BRAKE_DEC};
   AccStates c_acc_phase = CONSTANT_ACC;
   //current point in frenet
   FrenetCoordinate frenet_val =  m_vehicle_path.getFenet(cp,c_yaw);
-  ROS_INFO("map-xy %.3f,%.3f , odom x,y : %.3f,%.3f , cur a: 0 v: %.3f ",cp[0],cp[1],current_state.m_vehicle_position[0],current_state.m_vehicle_position[1],v_current);
-  ROS_INFO("frenet s,d %.3f %.3f ", frenet_val.s, frenet_val.d);
-  //Initial time and
+  //ROS_INFO("map-xy %.3f,%.3f , odom x,y : %.3f,%.3f , cur a: 0 v: %.3f ",cp[0],cp[1],current_state.m_vehicle_position[0],current_state.m_vehicle_position[1],v_current);
+  //ROS_INFO("frenet s,d %.3f %.3f ", frenet_val.s, frenet_val.d);
+  //Initial Points for polyfit
   spts[0] = (frenet_val.s);
   dpts[0] = (frenet_val.d);
-  vpts[0] = (v_current);
   tpts[0] = (0);
-  acc_pts[0] = (0);//Assume previous acceleration is zero - bad assumption but accurate values are not possible to measure with current velocity calculation accuracy
   //TODO - add in config file
   //If the target distance is short the planner should accelerate and deccelerate in 5s, else it will not be able to find a path.
   //This will help create a path with ability to stop if the final destination is arrived
   double brake_dec = 0.3;
   double d_brake =(v_current*v_current)/(2*brake_dec);//v² -u² = 2as, thus to stop with current velocity it is s = -u²/2a; a is -ve this s = u²/2a
-
-  //to come to zero acc, it should decrease if it is greater than zero and increase if its less than zero
-  //TODO zero stuff here- something can be messy
-  double to_zero_acc_inc_dec = (a_target>0?-1:1);
   //Time samples of 100ms each, so for 5 seconds we have 50 samples - TODO this as tunable parameter
   double t_sample = (5.0)/number_of_samples;
+  double v_previous = v_current;
   for(int i=1;i<number_of_samples;i++){
     //std::cout << "vcur : " << vpts[i-1]<< " acur :"<< acc_pts[i-1] <<"  vtgt "<<v_target<<" a_tgt : "<<a_target << " vch "<<v_change <<'\n';
     //std::cout << "abs v : " << fabs(v_target-vpts[i-1])<< " abs a : " <<fabs(acc_pts[i-1]-acc[2]);
     tpts[i] =(i*t_sample);
     switch (c_acc_phase) {
       case CONSTANT_ACC: {
-        std::cout << "  :  const acc" << '\n';
-        //constant acceleration
-        acc_pts[i]=(a_target);
-        v_ref = vpts[i-1] + a_target*t_sample;
+        //std::cout << "  :  const acc" << '\n';
+        v_ref = v_previous + a_target*t_sample;
         // Bound the velocity
-        if (v_ref > v_max)
-          v_ref = v_max;
-        else if (v_ref<v_min)
-          v_ref = v_min;
+        v_ref = v_ref>v_max?v_max:v_ref;
+        v_ref = v_ref<v_min?v_min:v_ref;
 
         //If the v_ref reaches near v_target, make it v_target - this is mainly useful while acceleration and prevent overshoots
         if(fabs(v_target-v_ref) < 0.03)
           v_ref = v_target;
-        vpts[i]=(v_ref);
 
-        //calc distance only when there is speed
-        if(v_ref>0)
-          spts[i]=(spts[i-1] + vpts[i-1]*t_sample + 0.5*a_target*t_sample*t_sample);
-        else
-          spts[i] = spts[i-1];
-
-
+        spts[i] = (v_ref>0)?(spts[i-1] + v_previous*t_sample + 0.5*a_target*t_sample*t_sample):spts[i-1];
         d_brake =(v_ref*v_ref)/(2*brake_dec);
         //0.1 of  extra buffer stopping distance
         // Go to braking if the available road is less and the acceleration requested is greater then or equal to zero.
@@ -668,23 +666,13 @@ void MotionPlanner::create_traj_const_acc(VehicleState current_state,VehicleStat
         break;
       }
       case ZERO_ACC: {
-        std::cout << "  : zero" << '\n';
+        //std::cout << "  : zero" << '\n';
         //Zero acceleration
-        acc_pts[i]=(0);
-        v_ref = vpts[i-1];//zero acceleration - constant velocity
+        v_ref = v_previous;//zero acceleration - constant previous velocity
         // Bound the velocity
-        if (v_ref > v_max)
-          v_ref = v_max;
-        else if (v_ref<v_min)
-          v_ref = v_min;
-        vpts[i]=(v_ref);
-
-        //calc distance only when there is speed
-        if(v_ref>0)
-          spts[i]=(spts[i-1] + v_ref*t_sample);
-        else
-          spts[i] = spts[i-1];
-
+        v_ref = v_ref>v_max?v_max:v_ref;
+        v_ref = v_ref<v_min?v_min:v_ref;
+        spts[i] = (v_ref>0)?(spts[i-1] + v_ref*t_sample):spts[i-1];
         d_brake =(v_ref*v_ref)/(2*brake_dec);
         //0.1 of  extra buffer stopping distance
         // Go to braking if the available road is less and the acceleration requested is greater then or equal to zero.
@@ -693,40 +681,29 @@ void MotionPlanner::create_traj_const_acc(VehicleState current_state,VehicleStat
         if((d_brake > (m_vehicle_path.frenet_path.back().s - spts[i] - 0.1))&&(a_target>=0)){
           c_acc_phase =BRAKE_DEC;
         }
-
         break;
       }
       case BRAKE_DEC: {
-        std::cout << "  :  decc acc" << '\n';
+        //std::cout << "  :  decc acc" << '\n';
         //constant acceleration
-        acc_pts[i]=(a_target);
-        v_ref = vpts[i-1] - brake_dec*t_sample;
+        v_ref = v_previous - brake_dec*t_sample;
         // Bound the velocity
-        if (v_ref > v_max)
-          v_ref = v_max;
-        else if (v_ref<v_min)
-          v_ref = v_min;
-        vpts[i]=(v_ref);
-        if(v_ref>0)
-          spts[i]=(spts[i-1] + vpts[i-1]*t_sample - 0.5*brake_dec*t_sample*t_sample);
-        else
-          spts[i] = spts[i-1];
-
+        v_ref = v_ref>v_max?v_max:v_ref;
+        v_ref = v_ref<v_min?v_min:v_ref;
+        spts[i] = (v_ref>0)?(spts[i-1] + v_previous*t_sample - 0.5*brake_dec*t_sample*t_sample):spts[i-1];
         break;
       }
       default: {
         std::cout << "Oops something is wrong" << '\n';
       }
     }
-  ROS_INFO("%.3f",spts[i]);//TODO remove
+    //ROS_INFO("%.3f",spts[i]);//TODO remove
+    //Store the velocity calculated in this cycle for next cycle
+    v_previous = v_ref;
   }//for loop
-  //std::cout << "v_change :" << v_change << '\n';
-  //int polynomial_order=4;
+
+  //Fit the points path points to a polynomial of given order
   auto s_coeffs = polyfit(tpts, spts,polynomial_order);
-  //auto v_coeffs = polyfit(tpts,vpts,polynomial_order);
-  auto a_coeffs = polyfit(tpts,acc_pts,polynomial_order);
-
-
   //for change in d -
   //TODO add d to maintain current raidus of curvature
   dpts[1]=dpts[0];
@@ -744,38 +721,31 @@ void MotionPlanner::create_traj_const_acc(VehicleState current_state,VehicleStat
   d_t_pts[3] = 4.6;
   d_t_pts[4] = 4.8;
   d_t_pts[5] = 5.0;
+
   auto d_coeffs = polyfit(d_t_pts,dpts,polynomial_order);
 
   nav_msgs::Path m_sampled_traj;
   m_sampled_traj.header.stamp = ros::Time::now();
   m_sampled_traj.header.frame_id = "/map";
-  double s_val,d_val,v_val, a_val, s_prev;
-  s_prev = polyeval( s_coeffs, -0.2);
+  double s_val,d_val,v_val, a_val;
   //sample every 0.2s
   for(double i=0;i<25;i++){
     double t_pt = 0.2*i;//time
-    //double s_val = s(t_pt);
-    //double d_val = d(t_pt);
-    //Eigen::VectorXd
     s_val = polyeval( s_coeffs, t_pt);
     d_val = polyeval( d_coeffs, t_pt);
-    v_val = (s_val - s_prev)/0.2;
-    s_prev = s_val;
-    if(v_val<v_min)
-      v_val = v_min;
-
-    //v_val = polyeval( v_coeffs, t_pt);
-    a_val = polyeval( a_coeffs, t_pt);
+    v_val = polyeval_derivative(s_coeffs,t_pt);
+    v_val = v_val<v_min?v_min:v_val;
+    a_val = polyeval_double_derivative(s_coeffs,t_pt);
 
     tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(s_val,d_val,0)); //TODO check yaw stuff
     //TODO - remove this
-    ROS_INFO("xy %.3f,%.3f , s,d %.3f, %.3f , a: %.3f v: %.3f ",xy[0],xy[1], s_val, d_val, a_val, v_val);
+    //ROS_INFO("xy %.3f,%.3f , s,d %.3f, %.3f , a: %.3f v: %.3f ",xy[0],xy[1], s_val, d_val, a_val, v_val);
     geometry_msgs::PoseStamped examplePose;
     examplePose.pose.position.x = xy[0];
     examplePose.pose.position.y = xy[1];
     //Currently this velocity is used in trajectory converted to publish velocity at a point
     examplePose.pose.position.z = v_val;//v(t_pt); //velocity saved in z direction
-    examplePose.pose.orientation.x = a_val;//0.0f;//a(t_pt); // save accleration in orientation
+    examplePose.pose.orientation.x = a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
     examplePose.pose.orientation.y = 0.0f;
     examplePose.pose.orientation.z = 0.0f;
 

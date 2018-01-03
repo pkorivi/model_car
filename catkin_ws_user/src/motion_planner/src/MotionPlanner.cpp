@@ -13,6 +13,7 @@
 #include <geometry_msgs/PointStamped.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
+#include "time.h"
 
 
 namespace fub_motion_planner{
@@ -30,7 +31,7 @@ namespace fub_motion_planner{
       m_vehicle_path.setup(getNodeHandle());
       //TODO change execution frequency to a bigger value and also parameter of a config file
       //double execution_frequency = 0.02;
-      ros::Duration timerPeriod = ros::Duration(2);
+      ros::Duration timerPeriod = ros::Duration(0.25);
       m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj", 10);
       mp_traj1 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_1", 10);
       mp_traj2 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_2", 10);
@@ -48,14 +49,15 @@ namespace fub_motion_planner{
       //Vehicle Path
       if (m_vehicle_path.route_path_exists == true) {
         ros::Time t = ros::Time::now();
+        clock_t tStart = clock();
         //Amax for profiles TODO : Update the Amax based on current velocity
         double acc[] = {0.15,0,-0.2};
         //TODO min_max Update this values from map
-        double v_max = 0.6;
+        double v_max = 1.0;
         double v_min = 0; // stand still, no negative speeds
         //target values
         //V_ Target indicated by behavioral layer
-        double v_target = 0.6;
+        double v_target = 1.0;
         //TODO a_tgt and d_tgt - part of matrix
         double a_target = acc[0];
         double d_target = 0.2;
@@ -70,6 +72,7 @@ namespace fub_motion_planner{
         v_target = 0;
         create_traj(current_vehicle_state,mp_traj4,v_target,a_target,d_target,v_max,v_min,polynomial_order);*/
         std::cout<<"elapsed :: "<< (ros::Time::now()-t).toSec()<< '\n';
+        ROS_INFO("Time taken: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
       }
       else{
         ROS_INFO("waiting for route path");
