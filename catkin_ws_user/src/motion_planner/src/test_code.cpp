@@ -1,3 +1,90 @@
+/*
+Code for creating the approximation matrix
+TODO - Adjust the weights to give proper predictions
+*/
+
+
+class target_state{
+  public:
+    target_state(double, double, double, double);
+    //~target_state();
+    double d;
+    double s;
+    double v;
+    double cost;
+};
+//Constructor with initializer
+target_state::target_state(double d, double s, double v, double cost){
+  this->d = d;
+  this->s = s;
+  this->v = v;
+  this->cost =cost;
+}
+
+int main(){
+
+  double current_vel = 0;
+  double target_vel = 1.1;
+  double current_d = 0.0;
+  double prev_tgt_d = 0;
+  double target_d = 0.2;
+  double target_S = 5;
+
+  std::vector<target_state> cost;
+  double cost_val;
+  //target lateral shifts
+  std::vector<double> d_ranges = {-0.25,-0.17,-0.1,0,0.1,0.17,0.25};
+  //-0.1,0,0.1,0.17,0.25};
+  //Acceleration to Max Deceleration
+  std::vector<double> acc_prof = {0.2,0.1,0,-0.1,-0.2,-0.4,-0.6, -0.8};
+  //double acc_prof[] = {0.2,0.1,0,-0.1,-0.2,-0.4,-0.6, -0.8};
+
+  //TODO - add some variable or something
+  for(int j=0; j<5;j++){
+    for(int i=0; i< d_ranges.size();i++){
+      cost_val = (current_vel-target_vel)*acc_prof[j]+ fabs(acc_prof[j]) + \
+                  fabs(target_d - d_ranges[i])*2 + fabs(prev_tgt_d - d_ranges[i]);
+      target_state tgt(target_d,target_S,target_vel, cost_val);
+      std::cout.width(5);
+      cost.push_back(tgt);
+      std::cout << cost_val<< "   ";
+    }
+    std::cout <<'\n';
+  }
+  std::cout<<"Stopping profiles" <<'\n';
+  //Profiles for stopping
+  target_vel =0;
+  for(int j=3; j<8;j++){
+    for(int i=0; i< d_ranges.size();i++){
+      cost_val = (current_vel-target_vel)*acc_prof[j]+ 2*fabs(acc_prof[j]) + \
+                  fabs(target_d - d_ranges[i])*2 + fabs(prev_tgt_d - d_ranges[i]);
+      target_state tgt(target_d,target_S,target_vel, cost_val);
+      std::cout.width(5);
+      cost.push_back(tgt);
+      std::cout << cost_val<< "   ";
+    }
+    std::cout <<'\n';
+  }
+
+  //srand(3);
+  /*
+  for(int j=3; j<8; j++){
+    //lateral shift is same as old
+    cost_val = (current_vel-target_vel)*acc_prof[j]+ fabs(acc_prof[j]) + fabs(target_d - current_d) + fabs(prev_tgt_d - current_d);
+    target_state tgt(current_d,target_S,target_vel, cost_val);
+    cost.push_back(tgt);
+    std::cout << cost_val <<'\n';
+  }*/
+
+
+ return 0;
+}
+
+/*End of code for creating approximation matrix*/
+
+
+
+
 //ROS_INFO("timer, pos x %f",m_vehicle_state.m_vehicle_position[0]);
 //TODO Test all the functions implemented in vehicle state and vehicle path
 /* //Vehicle state stuff works

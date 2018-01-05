@@ -50,8 +50,11 @@ namespace fub_motion_planner{
       if (m_vehicle_path.route_path_exists == true) {
         ros::Time t = ros::Time::now();
         clock_t tStart = clock();
+
+        /* TODO - Add the prediction matrix here after adjusting the weights. Code in test_code.cpp
+        */
         //Amax for profiles TODO : Update the Amax based on current velocity
-        double acc[] = {0.15,0,-0.2};
+        double acc_prof[] = {0.15,0,-0.2};
         //TODO min_max Update this values from map
         double v_max = 1.0;
         double v_min = 0; // stand still, no negative speeds
@@ -59,7 +62,7 @@ namespace fub_motion_planner{
         //V_ Target indicated by behavioral layer
         double v_target = 1.0;
         //TODO a_tgt and d_tgt - part of matrix
-        double a_target = acc[0];
+        double a_target = acc_prof[0];
         double d_target = 0.2;
         int polynomial_order = 4;
         //create_traj_spline(current_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
