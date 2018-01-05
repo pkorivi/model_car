@@ -64,9 +64,10 @@ namespace fub_motion_planner{
         //TODO a_tgt and d_tgt - part of matrix
         double a_target = acc_prof[0];
         double d_target = 0.2;
-        int polynomial_order = 4;
+        int polynomial_order = 3;
         //create_traj_spline(current_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-        create_traj_const_acc(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+        //create_traj_const_acc
+        create_traj_const_acc_xy_polyeval(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
         /*a_target = 0;
         a_target = -0.15;
         v_target = 0;
@@ -74,8 +75,8 @@ namespace fub_motion_planner{
         a_target = -0.3;
         v_target = 0;
         create_traj(current_vehicle_state,mp_traj4,v_target,a_target,d_target,v_max,v_min,polynomial_order);*/
-        std::cout<<"elapsed :: "<< (ros::Time::now()-t).toSec()<< '\n';
-        ROS_INFO("Time taken: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+        //std::cout<<"elapsed :: "<< (ros::Time::now()-t).toSec()<< '\n';
+        ROS_INFO("Time taken: %f", (double)(clock() - tStart)/CLOCKS_PER_SEC);
       }
       else{
         ROS_INFO("waiting for route path");
