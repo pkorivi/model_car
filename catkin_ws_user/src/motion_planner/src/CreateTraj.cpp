@@ -817,7 +817,7 @@ void MotionPlanner::create_traj_const_acc_xy_polyeval(VehicleState current_state
   //Iniial x,y - as per map coordinates
   xpts[0] = ( pt_stamped_out.point.x);
   ypts[0] = ( pt_stamped_out.point.y);
-
+  std::cout << "x,y "<<xpts[0]<<"  "<<ypts[0] << '\n';
   //start of d_stuff
   dpts[0] = (frenet_val.d);
   dpts[1]=dpts[0];
@@ -919,6 +919,7 @@ void MotionPlanner::create_traj_const_acc_xy_polyeval(VehicleState current_state
     tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(spts[i],d_val1,0)); //TODO check yaw stuff
     xpts[i]= xy[0];
     ypts[i]= xy[1];
+    std::cout << "x,y"<<xy[0]<<"  "<<xy[1] << "   time :"<<tpts[i]<<'\n';
     //Store the velocity calculated in this cycle for next cycle
     v_previous = v_ref;
   }//for loop

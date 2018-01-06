@@ -9,11 +9,12 @@
 #include <vector>
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
-#include "CreateTraj.cpp"
+#include "CreateTraj2.cpp"
 #include <geometry_msgs/PointStamped.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 #include "time.h"
+#include "polyfit.h"
 
 
 namespace fub_motion_planner{
@@ -66,8 +67,8 @@ namespace fub_motion_planner{
         double d_target = 0.2;
         int polynomial_order = 3;
         //create_traj_spline(current_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-        //create_traj_const_acc
-        create_traj_const_acc_xy_polyeval(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+        //create_traj_const_acc(current_vehicle_state,m_prev_vehicle_state,mp_traj2,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+        create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
         /*a_target = 0;
         a_target = -0.15;
         v_target = 0;
