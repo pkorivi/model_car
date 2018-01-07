@@ -299,6 +299,7 @@ def start():
         pose = PoseStamped()
         pose.pose.position.x =pt[0]
         pose.pose.position.y =pt[1]
+        pose.pose.orientation.w =1
         pose_list.append(pose)
         my_path.poses.append(pose)
     #TODO Add a way point which is bfore the start line to keep the flow

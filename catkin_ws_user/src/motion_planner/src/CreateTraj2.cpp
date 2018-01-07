@@ -217,6 +217,7 @@ namespace fub_motion_planner{
       examplePose.pose.orientation.x = 0.0;//a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
       examplePose.pose.orientation.y = 0.0f;
       examplePose.pose.orientation.z = 0.0f;
+      examplePose.pose.orientation.w = 1.0f;
 
       //push PoseStamped into Path
       m_sampled_traj.poses.push_back(examplePose);
