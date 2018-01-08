@@ -33,7 +33,7 @@ namespace fub_motion_planner{
     //TODO make is dependent on s - implement as per paper
     std::vector<double> d_t_pts = {0.0,0.2,0.4,4.6,4.8,5.0};
     auto d_coeffs =  polyfit(d_t_pts,dpts,poly_order);
-    ROS_INFO("polyfit d: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+    //ROS_INFO("polyfit d: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     return d_coeffs;
   }
 
@@ -71,11 +71,12 @@ namespace fub_motion_planner{
     double c_yaw = current_state.getVehicleYaw();
     double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();
     //TODO - read from confug file
-    int number_of_samples = 10;
+    int number_of_samples = 26;
     std::vector<double> spts;
     std::vector<double> tpts;
     std::vector<double> xpts;
     std::vector<double> ypts;
+    std::vector<double> vpts;
 
     double a_ref, v_ref, s_ref;
     //Different Acceleraton States
@@ -91,8 +92,9 @@ namespace fub_motion_planner{
     //Iniial x,y - as per map coordinates
     xpts.push_back( pt_stamped_out.point.x);
     ypts.push_back( pt_stamped_out.point.y);
-    std::cout << "x,y "<<xpts[0]<<"  "<<ypts[0] << '\n';
-    ROS_INFO("Initialization: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+    vpts.push_back(v_current);
+    std::cout << "current x,y "<<xpts[0]<<"  "<<ypts[0] << '\n';
+    //ROS_INFO("Initialization: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
     //d_calc
     auto d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target, polynomial_order);
@@ -102,7 +104,7 @@ namespace fub_motion_planner{
     double brake_dec = 0.3;
     double d_brake =(v_current*v_current)/(2*brake_dec);//v² -u² = 2as, thus to stop with current velocity it is s = -u²/2a; a is -ve this s = u²/2a
     //Time samples of 100ms each, so for 5 seconds we have 50 samples - TODO this as tunable parameter
-    double t_sample = (5.0)/number_of_samples;
+    double t_sample = (5.0)/(number_of_samples-1);
     double v_previous = v_current;
     for(int i=1;i<number_of_samples;i++){
       //std::cout << "vcur : " << vpts[i-1]<< " acur :"<< acc_pts[i-1] <<"  vtgt "<<v_target<<" a_tgt : "<<a_target << " vch "<<v_change <<'\n';
@@ -126,7 +128,8 @@ namespace fub_motion_planner{
           // Go to braking if the available road is less and the acceleration requested is greater then or equal to zero.
           // If braking is requested then keep this as a part of cost term
           //TODO - add constants in config file
-          if((d_brake > (m_vehicle_path.frenet_path.back().s - spts[i] - 0.1))&&(a_target>=0)){
+          //TODO changed a_tgt to v_tgt - its working fine, just check if its ok - may affect the deceleration protion
+          if((d_brake > (m_vehicle_path.frenet_path.back().s - spts[i] - 0.1))&&(v_target>0)){
             c_acc_phase =BRAKE_DEC;
           }
           //TODO If the velocity is in bounds of 0.04 around then skip to zero acceleration phase
@@ -148,7 +151,7 @@ namespace fub_motion_planner{
           // Go to braking if the available road is less and the acceleration requested is greater then or equal to zero.
           // If braking is requested then keep this as a part of cost term
           //TODO - add constants in config file
-          if((d_brake > (m_vehicle_path.frenet_path.back().s - spts[i] - 0.1))&&(a_target>=0)){
+          if((d_brake > (m_vehicle_path.frenet_path.back().s - spts[i] - 0.1))&&(v_target>0)){
             c_acc_phase =BRAKE_DEC;
           }
           break;
@@ -170,8 +173,10 @@ namespace fub_motion_planner{
       //ROS_INFO("%.3f",spts[i]);//TODO remove
       //Store the velocity calculated in this cycle for next cycle
       v_previous = v_ref;
+      vpts.push_back(v_ref);
+      std::cout <<"  state "<< c_acc_phase <<" s "<<spts[i]<<" d_bk "<<d_brake <<" v "<<v_ref<< '\n';
     }//for loop
-    ROS_INFO("for loop: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+    //ROS_INFO("for loop: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
 
     //create xy sample points
@@ -182,16 +187,17 @@ namespace fub_motion_planner{
       tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(spts[i],d_val1,0)); //TODO check yaw stuff
       xpts.push_back(xy[0]);
       ypts.push_back(xy[1]);
-      //std::cout << "x,y"<<xy[0]<<"  "<<xy[1] << "   time :"<<tpts[i]<<'\n';
+      std::cout << "x,y  "<<xy[0]<<"  "<<xy[1] << " vel  "<< vpts[i] <<"   time "<<tpts[i]<<'\n';
     }
-    ROS_INFO("frenet to xy conversion: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+    //ROS_INFO("frenet to xy conversion: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
 
     //Fit the points path points to a polynomial of given order
     //std::cout << "sizes : "<< tpts.size()<<" "<< xpts.size()<<" "<< ypts.size()<<" " << '\n';
     auto x_coeffs =  polyfit(tpts, xpts,polynomial_order);
     auto y_coeffs =  polyfit(tpts, ypts,polynomial_order);
-    ROS_INFO("polyfit x,y: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+    auto v_coeffs =  polyfit(tpts, vpts,polynomial_order);
+    //ROS_INFO("polyfit x,y: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
 
     nav_msgs::Path m_sampled_traj;
@@ -210,10 +216,14 @@ namespace fub_motion_planner{
       //TODO - remove this
       //ROS_INFO("xy %.3f,%.3f , s,d %.3f, %.3f , a: %.3f v: %.3f ",xy[0],xy[1], s_val, d_val, a_val, v_val);
       geometry_msgs::PoseStamped examplePose;
-      examplePose.pose.position.x = polyeval_m( x_coeffs, t_pt);
-      examplePose.pose.position.y = polyeval_m( y_coeffs, t_pt);
+      double x_val = polyeval_m( x_coeffs, t_pt);
+      double y_val = polyeval_m( y_coeffs, t_pt);
+      double v_fit = polyeval_m( v_coeffs, t_pt);
+      ROS_INFO("xy %.3f,%.3f , v_xy, v_fit : %.3f  %.3f ", x_val, y_val, v_val, v_fit);
+      examplePose.pose.position.x = x_val;
+      examplePose.pose.position.y = y_val;
       //Currently this velocity is used in trajectory converted to publish velocity at a point
-      examplePose.pose.position.z = v_val;//v(t_pt); //velocity saved in z direction
+      examplePose.pose.position.z = v_fit;//v(t_pt); //velocity saved in z direction
       examplePose.pose.orientation.x = 0.0;//a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
       examplePose.pose.orientation.y = 0.0f;
       examplePose.pose.orientation.z = 0.0f;
@@ -222,7 +232,7 @@ namespace fub_motion_planner{
       //push PoseStamped into Path
       m_sampled_traj.poses.push_back(examplePose);
     }
-    ROS_INFO("eval and pub traj: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+    //ROS_INFO("eval and pub traj: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
     //Publish as path with velocity in z dimension
     traj_pub.publish(m_sampled_traj);

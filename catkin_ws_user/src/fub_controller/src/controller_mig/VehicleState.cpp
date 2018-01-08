@@ -16,7 +16,7 @@ void VehicleState::setup(ros::NodeHandle & nh)
 
 void VehicleState::plannedPathCallback(const fub_trajectory_msgs::TrajectoryConstPtr & msg)
 {
-    std::cout << "Received the Path";
+    std::cout << "Received the Path "<<'\n';
     mPath = *msg;
 }
 void VehicleState::odometryCallback(const nav_msgs::OdometryConstPtr & msg)

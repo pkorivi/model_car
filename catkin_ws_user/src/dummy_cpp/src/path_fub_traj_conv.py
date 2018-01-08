@@ -38,7 +38,7 @@ def conv_to_traj(data):
         pt_Stamped_in.point.x = data.poses[i].pose.position.x
         pt_Stamped_in.point.y = data.poses[i].pose.position.y
         pt_Stamped_in.point.z = 0;
-        print "x,y ", data.poses[i].pose.position.x, data.poses[i].pose.position.y
+        #print "x,y ", data.poses[i].pose.position.x, data.poses[i].pose.position.y
         tpt = listener.transformPoint("/odom",pt_Stamped_in)
         tp = TrajectoryPoint()
         #pose-position

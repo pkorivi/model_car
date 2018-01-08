@@ -115,7 +115,7 @@ void ControllerMig::update(VehicleState const & currentVehicleState)
         steerAngle = steerAngle * 3.0;
     }
 */
-    ROS_INFO("x,y = %.3f, %.3f v_cur %.3f, v_req %.3f steer %.3f ",currentVehicleState.mVehiclePosition[0],currentVehicleState.mVehiclePosition[1],\
+    //ROS_INFO("x,y = %.3f, %.3f v_cur %.3f, v_req %.3f steer %.3f ",currentVehicleState.mVehiclePosition[0],currentVehicleState.mVehiclePosition[1],\
     currentVehicleState.mCurrentSpeedFrontAxleCenter, wantedSpeed, mSteeringAngleNormalized);
     publish(currentVehicleState);
 

@@ -38,8 +38,8 @@ void pub_odom(ros::Publisher&  odom_pub){
   odom.header.frame_id = "odom";
 
   //set the position
-  odom.pose.pose.position.x = 1.0;
-  odom.pose.pose.position.y = 0.0;
+  odom.pose.pose.position.x = 4.5;
+  odom.pose.pose.position.y = -0.26;
   odom.pose.pose.position.z = 0.0;
   odom.pose.pose.orientation = odom_quat;
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
   //TODO Check the required frequency
   ros::Rate loop_rate(5);
   while(ros::ok()){
-    pub_odom(odom_pub);
+    //pub_odom(odom_pub);
     //pub_path(s_path_pub);
     ros::spinOnce();
     loop_rate.sleep();

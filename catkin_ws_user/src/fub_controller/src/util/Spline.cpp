@@ -101,6 +101,7 @@ void Spline::publishSampledSpline(ros::Publisher & publisher, std::string const 
         examplePose.pose.orientation.x = 0.0f;
         examplePose.pose.orientation.y = 0.0f;
         examplePose.pose.orientation.z = 0.0f;
+        examplePose.pose.orientation.w = 1.0f;
 
         //push PoseStamped into Path
         mSampledSplineDebug.poses.push_back(examplePose);
@@ -132,6 +133,7 @@ void Spline::publishSampledSplineDerivative(ros::Publisher & publisher, std::str
         examplePose.pose.orientation.x = 0.0f;
         examplePose.pose.orientation.y = 0.0f;
         examplePose.pose.orientation.z = 0.0f;
+        examplePose.pose.orientation.w = 1.0f;
 
         //push PoseStamped into Path
         mSampledSplineDebug.poses.push_back(examplePose);

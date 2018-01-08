@@ -163,8 +163,8 @@ double PathFollower::getWantedVelocity(VehicleState const & currentVehicleState)
     double x = mClosestPointInSpace.x()-currentVehicleState.mVehiclePosition.x();
     double y = mClosestPointInSpace.y()-currentVehicleState.mVehiclePosition.y();
     double distCarToTrajectory2d = sqrt(x*x+y*y);
-    //TODO make this params?
-    double safetyVel = 0.3;//*meters/seconds;
+    //TODO make this params? //pkorivi - updated the safe velocity to 0.03 from 0.3 as the model car has 1/10th scale
+    double safetyVel = 0.03;//*meters/seconds;
     double safeDist = 0.2; //within this distance from the spline it is ok to drive the wanted velocity
     double safeDist2 = 2.0; //above this distance from the spline we want to drive with safety velocity
 
