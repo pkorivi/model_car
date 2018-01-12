@@ -134,9 +134,9 @@ public:
 		// sometimes obstacles have a width/length of zero, visualize this by using a different marker type
 		if (boundingBoxSize.isZero()) {
 			marker.type = visualization_msgs::Marker::SPHERE;
-			marker.scale.x = 1;
-			marker.scale.y = 1;
-			marker.scale.z = 1;
+			marker.scale.x = 0.5;
+			marker.scale.y = 0.5;
+			marker.scale.z = 0.5;
 		}
 		else {
 			marker.type = visualization_msgs::Marker::CUBE;
@@ -197,6 +197,7 @@ public:
 			p.z = point.z;
 			marker.points.push_back(p);
 		}
+		marker.pose.orientation.w = 1.0;
 	}
 
 
@@ -216,7 +217,7 @@ public:
 		marker.lifetime        = ros::Duration(.3);
 		marker.ns              = "ID";
 		marker.text            = "[" + std::to_string((int)obstacle.id) + "]";
-		marker.scale.z         = .3; // text size
+		marker.scale.z         = .2; // text size
 		marker.color.r         = 0.6;
 		marker.color.g         = 0.7;
 		marker.color.b         = 1.0;
@@ -257,7 +258,7 @@ public:
 		marker.lifetime        = ros::Duration(.3);
 		marker.ns              = "velocity prediction";
 		marker.pose.position.z = 0.25;
-		marker.scale.x         = 1;
+		marker.scale.x         = 0.2;
 		marker.scale.y         = .1;
 		marker.scale.z         = .1;
 		marker.color.r         = 0.1;
@@ -394,9 +395,9 @@ public:
 		marker.action          = visualization_msgs::Marker::ADD;
 		marker.lifetime        = ros::Duration(.3);
 		marker.ns              = "reference_point";
-		marker.scale.x         = .2;
-		marker.scale.y         = .2;
-		marker.scale.z         = .2;
+		marker.scale.x         = .1;
+		marker.scale.y         = .1;
+		marker.scale.z         = .1;
 		marker.color.r         = 1.0;
 		marker.color.g         = 0.2;
 		marker.color.b         = 0.2;
@@ -422,6 +423,8 @@ public:
 		marker.pose.position.x = obstacle.reference_point.x;
 		marker.pose.position.y = obstacle.reference_point.y;
 		marker.pose.position.z = obstacle.reference_point.z;
+		//TODO - added to remove rviz error invalid quaternion
+		marker.pose.orientation.w = 1;
 
 		// set alpha by reference_point standard deviation
 		double avgSigma = (obstacle.reference_point_sigma.x + obstacle.reference_point_sigma.y + obstacle.reference_point_sigma.z) / 3;
