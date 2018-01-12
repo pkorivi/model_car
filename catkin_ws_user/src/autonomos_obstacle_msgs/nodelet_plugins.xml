@@ -1,0 +1,10 @@
+<library path="lib/libautonomos_obstacle_msgs_visualizer_nodelet">
+	<class name="autonomos_obstacle_msgs_visualizer/Nodelet"
+		   type="autonomos::visualization::ObstacleVisualizer"
+		   base_class_type="nodelet::Nodelet"
+	>
+		<description>
+			Visualization nodelet to visualize autonomos_obstacle_msgs::Obstacles with RViz markers.
+		</description>
+	</class>
+</library>
