@@ -23,9 +23,11 @@ from geometry_msgs.msg import PointStamped, Pose, Point, Twist, Quaternion,Vecto
 
 obst_pub = rospy.Publisher("obstacles",Obstacles, queue_size = 5)
 sequence =0
+var_abs_vel = 0
 
 def pub_obstacle_info():
-    global sequence
+    global sequence,var_abs_vel
+    var_abs_vel = 0.5
     new_obstacles_list = Obstacles()
     for id_ in range(2):
         new_obstacle = Obstacle()
@@ -53,7 +55,7 @@ def pub_obstacle_info():
         new_obstacle.odom = odom
         #TwistWithCovariance
         abs_vel = TwistWithCovariance()
-        abs_vel.twist.linear.x = 1.0
+        abs_vel.twist.linear.x = var_abs_vel
         abs_vel.twist.linear.y = 0.0
         new_obstacle.abs_velocity = abs_vel
 

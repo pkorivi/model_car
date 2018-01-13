@@ -6,6 +6,10 @@
 #include "VehicleState.h"
 #include "VehiclePath.h"
 #include "polyfit.h"
+//#include <fub_trajectory_msgs/Trajectory.h>
+//#include <fub_trajectory_msgs/TrajectoryPoint.h>
+#include <autonomos_obstacle_msgs/Obstacles.h>
+#include <autonomos_obstacle_msgs/Obstacle.h>
 
 namespace fub_motion_planner{
   class MotionPlanner : public nodelet::Nodelet{
@@ -18,7 +22,7 @@ namespace fub_motion_planner{
       VehicleState m_prev_vehicle_state;
       VehiclePath m_vehicle_path;
       TfListener m_tf_listener;
-      //motion planner trajectory output
+      //Pushlishers
       ros::Publisher m_mp_traj;
       ros::Publisher mp_traj1;
       ros::Publisher mp_traj2;
@@ -38,6 +42,7 @@ namespace fub_motion_planner{
       /** The callback for the timer that triggers the update.
       */
       void callbackTimer(const ros::TimerEvent&);
+      //double CollisionCheck(std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts);
       // timer triggering our execution // TODO: use WallTimer?
       ros::Timer m_timer;
   };

@@ -10,6 +10,8 @@
 #include <ros/ros.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
+#include <autonomos_obstacle_msgs/Obstacles.h>
+#include <autonomos_obstacle_msgs/Obstacle.h>
 
 namespace fub_motion_planner{
   class VehicleState {    //: public nodelet::Nodelet
@@ -26,6 +28,7 @@ namespace fub_motion_planner{
         double getVehicleYaw() const;
     protected:
         void odometryCallback(const nav_msgs::OdometryConstPtr & msg);
+        void callbackObstacles(const autonomos_obstacle_msgs::ObstaclesConstPtr & msg);
 
     public:
         // last received pose (from odometry message)
@@ -38,10 +41,13 @@ namespace fub_motion_planner{
         ros::Time m_last_odom_time_stamp_received;
         //Vehicle Speed
         double m_current_speed_front_axle_center;
+        //Obstacle list
+        autonomos_obstacle_msgs::ObstaclesConstPtr m_obstacle_msg;
 
 
     private:
         ros::Subscriber m_subscribe_odom;
+        ros::Subscriber m_subscribe_obstacles;
 
   };
 

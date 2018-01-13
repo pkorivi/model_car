@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   tf
   nodelet
+  autonomos_obstacle_msgs
 )
 
 ###################################
@@ -24,7 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp nodelet
+  CATKIN_DEPENDS roscpp nodelet autonomos_obstacle_msgs
 #  DEPENDS system_lib
 )
 

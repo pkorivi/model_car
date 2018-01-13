@@ -9,12 +9,13 @@
 #include <vector>
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
-#include "CreateTraj2.cpp"
 #include <geometry_msgs/PointStamped.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 #include "time.h"
 #include "polyfit.h"
+#include "CreateTraj2.cpp"
+#include <boost/bind.hpp>
 
 
 namespace fub_motion_planner{

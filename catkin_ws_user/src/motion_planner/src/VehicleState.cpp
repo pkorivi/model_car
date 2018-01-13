@@ -23,6 +23,7 @@ namespace fub_motion_planner{
       // TODO: increase odom queue to at least 32
       ROS_INFO("Vehicle_State setup");
       m_subscribe_odom  = nh.subscribe("/odom", 1, &VehicleState::odometryCallback, this, ros::TransportHints().tcpNoDelay());
+      m_subscribe_obstacles = nh.subscribe("obstacles", 1, &VehicleState::callbackObstacles, this,ros::TransportHints().tcpNoDelay());
       //ROS_INFO("Vehicle state setup");
   }
 
@@ -34,6 +35,17 @@ namespace fub_motion_planner{
     //ROS_INFO("x,y: %f, %f,x,y %f, %f", m_vehicle_position[0],m_vehicle_position[1], msg->pose.pose.position.x,msg->pose.pose.position.y);
     m_last_odom_time_stamp_received = msg->header.stamp;
   }
+
+  /** Callback for Obstacle messages.
+  **
+  ** @param msg
+  */
+  void VehicleState::callbackObstacles(const autonomos_obstacle_msgs::ObstaclesConstPtr & msg)
+  {
+    m_obstacle_msg = msg;
+    std::cout << "Callback obstacles " << m_obstacle_msg->obstacles[0].abs_velocity.twist.linear.x << '\n';
+  }
+
 
   double VehicleState::getVehicleYaw() const{
       return tf::getYaw(m_ego_state_pose.pose.orientation);// * radians;

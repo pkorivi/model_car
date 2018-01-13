@@ -73,6 +73,7 @@ namespace fub_motion_planner{
     //TODO - read from confug file
     int number_of_samples = 26;
     std::vector<double> spts;
+    std::vector<double> dpts;
     std::vector<double> tpts;
     std::vector<double> xpts;
     std::vector<double> ypts;
@@ -88,6 +89,7 @@ namespace fub_motion_planner{
     //ROS_INFO("frenet s,d %.3f %.3f ", frenet_val.s, frenet_val.d);
     //Initial Points for polyfit
     spts.push_back(frenet_val.s);
+    dpts.push_back(frenet_val.d);
     tpts.push_back(0);
     //Iniial x,y - as per map coordinates
     xpts.push_back( pt_stamped_out.point.x);
@@ -184,11 +186,14 @@ namespace fub_motion_planner{
     //At low speeds d should be function of s to ensure curvature
     for (size_t i = 1; i < number_of_samples; i++) {
       double d_val1 = polyeval_m( d_coeffs, tpts[i]);
+      dpts.push_back(frenet_val.d);
       tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(spts[i],d_val1,0)); //TODO check yaw stuff
       xpts.push_back(xy[0]);
       ypts.push_back(xy[1]);
       std::cout << "x,y  "<<xy[0]<<"  "<<xy[1] << " vel  "<< vpts[i] <<"   time "<<tpts[i]<<'\n';
     }
+
+    //double cost = CollisionCheck(spts,dpts,tpts);
     //ROS_INFO("frenet to xy conversion: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
 
