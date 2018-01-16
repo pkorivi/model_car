@@ -37,7 +37,7 @@ namespace fub_motion_planner{
     return d_coeffs;
   }
 
-  void MotionPlanner::create_traj_const_acc_xy_polyeval_2(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
+  double MotionPlanner::create_traj_const_acc_xy_polyeval_2(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
           double v_target,double a_target,double d_target,double v_max, double v_min,int polynomial_order){
 
     clock_t tStart = clock();
@@ -47,7 +47,8 @@ namespace fub_motion_planner{
     if(v_current > v_target && a_target > 0){
       ROS_ERROR("V_Cur is > v_tgt and acceleration is requested");
       //TODO return proper value in future, traj cost and other things
-      return;
+
+      return 20;
     }
     //Odom frame to map frame conversion for trajectory
     geometry_msgs::PointStamped pt_Stamped_in,pt_stamped_out;
@@ -176,7 +177,7 @@ namespace fub_motion_planner{
       //Store the velocity calculated in this cycle for next cycle
       v_previous = v_ref;
       vpts.push_back(v_ref);
-      std::cout <<"  state "<< c_acc_phase <<" s "<<spts[i]<<" d_bk "<<d_brake <<" v "<<v_ref<< '\n';
+      //std::cout <<"  state "<< c_acc_phase <<" s "<<spts[i]<<" d_bk "<<d_brake <<" v "<<v_ref<< '\n';
     }//for loop
     //ROS_INFO("for loop: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
@@ -190,10 +191,10 @@ namespace fub_motion_planner{
       tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(spts[i],d_val1,0)); //TODO check yaw stuff
       xpts.push_back(xy[0]);
       ypts.push_back(xy[1]);
-      std::cout << "x,y  "<<xy[0]<<"  "<<xy[1] << " vel  "<< vpts[i] <<"   time "<<tpts[i]<<'\n';
+      //std::cout << "x,y  "<<xy[0]<<"  "<<xy[1] << " vel  "<< vpts[i] <<"   time "<<tpts[i]<<'\n';
     }
 
-    //double cost = CollisionCheck(spts,dpts,tpts);
+    double cost = CollisionCheck(current_state,spts,dpts,tpts);
     //ROS_INFO("frenet to xy conversion: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
 
@@ -224,7 +225,7 @@ namespace fub_motion_planner{
       double x_val = polyeval_m( x_coeffs, t_pt);
       double y_val = polyeval_m( y_coeffs, t_pt);
       double v_fit = polyeval_m( v_coeffs, t_pt);
-      ROS_INFO("xy %.3f,%.3f , v_xy, v_fit : %.3f  %.3f ", x_val, y_val, v_val, v_fit);
+      //ROS_INFO("xy %.3f,%.3f , v_xy, v_fit : %.3f  %.3f ", x_val, y_val, v_val, v_fit);
       examplePose.pose.position.x = x_val;
       examplePose.pose.position.y = y_val;
       //Currently this velocity is used in trajectory converted to publish velocity at a point
@@ -241,7 +242,7 @@ namespace fub_motion_planner{
     tStart = clock();
     //Publish as path with velocity in z dimension
     traj_pub.publish(m_sampled_traj);
-
+    return cost;
   }//end of create trajectory
 
 

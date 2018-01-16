@@ -43,7 +43,7 @@ namespace fub_motion_planner{
   void VehicleState::callbackObstacles(const autonomos_obstacle_msgs::ObstaclesConstPtr & msg)
   {
     m_obstacle_msg = msg;
-    std::cout << "Callback obstacles " << m_obstacle_msg->obstacles[0].abs_velocity.twist.linear.x << '\n';
+    //std::cout << "Callback obstacles " << m_obstacle_msg->obstacles[0].abs_velocity.twist.linear.x << '\n';
   }
 
 

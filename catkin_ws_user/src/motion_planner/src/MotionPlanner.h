@@ -37,12 +37,12 @@ namespace fub_motion_planner{
               double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
       void create_traj_const_acc_xy_polyeval(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
               double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
-      void create_traj_const_acc_xy_polyeval_2(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
+      double create_traj_const_acc_xy_polyeval_2(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
               double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
       /** The callback for the timer that triggers the update.
       */
       void callbackTimer(const ros::TimerEvent&);
-      //double CollisionCheck(std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts);
+      double CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts);
       // timer triggering our execution // TODO: use WallTimer?
       ros::Timer m_timer;
   };

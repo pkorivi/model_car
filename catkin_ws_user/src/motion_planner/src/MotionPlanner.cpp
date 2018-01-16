@@ -14,9 +14,10 @@
 #include <tf/transform_listener.h>
 #include "time.h"
 #include "polyfit.h"
+#include <autonomos_obstacle_msgs/Obstacles.h>
+#include <autonomos_obstacle_msgs/Obstacle.h>
 #include "CreateTraj2.cpp"
-#include <boost/bind.hpp>
-
+#include "CollisionCheck.cpp"
 
 namespace fub_motion_planner{
   MotionPlanner::MotionPlanner(){
@@ -33,7 +34,7 @@ namespace fub_motion_planner{
       m_vehicle_path.setup(getNodeHandle());
       //TODO change execution frequency to a bigger value and also parameter of a config file
       //double execution_frequency = 0.02;
-      ros::Duration timerPeriod = ros::Duration(3);
+      ros::Duration timerPeriod = ros::Duration(4);
       m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj", 10);
       mp_traj1 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_1", 10);
       mp_traj2 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_2", 10);
@@ -69,7 +70,8 @@ namespace fub_motion_planner{
         int polynomial_order = 3;
         //create_traj_spline(current_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
         //create_traj_const_acc(current_vehicle_state,m_prev_vehicle_state,mp_traj2,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-        create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+        double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+        std::cout << "cost of traj :  " << cost_val<< '\n';
         /*a_target = 0;
         a_target = -0.15;
         v_target = 0;
