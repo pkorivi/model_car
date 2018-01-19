@@ -46,7 +46,7 @@ namespace fub_motion_planner{
       /** The callback for the timer that triggers the update.
       */
       void callbackTimer(const ros::TimerEvent&);
-      double CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts);
+      double CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts, std::vector<double> d_coeffs);
       // timer triggering our execution // TODO: use WallTimer?
       ros::Timer m_timer;
   };

@@ -8,9 +8,9 @@ namespace fub_motion_planner{
   ** @param msg
   */
 
-  double MotionPlanner::CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts){
+  double MotionPlanner::CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts, std::vector<double> d_coeffs){
       //Move this to motion planner callback timer
-      double cost = 0;
+      double cost = 50;
       if(current_state.m_obstacle_msg){
   			//tf::StampedTransform obstMapTf;
         tf::StampedTransform obstMapTfMsg;
@@ -93,24 +93,59 @@ namespace fub_motion_planner{
           */
           //If the obstacle is behind ego vehcile dont consider it for collision check
           if(obst_s[0] < ego_vehicle_s[0] && fabs(ego_vehicle_d[0] - obst_frenet.d)<d_min_diff){
-            cost =0;
-            std::cout << "obst behind car" << '\n';
+            cost =0; //Obstacle is behind dont check for collision
+            //std::cout << "obst behind car" << '\n';
           }
           //Its not behind, check for collision
           else {
-            for (size_t i = 0; i < 3; i++) {
-              //check for s overlap
-              //consider two ranges  [s1....e1], [s2....e2], they dont overlap if e1<s2 or e2<s1
-              if(!(ego_vehicle_s[i+1] < obst_s[i] || obst_s[i+1]<ego_vehicle_s[i])){
-                //s overlaps, check if they collidie by measuring difference between d
-                if(fabs(d_pts[i] - obst_frenet.d)< d_min_diff || \
-                fabs(d_pts[i+1] - obst_frenet.d)< d_min_diff ){
-                  //collision -  add more weight if collision is immediate ,
-                  //TODO  add car velocity at the moment component also in future - check the weight
-                  cost = 5 + (3-i);
-                } //if for collision check in d
-              } //if for
-            }//local loop for checking collision
+            //check for intersection in s
+            std::vector<double> intersection = {std::max(obst_s.front(),ego_vehicle_s.front()), std::min(obst_s.back(),ego_vehicle_s.back())};
+            if (intersection.back()<intersection.front()) {
+              cost =  0; // No intersection in s, so potential collision
+            }
+            else{
+              std::cout << "In "<<intersection.front()<<" "<<intersection.back() << '\n';
+              double d_val1 = polyeval_m( d_coeffs,intersection.front());
+              double d_val2 = polyeval_m( d_coeffs,intersection.back());
+              if((fabs(d_val1 - obst_frenet.d)> d_min_diff)&&   //start of intersection
+                  (fabs(d_val2 - obst_frenet.d)> d_min_diff)&&  //end of intersection
+                  (fabs((d_val1+d_val2)/2 - obst_frenet.d)> d_min_diff)){ //in middle of intersection also road is free
+                    cost =0;
+                  }
+                else{ //collision in s and d, //TODO may be remobe this 0.05 and make zero
+                  if(obstVel.x>0.05){ // for collision in t for dynamic obstacles
+                    double pt_duration = 5.0/(ego_vehicle_s.size()-1);
+                    size_t i=0;
+                    double ego_t1 = 0;// assign to minimum time - change based on need
+                    for (i = 0; i < ego_vehicle_s.size(); i++) {
+                      if(intersection.front()<ego_vehicle_s[i]){
+                        ego_t1 = (i>0?i-1:i)*pt_duration; //If the intersection is less than the first element consider 0 time
+                        break;
+                      } //found where time starts
+                    }
+                    double ego_t2 = 5.0; // Assign to max
+                    //check from back as the value is mostl likely in the end
+                    for (i = ego_vehicle_s.size()-1; i >=0; i--) {
+                      if(intersection.back()>=ego_vehicle_s[i]){
+                        ego_t2 = (i+1)*pt_duration; // Margin as higher end of time
+                        break;
+                      } //found where time starts
+                    }
+                    double obst_t1 = (intersection.front() - obst_frenet.s)/obstVel.x ; // s_@ = s_0 + vel*time
+                    double obst_t2 = (intersection.back() - obst_frenet.s)/obstVel.x ;
+
+                    if((ego_t1-obst_t1)*(ego_t2-obst_t2) >0 ){
+                      //Same sign for time difference - No collision
+                      double minimum_time_diff = std::min(fabs(ego_t1-obst_t1),fabs(ego_t2-obst_t2));
+                      //If the  minimum time difference is >2s then all good, safe to derivative
+                      //If the time is less than 2, add a proportional cost to how close it gets to obstacle
+                      cost = (minimum_time_diff>2)?0:(2-minimum_time_diff)*3;
+                    }//else cost of 50 defined initially will be returned
+                  }//If condition for dynamic obstacle check
+
+                  //Check for timing - dynamic obstacle - static obstacle not needed consider it collision
+                }
+            }
           }
       } //for loop of all obstacles
     }// if obstacles
@@ -118,3 +153,19 @@ namespace fub_motion_planner{
   }//end of collision check
 
 }//end of namespace
+
+/* taken from //Its not behind, check for collision - add this portion later
+for (size_t i = 0; i < 3; i++) {
+  //check for s overlap
+  //consider two ranges  [s1....e1], [s2....e2], they dont overlap if e1<s2 or e2<s1
+  if(!(ego_vehicle_s[i+1] < obst_s[i] || obst_s[i+1]<ego_vehicle_s[i])){
+    //s overlaps, check if they collidie by measuring difference between d
+    if(fabs(d_pts[i] - obst_frenet.d)< d_min_diff || \
+    fabs(d_pts[i+1] - obst_frenet.d)< d_min_diff ){
+      //collision -  add more weight if collision is immediate ,
+      //TODO  add car velocity at the moment component also in future - check the weight
+      cost = 5 + (3-i);
+    } //if for collision check in d
+  } //if for
+}//local loop for checking collision
+*/

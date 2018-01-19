@@ -42,7 +42,6 @@ namespace fub_motion_planner{
   */
   std::vector<double> evaluate_d_coeffs(double d_cur,double d_tgt, double theta, double s_i, double s_f){
     //TODO change the number
-    std::cout << "inside func" << '\n';
     clock_t tStart = clock();
     Eigen::MatrixXd A = Eigen::MatrixXd(4,4);
     double si_sq = s_i*s_i;
@@ -210,9 +209,14 @@ namespace fub_motion_planner{
     }//for loop
     //ROS_INFO("for loop: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
+    std::cout << " s eval done " << '\n';
     //d_calc
     //auto d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target, polynomial_order);
     std::vector<double> d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target,frenet_val.th, spts.front(), spts.back());
+    std::cout << "d coeffs " << " ";
+    for (size_t i = 0; i < d_coeffs.size(); i++) {
+      std::cout << d_coeffs[i]<<"  ";
+    }
 
     //create xy sample points
     //TODO - make d as a function of s. At high speeds d can be function of time
@@ -227,7 +231,7 @@ namespace fub_motion_planner{
       //std::cout << "x,y  "<<xy[0]<<"  "<<xy[1] << " vel  "<< vpts[i] <<"   time "<<tpts[i]<<'\n';
     }
 
-    double cost = CollisionCheck(current_state,spts,dpts,tpts);
+    double cost = CollisionCheck(current_state,spts,dpts,tpts,d_coeffs);
     //ROS_INFO("frenet to xy conversion: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
 
