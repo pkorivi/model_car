@@ -28,6 +28,10 @@ namespace fub_motion_planner{
       ros::Publisher mp_traj2;
       ros::Publisher mp_traj3;
       ros::Publisher mp_traj4;
+      //Publishers to vizualize obstacle paths
+      ros::Publisher obst_path_1;
+      ros::Publisher obst_path_2;
+      ros::Publisher obst_path_3;
 
       void create_traj_spline(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
               double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);

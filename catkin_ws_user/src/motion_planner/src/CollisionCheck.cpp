@@ -53,7 +53,7 @@ namespace fub_motion_planner{
   					obstVel.x=0;
   				}
           FrenetCoordinate obst_frenet =  m_vehicle_path.getFenet(obstPos,yaw);
-          std::cout << "obst x, y - s, d - vel  " <<obstPos[0]<<" "<<obstPos[1]<<"--- "<<obst_frenet.s<<" "<<obst_frenet.d<<"---"<<obstVel.x<< '\n';
+          std::cout << "obst x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d "<<obst_frenet.s<<" "<<obst_frenet.d<<" vel "<<obstVel.x<< '\n';
           //TODO replace wih correct values
           //This should be wcar/2 + wobst/2+safe_dist
           double d_min_diff = 0.20;
@@ -62,6 +62,29 @@ namespace fub_motion_planner{
           std::vector<double> obst_s = {obst_frenet.s, obst_frenet.s+ obstVel.x*2,obst_frenet.s+ obstVel.x*4, obst_frenet.s+ obstVel.x*5 };
           std::vector<double> ego_vehicle_s = {s_pts[0],s_pts[10],s_pts[20],s_pts[25]};
           std::vector<double> ego_vehicle_d = {d_pts[0],d_pts[10],d_pts[20],d_pts[25]};
+          //TODO - Remove this obstacle path debug
+          nav_msgs::Path m_obst_traj;
+          m_obst_traj.header.stamp = ros::Time::now();
+          m_obst_traj.header.frame_id = "/map";
+          for (size_t i = 0; i < 4; i++) {
+            //TODO - remove or make it better
+            tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(obst_s[i],obst_frenet.d,0,0));
+            geometry_msgs::PoseStamped examplePose;
+            examplePose.pose.position.x = xy[0];
+            examplePose.pose.position.y = xy[1];
+            //Currently this velocity is used in trajectory converted to publish velocity at a point
+            examplePose.pose.position.z = 0;//obstVel.x;//v(t_pt); //velocity saved in z direction
+            examplePose.pose.orientation.x = 0.0;//a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
+            examplePose.pose.orientation.y = 0.0f;
+            examplePose.pose.orientation.z = 0.0f;
+            examplePose.pose.orientation.w = 1.0f;
+            //push PoseStamped into Path
+            m_obst_traj.poses.push_back(examplePose);
+
+            std::cout << "obstacle "<<obst_s[i]<<" "<<obst_frenet.d<< " vehicle "<<ego_vehicle_s[i]<<" "<<ego_vehicle_d[i] << '\n';
+          }
+          obst_path_1.publish(m_obst_traj);
+          //end of obstacle traj publishing
           /* TODO - Remove
           std::cout << "debug" << '\n';
           std::cout << "obst s " <<obst_s[0] <<" "<<obst_s[1] <<" "<<obst_s[2] <<" "<<obst_s[3] <<" "<<'\n';

@@ -187,8 +187,8 @@ namespace fub_motion_planner{
     //At low speeds d should be function of s to ensure curvature
     for (size_t i = 1; i < number_of_samples; i++) {
       double d_val1 = polyeval_m( d_coeffs, tpts[i]);
-      dpts.push_back(frenet_val.d);
-      tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(spts[i],d_val1,0)); //TODO check yaw stuff
+      dpts.push_back(d_val1);
+      tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(spts[i],d_val1,0,0)); //TODO check yaw stuff
       xpts.push_back(xy[0]);
       ypts.push_back(xy[1]);
       //std::cout << "x,y  "<<xy[0]<<"  "<<xy[1] << " vel  "<< vpts[i] <<"   time "<<tpts[i]<<'\n';
@@ -229,7 +229,7 @@ namespace fub_motion_planner{
       examplePose.pose.position.x = x_val;
       examplePose.pose.position.y = y_val;
       //Currently this velocity is used in trajectory converted to publish velocity at a point
-      examplePose.pose.position.z = v_fit;//v(t_pt); //velocity saved in z direction
+      examplePose.pose.position.z = 0;//v_fit;//v(t_pt); //velocity saved in z direction
       examplePose.pose.orientation.x = 0.0;//a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
       examplePose.pose.orientation.y = 0.0f;
       examplePose.pose.orientation.z = 0.0f;

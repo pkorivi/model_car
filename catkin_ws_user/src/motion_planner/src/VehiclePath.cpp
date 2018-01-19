@@ -106,10 +106,16 @@ namespace fub_motion_planner{
       frenet_d *= -1; //lets say frenet coordinates are -ve on left side of reference driving line.
 
     double frenet_s = frenet_path[prev_wp].s + distance(xy_path[prev_wp],pt_on_line);
+    //Car to Road angle difference
+    double car_road_th = frenet_path[prev_wp].th - theta;
+    if (car_road_th>3.14)
+      car_road_th=car_road_th-6.28;
+    else if (car_road_th<-3.14)
+      car_road_th=car_road_th+6.28;
     //TODO remove debug
     //ROS_INFO("Gt Frnt projxy %f, %f, prev_x,y %f, %f , next_xy %f %f", proj_x,proj_y,xy_path[prev_wp][0],xy_path[prev_wp][1],xy_path[next_wp][0],xy_path[next_wp][1]);
     //ROS_INFO("nwp %d pwp %d , pwp_s %f , ",next_wp,prev_wp,frenet_path[prev_wp].s,distance(xy_path[prev_wp],pt_on_line));
-    return FrenetCoordinate(frenet_s,frenet_d,0);
+    return FrenetCoordinate(frenet_s,frenet_d,0, car_road_th);
   }
 
 
@@ -134,14 +140,15 @@ namespace fub_motion_planner{
     int closest_way_pt  = closestWayPoint(pt);
     //angle between the point and the closest_way_pt
     double heading = slope(pt,xy_path[closest_way_pt]);
-    //If the orientation of the point/car position and closest_way_pt is more than
-    // 45 degrees, then the point is behind the car. so choose the next point
     double angle = theta - heading;
+    //Normalize angle to be in -pi to pi
     if (angle>3.14)
       angle=angle-6.28;
     else if (angle<-3.14)
       angle=angle+6.28;
     angle = abs(angle);
+    //If the orientation of the point/car position and closest_way_pt is more than
+    // 45 degrees, then the point is behind the car. so choose the next point
     if((angle>(M_PI/4)) && (closest_way_pt < (xy_path.size()-1))) //If the closest point is already the end point dont increment it
       closest_way_pt++;
     //TODO Remove debug
@@ -185,34 +192,39 @@ namespace fub_motion_planner{
         tf::pointMsgToTF(m_path.poses[i].pose.position, temp_pt);
         xy_path.push_back(temp_pt);
       }
-      double length_ =0, curv=0;
-      //creating the cooresponding frenet information
+      double length_ =0, curv=0, th =0;
+      //creating the corresponding frenet information
       if(number_of_pts>2){
         double initial_curvature = calc_curvature(xy_path[0],xy_path[1],xy_path[2]);
-        FrenetCoordinate start_(0,0,initial_curvature);
+        th = slope(xy_path[0],xy_path[1]);
+        FrenetCoordinate start_(0,0,initial_curvature,th);
         frenet_path.push_back(start_);
         //leave the last two points as curvature cannot be calculated, Initialize it with last known curvature or straight line
         for (i = 1; i < number_of_pts-2; i++) {
           length_ = distance(xy_path[i],xy_path[i-1]);
           curv = calc_curvature(xy_path[i],xy_path[i+1],xy_path[i+2]);
-          FrenetCoordinate fp(frenet_path[i-1].s + length_,0,curv);
+          th = slope(xy_path[i-1],xy_path[i]);
+          FrenetCoordinate fp(frenet_path[i-1].s + length_,0,curv,th);
           frenet_path.push_back(fp);
         }
         //last but one point - i is already incremented before loop breaks & keep last calculated curvature
         length_ = distance(xy_path[i],xy_path[i-1]);
-        FrenetCoordinate fp(frenet_path[i-1].s + length_,0,curv);
+        th = slope(xy_path[i-1],xy_path[i]);
+        FrenetCoordinate fp(frenet_path[i-1].s + length_,0,curv,th);
         frenet_path.push_back(fp);
         i++;
         //last point
         length_ = distance(xy_path[i],xy_path[i-1]);
-        FrenetCoordinate fp1(frenet_path[i-1].s + length_,0,curv);
+        th = slope(xy_path[i-1],xy_path[i]);
+        FrenetCoordinate fp1(frenet_path[i-1].s + length_,0,curv,th);
         frenet_path.push_back(fp1);
       }
       else{ //If there are only two points in received path
-        FrenetCoordinate start_(0,0,0);
+        th = slope(xy_path[0],xy_path[1]);
+        FrenetCoordinate start_(0,0,0,th);
         frenet_path.push_back(start_);
         length_ = distance(xy_path[1],xy_path[0]);
-        FrenetCoordinate end_(length_,0,0);
+        FrenetCoordinate end_(length_,0,0,th);
         frenet_path.push_back(end_);
       }
     }

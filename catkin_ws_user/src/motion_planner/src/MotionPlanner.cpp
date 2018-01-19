@@ -41,6 +41,10 @@ namespace fub_motion_planner{
       mp_traj3 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_3", 10);
       mp_traj4 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_4", 10);
       m_timer = getNodeHandle().createTimer(timerPeriod, &MotionPlanner::callbackTimer, this);
+      //Initialize obstacle publishers
+      obst_path_1 = getNodeHandle().advertise<nav_msgs::Path>("/obstacle_path1", 10);
+      obst_path_2 = getNodeHandle().advertise<nav_msgs::Path>("/obstacle_path2", 10);
+      obst_path_3 = getNodeHandle().advertise<nav_msgs::Path>("/obstacle_path3", 10);
   }
 
   void MotionPlanner::callbackTimer(const ros::TimerEvent &){
@@ -66,8 +70,8 @@ namespace fub_motion_planner{
         double v_target = 1.0;
         //TODO a_tgt and d_tgt - part of matrix
         double a_target = acc_prof[0];
-        double d_target = 0.2;
-        int polynomial_order = 3;
+        double d_target = -0.2;
+        int polynomial_order = 4;
         //create_traj_spline(current_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
         //create_traj_const_acc(current_vehicle_state,m_prev_vehicle_state,mp_traj2,v_target,a_target,d_target,v_max,v_min,polynomial_order);
         double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);

@@ -14,10 +14,12 @@ namespace fub_motion_planner{
     double s; //lenth of the road along the center line
     double d; //lateral distance wrt center of lane/road
     double k; //curvature
-    FrenetCoordinate(double s, double d, double k){
+    double th; // angle wrt to base frame or base frame angle in frenetpath variable
+    FrenetCoordinate(double s, double d, double k, double th){
       this->s = s;
       this->d = d;
       this->k = k;
+      this->th = th;
     }
   };
   class VehiclePath{
@@ -28,7 +30,7 @@ namespace fub_motion_planner{
 
       //TODO These functions are working but needs further improvement to make them work better.
       //TODO  It loses track sometimes and conversion is mess with 5-20cms of error which is terrible sometimes
-      // Observe each step of xy and frenet transform and fix the issue 
+      // Observe each step of xy and frenet transform and fix the issue
       FrenetCoordinate getFenet(tf::Point xy_pt, double theta);
       tf::Point getXY(FrenetCoordinate frenet_pt);
       //creates a frenet coordinate frame using the m_path and fills up frenet_path
