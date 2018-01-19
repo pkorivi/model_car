@@ -9,6 +9,7 @@
 #include <vector>
 #include "Eigen-3.3/Eigen/Core"
 #include "Eigen-3.3/Eigen/QR"
+#include "Eigen-3.3/Eigen/LU"
 #include <geometry_msgs/PointStamped.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
@@ -18,6 +19,8 @@
 #include <autonomos_obstacle_msgs/Obstacle.h>
 #include "CreateTraj2.cpp"
 #include "CollisionCheck.cpp"
+#include <fstream>
+#include <cmath>
 
 namespace fub_motion_planner{
   MotionPlanner::MotionPlanner(){

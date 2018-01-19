@@ -113,6 +113,19 @@ ROS_INFO("NextWayPoint %d",m_vehicle_path.NextWayPoint(a,0));
 ROS_INFO("NextWayPoint %d",m_vehicle_path.NextWayPoint(b,0));
 */
 
+tf::Point cp;
+cp =tf::Point{0.1,0.20,0.0};
+int i =1;
+FrenetCoordinate p2 = m_vehicle_path.getFenet(cp,0.5);
+ROS_INFO("%lu frenet %f,%f,%f,%f ",i,p2.s,p2.d,p2.k, p2.th);
+p2 = m_vehicle_path.getFenet(cp,-0.5);
+ROS_INFO("%lu frenet %f,%f,%f,%f ",i,p2.s,p2.d,p2.k, p2.th);
+cp =tf::Point{4.97,-0.65,0.0};
+p2 = m_vehicle_path.getFenet(cp,0.0);
+ROS_INFO("%lu frenet %f,%f,%f,%f ",i,p2.s,p2.d,p2.k, p2.th);
+p2 = m_vehicle_path.getFenet(cp,2.0);
+ROS_INFO("%lu frenet %f,%f,%f,%f ",i,p2.s,p2.d,p2.k, p2.th);
+
 std::vector<FrenetCoordinate> vec_fre;
 vec_fre.push_back(FrenetCoordinate(0.1,0,0));
 vec_fre.push_back(FrenetCoordinate(4.8,0.56,0));

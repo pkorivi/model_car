@@ -48,7 +48,8 @@ namespace fub_motion_planner{
 
 
   double VehicleState::getVehicleYaw() const{
-      return tf::getYaw(m_ego_state_pose.pose.orientation);// * radians;
+      double yaw = tf::getYaw(m_ego_state_pose.pose.orientation);// * radians;
+      return std::isnan(yaw)?0:yaw;
   }
 
 } // namespace sample_nodelet_ns

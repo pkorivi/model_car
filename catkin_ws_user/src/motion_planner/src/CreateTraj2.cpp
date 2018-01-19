@@ -25,7 +25,7 @@ namespace fub_motion_planner{
     }
     return result;
   }
-
+  /*
   std::vector<double> evaluate_d_coeffs(double d_cur,double d_tgt, double poly_order){
     //TODO change the number
     clock_t tStart = clock();
@@ -33,6 +33,37 @@ namespace fub_motion_planner{
     //TODO make is dependent on s - implement as per paper
     std::vector<double> d_t_pts = {0.0,0.2,0.4,4.6,4.8,5.0};
     auto d_coeffs =  polyfit(d_t_pts,dpts,poly_order);
+    //ROS_INFO("polyfit d: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+    return d_coeffs;
+  }*/
+  /*
+  car current d, target d, and angle between the road and the car, s_i initial s, sf final s
+  following as per  'REAL-TIME TRAJECTORY PLANNING FOR AUTONOMOUS URBAN DRIVING paper'
+  */
+  std::vector<double> evaluate_d_coeffs(double d_cur,double d_tgt, double theta, double s_i, double s_f){
+    //TODO change the number
+    std::cout << "inside func" << '\n';
+    clock_t tStart = clock();
+    Eigen::MatrixXd A = Eigen::MatrixXd(4,4);
+    double si_sq = s_i*s_i;
+    double sf_sq = s_f*s_f;
+    //Matrix A with s equations
+    A << 1, s_i, si_sq , si_sq*s_i,
+         0, 1  , 2*s_i , 3*si_sq,
+         0, 1  , 2*s_f , 3*sf_sq,
+         1, s_f, sf_sq , sf_sq*s_f;
+
+    Eigen::MatrixXd B = Eigen::MatrixXd(4,1);
+    B << d_cur,
+         theta,
+         0,
+         d_tgt;
+    Eigen::MatrixXd Ai = A.inverse();
+    Eigen::MatrixXd C = Ai*B;
+    std::vector<double> d_coeffs;
+    for (size_t i = 0; i < C.size(); i++) {
+      d_coeffs.push_back(C.data()[i]);
+    }
     //ROS_INFO("polyfit d: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     return d_coeffs;
   }
@@ -99,8 +130,6 @@ namespace fub_motion_planner{
     std::cout << "current x,y "<<xpts[0]<<"  "<<ypts[0] << '\n';
     //ROS_INFO("Initialization: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
-    //d_calc
-    auto d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target, polynomial_order);
     //TODO - add in config file
     //If the target distance is short the planner should accelerate and deccelerate in 5s, else it will not be able to find a path.
     //This will help create a path with ability to stop if the final destination is arrived
@@ -181,12 +210,16 @@ namespace fub_motion_planner{
     }//for loop
     //ROS_INFO("for loop: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
+    //d_calc
+    //auto d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target, polynomial_order);
+    std::vector<double> d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target,frenet_val.th, spts.front(), spts.back());
 
     //create xy sample points
     //TODO - make d as a function of s. At high speeds d can be function of time
     //At low speeds d should be function of s to ensure curvature
     for (size_t i = 1; i < number_of_samples; i++) {
-      double d_val1 = polyeval_m( d_coeffs, tpts[i]);
+      //double d_val1 = polyeval_m( d_coeffs, tpts[i]);
+      double d_val1 = polyeval_m( d_coeffs, spts[i]);
       dpts.push_back(d_val1);
       tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(spts[i],d_val1,0,0)); //TODO check yaw stuff
       xpts.push_back(xy[0]);
