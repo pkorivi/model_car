@@ -102,7 +102,6 @@ namespace fub_motion_planner{
     double c_yaw = current_state.getVehicleYaw();
     double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();
     //TODO - read from confug file
-    int number_of_samples = 26;
     std::vector<double> spts;
     std::vector<double> dpts;
     std::vector<double> tpts;
@@ -135,9 +134,9 @@ namespace fub_motion_planner{
     double brake_dec = 0.3;
     double d_brake =(v_current*v_current)/(2*brake_dec);//v² -u² = 2as, thus to stop with current velocity it is s = -u²/2a; a is -ve this s = u²/2a
     //Time samples of 100ms each, so for 5 seconds we have 50 samples - TODO this as tunable parameter
-    double t_sample = (5.0)/(number_of_samples-1);
+    double t_sample = kLookAheadTime/(kNumberOfSamples-1);
     double v_previous = v_current;
-    for(int i=1;i<number_of_samples;i++){
+    for(int i=1;i<kNumberOfSamples;i++){
       //std::cout << "vcur : " << vpts[i-1]<< " acur :"<< acc_pts[i-1] <<"  vtgt "<<v_target<<" a_tgt : "<<a_target << " vch "<<v_change <<'\n';
       //std::cout << "abs v : " << fabs(v_target-vpts[i-1])<< " abs a : " <<fabs(acc_pts[i-1]-acc[2]);
       tpts.push_back(i*t_sample);
@@ -221,7 +220,7 @@ namespace fub_motion_planner{
     //create xy sample points
     //TODO - make d as a function of s. At high speeds d can be function of time
     //At low speeds d should be function of s to ensure curvature
-    for (size_t i = 1; i < number_of_samples; i++) {
+    for (size_t i = 1; i < kNumberOfSamples; i++) {
       //double d_val1 = polyeval_m( d_coeffs, tpts[i]);
       double d_val1 = polyeval_m( d_coeffs, spts[i]);
       dpts.push_back(d_val1);

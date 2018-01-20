@@ -49,6 +49,9 @@ namespace fub_motion_planner{
       double CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts, std::vector<double> d_coeffs);
       // timer triggering our execution // TODO: use WallTimer?
       ros::Timer m_timer;
+    private:
+      const double kLookAheadTime = 5.0;
+      const int kNumberOfSamples = 26;
   };
 } // namespace sample_nodelet_ns
 

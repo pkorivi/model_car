@@ -99,7 +99,9 @@ namespace fub_motion_planner{
           //Its not behind, check for collision
           else {
             //check for intersection in s
-            std::vector<double> intersection = {std::max(obst_s.front(),ego_vehicle_s.front()), std::min(obst_s.back(),ego_vehicle_s.back())};
+            const double kSafetyDist = 0.25; //TODO - config file or constant in .h file
+            std::vector<double> intersection = {std::max(obst_s.front()-kSafetyDist,ego_vehicle_s.front()-kSafetyDist),
+                                                std::min(obst_s.back()+kSafetyDist,ego_vehicle_s.back()+kSafetyDist)};
             std::cout << "intersection  "<<intersection.front()<<"  "<<intersection.back() << '\n';
             if (intersection.back()<intersection.front()) {
               cost =  0; // No intersection in s, so potential collision
@@ -116,25 +118,29 @@ namespace fub_motion_planner{
                 else{ //collision in s and d, //TODO may be remobe this 0.05 and make zero
                   if(obstVel.x>0.05){ // for collision in t for dynamic obstacles
                     //Check for timing - dynamic obstacle - static obstacle not needed consider it collision
-                    double pt_duration = 5.0/(s_pts.size()-1);
+                    double pt_duration = kLookAheadTime/(s_pts.size()-1);
                     size_t i=0;
-                    double ego_t1 = 0;// assign to minimum time - change based on need
+                    double ego_t1 = 0,obst_t1 =0;// assign to minimum time - change based on need
+
                     for (i = 0; i < s_pts.size(); i++) {
-                      if(intersection.front()<s_pts[i]){
-                        ego_t1 = (i>0?i-1:i)*pt_duration; //If the intersection is less than the first element consider 0 time
+                      if((intersection.front()<=s_pts[i]) && (fabs(d_pts[i] - obst_frenet.d)<= d_min_diff)){
+                        i = (i>0?i-1:i); //If the intersection is less than the first element consider 0 time
+                        ego_t1 = i*pt_duration; //Time of Intersection for ego vehicle
+                        obst_t1 = (s_pts[i] - obst_frenet.s)/obstVel.x ; // s_@ = s_0 + vel*time // Time of intersection for obstacle
                         break;
                       } //found where time starts
                     }
-                    double ego_t2 = 5.0; // Assign to max
+                    std::cout << "  " << '\n';
+                    double ego_t2 = kLookAheadTime, obst_t2 = kLookAheadTime; // Assign to max
                     //check from back as the value is mostl likely in the end
                     for (i = s_pts.size()-1; i >=0; i--) {
-                      if(intersection.back()>=s_pts[i]){
+                      if((intersection.back()>=s_pts[i]) && (fabs(d_pts[i] - obst_frenet.d)<= d_min_diff)){
                         ego_t2 = (i+1)*pt_duration; // Margin as higher end of time
+                        obst_t2 = (s_pts[i+1] - obst_frenet.s)/obstVel.x ;
                         break;
                       } //found where time starts
                     }
-                    double obst_t1 = (intersection.front() - obst_frenet.s)/obstVel.x ; // s_@ = s_0 + vel*time
-                    double obst_t2 = (intersection.back() - obst_frenet.s)/obstVel.x ;
+
                     std::cout << "ego t "<<ego_t1<<" "<<ego_t2 << '\n';
                     std::cout << "obs t "<<obst_t1<<" "<<obst_t2 <<'\n';
                     if((ego_t1-obst_t1)*(ego_t2-obst_t2) >0 ){

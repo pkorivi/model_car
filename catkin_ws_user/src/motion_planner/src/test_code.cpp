@@ -208,11 +208,10 @@ for (size_t i = 0; i < vec_xy.size(); i++) {
       double jerk_val = acc[2]; //slope is (acc[2] - 0)/time to reach there assuming our acceleration chnages form 0-0.2 in 1s
       //TODO update jer such that it takes 1s to reach from current acceleration to the target acceleration
       //Time samples of 100ms each, so for 5 seconds we have 50 samples - TODO this as tunable parameter
-      double number_of_samples = 50;
-      double t_sample = 5/number_of_samples;
+      double t_sample = kLookAheadTime/(kNumberOfSamples-1);
       //It is the change in velocity if the acceleration is made to zero from current acceleration with constannt jerk
       double v_change=0;
-      for(int i=1;i<number_of_samples;i++){
+      for(int i=1;i<kNumberOfSamples;i++){
         std::cout << "vcur : " << vpts[i-1]<< " acur :"<< acc_pts[i-1] <<"  vtgt "<<v_target<<" a_tgt : "<<acc[2] << " vch "<<v_change <<'\n';
         std::cout << "abs v" << fabs(v_target-vpts[i-1])<< " abs a" <<fabs(acc_pts[i-1]-acc[2])<<'\n';
         tpts.push_back(i*t_sample);
@@ -371,11 +370,10 @@ If possible look at improving further. 30ms for 300 trajs. It should be short 0.
 
     double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();
 
-    int number_of_samples = 20;
-    Eigen::VectorXd spts(number_of_samples);
-    Eigen::VectorXd tpts(number_of_samples);
-    Eigen::VectorXd vpts(number_of_samples);
-    Eigen::VectorXd acc_pts(number_of_samples);
+    Eigen::VectorXd spts(kNumberOfSamples);
+    Eigen::VectorXd tpts(kNumberOfSamples);
+    Eigen::VectorXd vpts(kNumberOfSamples);
+    Eigen::VectorXd acc_pts(kNumberOfSamples);
     //TODO change the number
     Eigen::VectorXd dpts(6);
 
@@ -403,8 +401,8 @@ If possible look at improving further. 30ms for 300 trajs. It should be short 0.
     //TODO zero stuff here- something can be messy
     double to_zero_acc_inc_dec = (a_target>0?-1:1);
     //Time samples of 100ms each, so for 5 seconds we have 50 samples - TODO this as tunable parameter
-    double t_sample = (5.0)/number_of_samples;
-    for(int i=1;i<number_of_samples;i++){
+    double t_sample = kLookAheadTime/(kNumberOfSamples-1);
+    for(int i=1;i<kNumberOfSamples;i++){
       //std::cout << "vcur : " << vpts[i-1]<< " acur :"<< acc_pts[i-1] <<"  vtgt "<<v_target<<" a_tgt : "<<a_target << " vch "<<v_change <<'\n';
       //std::cout << "abs v : " << fabs(v_target-vpts[i-1])<< " abs a : " <<fabs(acc_pts[i-1]-acc[2]);
       tpts[i] =(i*t_sample);

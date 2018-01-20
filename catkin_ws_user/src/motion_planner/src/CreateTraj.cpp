@@ -97,11 +97,10 @@ void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_sta
   //std::cout <<" time :  "<< time_from_prev_cycle<<"  acc_current : " << a_current <<'\n';
   //TODO Add condition to skip if v_current > v_target and a_target > 0
 
-  int number_of_samples = 25;
-  Eigen::VectorXd spts(number_of_samples);
-  Eigen::VectorXd tpts(number_of_samples);
-  Eigen::VectorXd vpts(number_of_samples);
-  Eigen::VectorXd acc_pts(number_of_samples);
+  Eigen::VectorXd spts(kNumberOfSamples);
+  Eigen::VectorXd tpts(kNumberOfSamples);
+  Eigen::VectorXd vpts(kNumberOfSamples);
+  Eigen::VectorXd acc_pts(kNumberOfSamples);
   //TODO change the number
   Eigen::VectorXd dpts(6);
 
@@ -134,10 +133,10 @@ void MotionPlanner::create_traj(VehicleState current_state,VehicleState prev_sta
 
   //TODO update jerk such that it takes 1s to reach from current acceleration to the target acceleration
   //Time samples of 100ms each, so for 5 seconds we have 50 samples - TODO this as tunable parameter
-  double t_sample = (5*1.0)/number_of_samples;
+  double t_sample = kLookAheadTime/(kNumberOfSamples-1);
   //It is the change in velocity if the acceleration is made to zero from current acceleration with constannt jerk - 0.5*a*t & t is always positive
   double v_change=(0.5*a_current*fabs(a_current/jerk_val));
-  for(int i=1;i<number_of_samples;i++){
+  for(int i=1;i<kNumberOfSamples;i++){
     //std::cout << "vcur : " << vpts[i-1]<< " acur :"<< acc_pts[i-1] <<"  vtgt "<<v_target<<" a_tgt : "<<a_target << " vch "<<v_change <<'\n';
     //std::cout << "abs v : " << fabs(v_target-vpts[i-1])<< " abs a : " <<fabs(acc_pts[i-1]-acc[2]);
     tpts[i] =(i*t_sample);
@@ -405,11 +404,10 @@ void MotionPlanner::create_traj_spline(VehicleState current_state, VehicleState 
 
   //TODO update jer such that it takes 1s to reach from current acceleration to the target acceleration
   //Time samples of 100ms each, so for 5 seconds we have 50 samples - TODO this as tunable parameter
-  double number_of_samples = 25;
-  double t_sample = (5*1.0)/number_of_samples;
+  double t_sample = kLookAheadTime/(kNumberOfSamples-1);
   //It is the change in velocity if the acceleration is made to zero from current acceleration with constannt jerk - 0.5*a*t & t is always positive
   double v_change=(0.5*a_current*fabs(a_current/jerk_val));
-  for(int i=1;i<number_of_samples;i++){
+  for(int i=1;i<kNumberOfSamples;i++){
     //std::cout << "vcur : " << vpts[i-1]<< " acur :"<< acc_pts[i-1] <<"  vtgt "<<v_target<<" a_tgt : "<<a_target << " vch "<<v_change <<'\n';
     //std::cout << "abs v : " << fabs(v_target-vpts[i-1])<< " abs a : " <<fabs(acc_pts[i-1]-acc[2]);
     tpts.push_back(i*t_sample);
@@ -608,9 +606,8 @@ void MotionPlanner::create_traj_const_acc(VehicleState current_state,VehicleStat
   double c_yaw = current_state.getVehicleYaw();
   double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();
   //TODO - read from confug file
-  int number_of_samples = 25;
-  Eigen::VectorXd spts(number_of_samples);
-  Eigen::VectorXd tpts(number_of_samples);
+  Eigen::VectorXd spts(kNumberOfSamples);
+  Eigen::VectorXd tpts(kNumberOfSamples);
   //TODO change the number
   Eigen::VectorXd dpts(6);
 
@@ -632,9 +629,9 @@ void MotionPlanner::create_traj_const_acc(VehicleState current_state,VehicleStat
   double brake_dec = 0.3;
   double d_brake =(v_current*v_current)/(2*brake_dec);//v² -u² = 2as, thus to stop with current velocity it is s = -u²/2a; a is -ve this s = u²/2a
   //Time samples of 100ms each, so for 5 seconds we have 50 samples - TODO this as tunable parameter
-  double t_sample = (5.0)/number_of_samples;
+  double t_sample = kLookAheadTime/(kNumberOfSamples-1);
   double v_previous = v_current;
-  for(int i=1;i<number_of_samples;i++){
+  for(int i=1;i<kNumberOfSamples;i++){
     //std::cout << "vcur : " << vpts[i-1]<< " acur :"<< acc_pts[i-1] <<"  vtgt "<<v_target<<" a_tgt : "<<a_target << " vch "<<v_change <<'\n';
     //std::cout << "abs v : " << fabs(v_target-vpts[i-1])<< " abs a : " <<fabs(acc_pts[i-1]-acc[2]);
     tpts[i] =(i*t_sample);
@@ -795,11 +792,10 @@ void MotionPlanner::create_traj_const_acc_xy_polyeval(VehicleState current_state
   double c_yaw = current_state.getVehicleYaw();
   double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();
   //TODO - read from confug file
-  int number_of_samples = 10;
-  Eigen::VectorXd spts(number_of_samples);
-  Eigen::VectorXd tpts(number_of_samples);
-  Eigen::VectorXd xpts(number_of_samples);
-  Eigen::VectorXd ypts(number_of_samples);
+  Eigen::VectorXd spts(kNumberOfSamples);
+  Eigen::VectorXd tpts(kNumberOfSamples);
+  Eigen::VectorXd xpts(kNumberOfSamples);
+  Eigen::VectorXd ypts(kNumberOfSamples);
   //TODO change the number
   Eigen::VectorXd dpts(6);
 
@@ -849,9 +845,9 @@ void MotionPlanner::create_traj_const_acc_xy_polyeval(VehicleState current_state
   double brake_dec = 0.3;
   double d_brake =(v_current*v_current)/(2*brake_dec);//v² -u² = 2as, thus to stop with current velocity it is s = -u²/2a; a is -ve this s = u²/2a
   //Time samples of 100ms each, so for 5 seconds we have 50 samples - TODO this as tunable parameter
-  double t_sample = (5.0)/number_of_samples;
+  double t_sample = kLookAheadTime/(kNumberOfSamples-1);
   double v_previous = v_current;
-  for(int i=1;i<number_of_samples;i++){
+  for(int i=1;i<kNumberOfSamples;i++){
     //std::cout << "vcur : " << vpts[i-1]<< " acur :"<< acc_pts[i-1] <<"  vtgt "<<v_target<<" a_tgt : "<<a_target << " vch "<<v_change <<'\n';
     //std::cout << "abs v : " << fabs(v_target-vpts[i-1])<< " abs a : " <<fabs(acc_pts[i-1]-acc[2]);
     tpts[i] =(i*t_sample);
@@ -937,7 +933,7 @@ void MotionPlanner::create_traj_const_acc_xy_polyeval(VehicleState current_state
   m_sampled_traj.header.stamp = ros::Time::now();
   m_sampled_traj.header.frame_id = "/map";
   double s_val,d_val,v_val, a_val;
-  //sample every 0.2s
+  //sample every 0.2s //TODO - make 25 some constant or variable based on something like distance etc
   for(double i=0;i<25;i++){
     double t_pt = 0.2*i;//time
 
