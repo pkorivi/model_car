@@ -66,6 +66,7 @@ namespace fub_motion_planner{
           nav_msgs::Path m_obst_traj;
           m_obst_traj.header.stamp = ros::Time::now();
           m_obst_traj.header.frame_id = "/map";
+          std::vector<int> times_check = {0,2,4,5};
           for (size_t i = 0; i < 4; i++) {
             //TODO - remove or make it better
             tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(obst_s[i],obst_frenet.d,0,0));
@@ -73,7 +74,7 @@ namespace fub_motion_planner{
             examplePose.pose.position.x = xy[0];
             examplePose.pose.position.y = xy[1];
             //Currently this velocity is used in trajectory converted to publish velocity at a point
-            examplePose.pose.position.z = 0;//obstVel.x;//v(t_pt); //velocity saved in z direction
+            examplePose.pose.position.z = times_check[i];//obstVel.x;//v(t_pt); //velocity saved in z direction
             examplePose.pose.orientation.x = 0.0;//a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
             examplePose.pose.orientation.y = 0.0f;
             examplePose.pose.orientation.z = 0.0f;
@@ -156,6 +157,9 @@ namespace fub_motion_planner{
           }
       } //for loop of all obstacles
     }// if obstacles
+    else{ //No obstacles - so no cost 
+      cost = 0;
+    }
     return cost;
   }//end of collision check
 
