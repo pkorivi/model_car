@@ -81,7 +81,7 @@ namespace fub_motion_planner{
             //push PoseStamped into Path
             m_obst_traj.poses.push_back(examplePose);
 
-            std::cout << "obstacle "<<obst_s[i]<<" "<<obst_frenet.d<< " vehicle "<<ego_vehicle_s[i]<<" "<<ego_vehicle_d[i] << '\n';
+            //std::cout << "obstacle "<<obst_s[i]<<" "<<obst_frenet.d<< " vehicle "<<ego_vehicle_s[i]<<" "<<ego_vehicle_d[i] << '\n';
           }
           obst_path_1.publish(m_obst_traj);
           //end of obstacle traj publishing
@@ -100,13 +100,14 @@ namespace fub_motion_planner{
           else {
             //check for intersection in s
             std::vector<double> intersection = {std::max(obst_s.front(),ego_vehicle_s.front()), std::min(obst_s.back(),ego_vehicle_s.back())};
+            std::cout << "intersection  "<<intersection.front()<<"  "<<intersection.back() << '\n';
             if (intersection.back()<intersection.front()) {
               cost =  0; // No intersection in s, so potential collision
             }
             else{
-              std::cout << "In "<<intersection.front()<<" "<<intersection.back() << '\n';
               double d_val1 = polyeval_m( d_coeffs,intersection.front());
               double d_val2 = polyeval_m( d_coeffs,intersection.back());
+              std::cout << "d_ego "<<d_val1<<" "<<d_val2<<" obs_D "<<obst_frenet.d << '\n';
               if((fabs(d_val1 - obst_frenet.d)> d_min_diff)&&   //start of intersection
                   (fabs(d_val2 - obst_frenet.d)> d_min_diff)&&  //end of intersection
                   (fabs((d_val1+d_val2)/2 - obst_frenet.d)> d_min_diff)){ //in middle of intersection also road is free
@@ -114,26 +115,28 @@ namespace fub_motion_planner{
                   }
                 else{ //collision in s and d, //TODO may be remobe this 0.05 and make zero
                   if(obstVel.x>0.05){ // for collision in t for dynamic obstacles
-                    double pt_duration = 5.0/(ego_vehicle_s.size()-1);
+                    //Check for timing - dynamic obstacle - static obstacle not needed consider it collision
+                    double pt_duration = 5.0/(s_pts.size()-1);
                     size_t i=0;
                     double ego_t1 = 0;// assign to minimum time - change based on need
-                    for (i = 0; i < ego_vehicle_s.size(); i++) {
-                      if(intersection.front()<ego_vehicle_s[i]){
+                    for (i = 0; i < s_pts.size(); i++) {
+                      if(intersection.front()<s_pts[i]){
                         ego_t1 = (i>0?i-1:i)*pt_duration; //If the intersection is less than the first element consider 0 time
                         break;
                       } //found where time starts
                     }
                     double ego_t2 = 5.0; // Assign to max
                     //check from back as the value is mostl likely in the end
-                    for (i = ego_vehicle_s.size()-1; i >=0; i--) {
-                      if(intersection.back()>=ego_vehicle_s[i]){
+                    for (i = s_pts.size()-1; i >=0; i--) {
+                      if(intersection.back()>=s_pts[i]){
                         ego_t2 = (i+1)*pt_duration; // Margin as higher end of time
                         break;
                       } //found where time starts
                     }
                     double obst_t1 = (intersection.front() - obst_frenet.s)/obstVel.x ; // s_@ = s_0 + vel*time
                     double obst_t2 = (intersection.back() - obst_frenet.s)/obstVel.x ;
-
+                    std::cout << "ego t "<<ego_t1<<" "<<ego_t2 << '\n';
+                    std::cout << "obs t "<<obst_t1<<" "<<obst_t2 <<'\n';
                     if((ego_t1-obst_t1)*(ego_t2-obst_t2) >0 ){
                       //Same sign for time difference - No collision
                       double minimum_time_diff = std::min(fabs(ego_t1-obst_t1),fabs(ego_t2-obst_t2));
@@ -142,9 +145,7 @@ namespace fub_motion_planner{
                       cost = (minimum_time_diff>2)?0:(2-minimum_time_diff)*3;
                     }//else cost of 50 defined initially will be returned
                   }//If condition for dynamic obstacle check
-
-                  //Check for timing - dynamic obstacle - static obstacle not needed consider it collision
-                }
+                }//time check
             }
           }
       } //for loop of all obstacles
