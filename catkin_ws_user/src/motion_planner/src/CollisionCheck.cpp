@@ -53,7 +53,7 @@ namespace fub_motion_planner{
   					obstVel.x=0;
   				}
           FrenetCoordinate obst_frenet =  m_vehicle_path.getFenet(obstPos,yaw);
-          std::cout << "obst x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d "<<obst_frenet.s<<" "<<obst_frenet.d<<" vel "<<obstVel.x<< '\n';
+          //std::cout << "obst x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d "<<obst_frenet.s<<" "<<obst_frenet.d<<" vel "<<obstVel.x<< '\n';
           //TODO replace wih correct values
           //This should be wcar/2 + wobst/2+safe_dist
           double d_min_diff = 0.20;
@@ -104,7 +104,7 @@ namespace fub_motion_planner{
             const double kSafetyDist = 0.25; //TODO - config file or constant in .h file
             std::vector<double> intersection = {std::max(obst_s.front()-kSafetyDist,ego_vehicle_s.front()-kSafetyDist),
                                                 std::min(obst_s.back()+kSafetyDist,ego_vehicle_s.back()+kSafetyDist)};
-            std::cout << "intersection  "<<intersection.front()<<"  "<<intersection.back() << '\n';
+            //std::cout << "intersection  "<<intersection.front()<<"  "<<intersection.back() << '\n';
             //check for collision in s
             if (intersection.back()<intersection.front()) {
               //cost =  0; // No intersection in s, no potential collision
@@ -113,7 +113,7 @@ namespace fub_motion_planner{
             else{ //check for collision in d where s is intersecting
               double d_val1 = polyeval_m( d_coeffs,intersection.front());
               double d_val2 = polyeval_m( d_coeffs,intersection.back());
-              std::cout << "d_ego "<<d_val1<<" "<<d_val2<<" obs_D "<<obst_frenet.d << '\n';
+              //std::cout << "d_ego "<<d_val1<<" "<<d_val2<<" obs_D "<<obst_frenet.d << '\n';
               if((fabs(d_val1 - obst_frenet.d)> d_min_diff)&&   //start of intersection
                   (fabs(d_val2 - obst_frenet.d)> d_min_diff)&&  //end of intersection
                   (fabs((d_val1+d_val2)/2 - obst_frenet.d)> d_min_diff)){ //in middle of intersection also road is free
@@ -162,7 +162,7 @@ namespace fub_motion_planner{
                 }
               }//collision check in time -when both in s,d there is collision
             }//collision check in d
-          }//collision check in s 
+          }//collision check in s
       } //for loop of all obstacles
     }// if obstacles
     else{ //No obstacles - so no cost

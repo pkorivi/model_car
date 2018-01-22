@@ -13,22 +13,24 @@
 
 namespace fub_motion_planner{
   class target_state{
-    public:
-      double d_tgt;
-      double s_tgt;
-      double v_tgt;
-      double a_tgt;
-      double cost =0;
-      bool evaluated = false;
-      nav_msgs::Path path;
+  	public:
+  		double d_eval;
+  		double s_tgt;
+  		double v_tgt;
+  		double a_tgt;
+  		double cost =0;
+  		bool evaluated = false;
+  		nav_msgs::Path path;
+      int id;
 
-      target_state(double d_tgt, double s_tgt, double v_tgt, double a_tgt, double cost){
-        this->d_tgt = d_tgt;
-        this->s_tgt = s_tgt;
-        this->v_tgt = v_tgt;
-        this->a_tgt = a_tgt;
-        this->cost = cost;
-      }
+  		target_state(double s_tgt, double d_eval, double v_tgt, double a_tgt, double cost, int idx){
+  			this->d_eval = d_eval;
+  			this->s_tgt = s_tgt;
+  			this->v_tgt = v_tgt;
+  			this->a_tgt = a_tgt;
+  			this->cost = cost;
+        this->id = idx;
+  		}
   };
 
   class MotionPlanner : public nodelet::Nodelet{
@@ -51,6 +53,8 @@ namespace fub_motion_planner{
       ros::Publisher obst_path_1;
       ros::Publisher obst_path_2;
       ros::Publisher obst_path_3;
+      double prev_d_target=0;
+      int index =1;
 
       void create_traj_spline(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
               double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
@@ -61,11 +65,12 @@ namespace fub_motion_planner{
       void create_traj_const_acc_xy_polyeval(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
               double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
       double create_traj_const_acc_xy_polyeval_2(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
-              double v_max, double v_min, int polynomial_order, target_state &tgt); //TODO move v_min, v_max, polynomial_order to MotionPlanner.h constants, remove prev state 
+              double v_max, double v_min, int polynomial_order, target_state &tgt); //TODO move v_min, v_max, polynomial_order to MotionPlanner.h constants, remove prev state
       /** The callback for the timer that triggers the update.
       */
       void callbackTimer(const ros::TimerEvent&);
       double CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts, std::vector<double> d_coeffs);
+      void calc_cost(target_state &tgt, double vel_current, double d_tgt,double prev_d_tgt);
       // timer triggering our execution // TODO: use WallTimer?
       ros::Timer m_timer;
     private:

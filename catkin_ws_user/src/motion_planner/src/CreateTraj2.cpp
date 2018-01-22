@@ -72,7 +72,7 @@ namespace fub_motion_planner{
 
     double v_target= tgt.v_tgt;
     double a_target= tgt.a_tgt;
-    double d_target= tgt.d_tgt;
+    double d_target= tgt.d_eval;
     double s_target = tgt.s_tgt;
      //TODO use this instead of end of the path
     clock_t tStart = clock();
@@ -131,7 +131,7 @@ namespace fub_motion_planner{
     xpts.push_back( pt_stamped_out.point.x);
     ypts.push_back( pt_stamped_out.point.y);
     vpts.push_back(v_current);
-    std::cout << "current x,y "<<xpts[0]<<"  "<<ypts[0] << '\n';
+    //std::cout << "current x,y "<<xpts[0]<<"  "<<ypts[0] << '\n';
     //ROS_INFO("Initialization: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
     //TODO - add in config file
@@ -278,10 +278,9 @@ namespace fub_motion_planner{
     tStart = clock();
     //Publish as path with velocity in z dimension
     traj_pub.publish(m_sampled_traj);
-    std::cout << "tgtcst "<<tgt.cost << "  ";
     tgt.cost += cost;
     tgt.path = m_sampled_traj;
-    std::cout << "cost in planner "<<tgt.cost << " ret cost "<<cost << '\n';
+    //std::cout << "cost in planner "<<tgt.cost << " ret cost "<<cost << '\n';
     return cost;
   }//end of create trajectory
 
