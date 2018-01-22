@@ -208,15 +208,9 @@ namespace fub_motion_planner{
     }//for loop
     //ROS_INFO("for loop: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
-    std::cout << " s eval done " << '\n';
     //d_calc
     //auto d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target, polynomial_order);
     std::vector<double> d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target,frenet_val.th, spts.front(), spts.back());
-    std::cout << "d coeffs " << " ";
-    for (size_t i = 0; i < d_coeffs.size(); i++) {
-      std::cout << d_coeffs[i]<<"  ";
-    }
-
     //create xy sample points
     //TODO - make d as a function of s. At high speeds d can be function of time
     //At low speeds d should be function of s to ensure curvature
@@ -265,7 +259,7 @@ namespace fub_motion_planner{
       examplePose.pose.position.x = x_val;
       examplePose.pose.position.y = y_val;
       //Currently this velocity is used in trajectory converted to publish velocity at a point
-      examplePose.pose.position.z = i*t_sample;//v_fit;//v(t_pt); //velocity saved in z direction
+      examplePose.pose.position.z = 0;//i*t_sample;//v_fit;//v(t_pt); //velocity saved in z direction
       examplePose.pose.orientation.x = 0.0;//a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
       examplePose.pose.orientation.y = 0.0f;
       examplePose.pose.orientation.z = 0.0f;

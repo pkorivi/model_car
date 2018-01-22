@@ -79,14 +79,6 @@ namespace fub_motion_planner{
         //create_traj_const_acc(current_vehicle_state,m_prev_vehicle_state,mp_traj2,v_target,a_target,d_target,v_max,v_min,polynomial_order);
         double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
         std::cout << "cost of traj :  " << cost_val<< '\n';
-        /*a_target = 0;
-        a_target = -0.15;
-        v_target = 0;
-        create_traj(current_vehicle_state,mp_traj3,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-        a_target = -0.3;
-        v_target = 0;
-        create_traj(current_vehicle_state,mp_traj4,v_target,a_target,d_target,v_max,v_min,polynomial_order);*/
-        //std::cout<<"elapsed :: "<< (ros::Time::now()-t).toSec()<< '\n';
         ROS_INFO("Time taken: %f", (double)(clock() - tStart)/CLOCKS_PER_SEC);
       }
       else{
