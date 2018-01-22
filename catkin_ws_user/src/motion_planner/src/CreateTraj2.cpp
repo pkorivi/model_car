@@ -68,16 +68,22 @@ namespace fub_motion_planner{
   }
 
   double MotionPlanner::create_traj_const_acc_xy_polyeval_2(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
-          double v_target,double a_target,double d_target,double v_max, double v_min,int polynomial_order){
+          double v_max, double v_min,int polynomial_order, target_state &tgt){
 
+    double v_target= tgt.v_tgt;
+    double a_target= tgt.a_tgt;
+    double d_target= tgt.d_tgt;
+    double s_target = tgt.s_tgt;
+     //TODO use this instead of end of the path
     clock_t tStart = clock();
     //current values
     double v_current = current_state.m_current_speed_front_axle_center;
+    tgt.evaluated = true;
     //Condition added to prevent speeding up if current velocity is greater than target and positive acceleration is requested
-    if(v_current > v_target && a_target > 0){
-      ROS_ERROR("V_Cur is > v_tgt and acceleration is requested");
+    if((v_current > v_target && a_target > 0)||(v_current < v_target && a_target < 0)){
+      ROS_ERROR("V_Cur is > v_tgt and acceleration is requested or v_cur<v_tgt and decelration requested");
       //TODO return proper value in future, traj cost and other things
-
+      tgt.cost += 20;
       return 20;
     }
     //Odom frame to map frame conversion for trajectory
@@ -159,7 +165,7 @@ namespace fub_motion_planner{
           // If braking is requested then keep this as a part of cost term
           //TODO - add constants in config file
           //TODO changed a_tgt to v_tgt - its working fine, just check if its ok - may affect the deceleration protion
-          if((d_brake > (m_vehicle_path.frenet_path.back().s - spts[i] - 0.1))&&(v_target>0)){
+          if((d_brake > (s_target - spts[i] - 0.1))&&(v_target>0)){
             c_acc_phase =BRAKE_DEC;
           }
           //TODO If the velocity is in bounds of 0.04 around then skip to zero acceleration phase
@@ -181,7 +187,7 @@ namespace fub_motion_planner{
           // Go to braking if the available road is less and the acceleration requested is greater then or equal to zero.
           // If braking is requested then keep this as a part of cost term
           //TODO - add constants in config file
-          if((d_brake > (m_vehicle_path.frenet_path.back().s - spts[i] - 0.1))&&(v_target>0)){
+          if((d_brake > (s_target - spts[i] - 0.1))&&(v_target>0)){
             c_acc_phase =BRAKE_DEC;
           }
           break;
@@ -272,6 +278,10 @@ namespace fub_motion_planner{
     tStart = clock();
     //Publish as path with velocity in z dimension
     traj_pub.publish(m_sampled_traj);
+    std::cout << "tgtcst "<<tgt.cost << "  ";
+    tgt.cost += cost;
+    tgt.path = m_sampled_traj;
+    std::cout << "cost in planner "<<tgt.cost << " ret cost "<<cost << '\n';
     return cost;
   }//end of create trajectory
 

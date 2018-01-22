@@ -12,6 +12,25 @@
 #include <autonomos_obstacle_msgs/Obstacle.h>
 
 namespace fub_motion_planner{
+  class target_state{
+    public:
+      double d_tgt;
+      double s_tgt;
+      double v_tgt;
+      double a_tgt;
+      double cost =0;
+      bool evaluated = false;
+      nav_msgs::Path path;
+
+      target_state(double d_tgt, double s_tgt, double v_tgt, double a_tgt, double cost){
+        this->d_tgt = d_tgt;
+        this->s_tgt = s_tgt;
+        this->v_tgt = v_tgt;
+        this->a_tgt = a_tgt;
+        this->cost = cost;
+      }
+  };
+
   class MotionPlanner : public nodelet::Nodelet{
     public:
         MotionPlanner();
@@ -42,7 +61,7 @@ namespace fub_motion_planner{
       void create_traj_const_acc_xy_polyeval(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
               double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
       double create_traj_const_acc_xy_polyeval_2(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
-              double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
+              double v_max, double v_min, int polynomial_order, target_state &tgt); //TODO move v_min, v_max, polynomial_order to MotionPlanner.h constants, remove prev state 
       /** The callback for the timer that triggers the update.
       */
       void callbackTimer(const ros::TimerEvent&);

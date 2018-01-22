@@ -60,7 +60,7 @@ namespace fub_motion_planner{
       if (m_vehicle_path.route_path_exists == true) {
         ros::Time t = ros::Time::now();
         clock_t tStart = clock();
-
+        std::vector<target_state> final_states;
         /* TODO - Add the prediction matrix here after adjusting the weights. Code in test_code.cpp
         */
         //Amax for profiles TODO : Update the Amax based on current velocity
@@ -75,10 +75,15 @@ namespace fub_motion_planner{
         double a_target = acc_prof[0];
         double d_target = -0.2;
         int polynomial_order = 4;
+        double pre_cost =0;
+        //(D,S,V,A,COST)
+        target_state tgt(d_target,m_vehicle_path.frenet_path.back().s,v_target,a_target,pre_cost);
         //create_traj_spline(current_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
         //create_traj_const_acc(current_vehicle_state,m_prev_vehicle_state,mp_traj2,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-        double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-        std::cout << "cost of traj :  " << cost_val<< '\n';
+        //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order, tgt);
+        double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, tgt);
+        final_states.push_back(tgt);
+        std::cout << "cost of traj :  " << tgt.cost<< "  "<< tgt.evaluated<< '\n';
         ROS_INFO("Time taken: %f", (double)(clock() - tStart)/CLOCKS_PER_SEC);
       }
       else{
