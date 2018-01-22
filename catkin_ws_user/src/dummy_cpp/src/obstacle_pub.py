@@ -27,23 +27,21 @@ var_abs_vel = 0
 
 def pub_obstacle_info():
     global sequence,var_abs_vel
-    var_abs_vel = 0.5
+    current_time = rospy.Time.now()
     new_obstacles_list = Obstacles()
-    for id_ in range(2):
+    new_obstacles_list.header.stamp = current_time
+    new_obstacles_list.header.frame_id = "map"
+    new_obstacles_list.header.seq = sequence
+    sequence +=1
+    for id_ in range(1):
         new_obstacle = Obstacle()
         new_obstacle.id = id_
-        current_time = rospy.Time.now()
-        new_obstacles_list.header.stamp = current_time
-        new_obstacles_list.header.frame_id = "map"
-        new_obstacles_list.header.seq = sequence
-        #
         new_obstacle.header.stamp = current_time
         new_obstacle.header.frame_id = "map"
-        new_obstacle.header.seq = sequence
-        sequence +=1
-        vel =1.0
-        x = id_*2.0#4.19#4.5
-        y = -0.20#-2.48#0.0
+        new_obstacle.header.seq = id_
+        var_abs_vel = 0.5*id_
+        x = 0.3*id_ +2 #id_*2.0#4.19#4.5
+        y = -0.16#-2.48#0.0
         #Obstacle odometry
         odom_quat = tf.transformations.quaternion_from_euler(0,0,0)
         odom = Odometry()
@@ -51,7 +49,7 @@ def pub_obstacle_info():
         odom.header.frame_id = "map"
         odom.pose.pose = Pose(Point(x, y, 0.), Quaternion(*odom_quat))
         odom.child_frame_id = "base_link"
-        odom.twist.twist = Twist(Vector3(vel, 0, 0), Vector3(0, 0, 0))
+        odom.twist.twist = Twist(Vector3(var_abs_vel, 0, 0), Vector3(0, 0, 0))
         new_obstacle.odom = odom
         #TwistWithCovariance
         abs_vel = TwistWithCovariance()

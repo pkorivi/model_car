@@ -19,13 +19,13 @@ from nav_msgs.msg import Odometry
 odom_pub = rospy.Publisher("/odom", Odometry, queue_size =10)
 
 def pub_odom():
-    vel =1.0
-    x = 0#4.19#4.5
-    y = 0#-2.48#0.0
+    vel =0.2
+    x = 0.3#4.19#4.5
+    y = 0.0#-2.48#0.0
     current_time = rospy.Time.now()
     odom_broadcaster = tf.TransformBroadcaster()
     #since all odometry is 6DOF we'll need a quaternion created from yaw
-    odom_quat = tf.transformations.quaternion_from_euler(0,0,0)
+    odom_quat = tf.transformations.quaternion_from_euler(0,0,0.0)
     #first, we'll publish the transform over tf
     odom_broadcaster.sendTransform((0, 0, 0),odom_quat,current_time,"base_link","odom")
     #next, we'll publish the odometry message over ROS
