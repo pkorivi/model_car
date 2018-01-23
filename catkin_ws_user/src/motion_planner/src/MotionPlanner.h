@@ -66,6 +66,8 @@ namespace fub_motion_planner{
               double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
       double create_traj_const_acc_xy_polyeval_2(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
               double v_max, double v_min, int polynomial_order, target_state &tgt); //TODO move v_min, v_max, polynomial_order to MotionPlanner.h constants, remove prev state
+      double create_traj_const_acc_xy_spline_3(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
+              double v_max, double v_min,int polynomial_order, target_state &tgt);
       /** The callback for the timer that triggers the update.
       */
       void callbackTimer(const ros::TimerEvent&);

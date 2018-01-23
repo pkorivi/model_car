@@ -107,7 +107,7 @@ namespace fub_motion_planner{
 
     double frenet_s = frenet_path[prev_wp].s + distance(xy_path[prev_wp],pt_on_line);
     //Car to Road angle difference
-    double car_road_th = frenet_path[prev_wp].th - theta;
+    double car_road_th = frenet_path[next_wp].th - theta;
     if (car_road_th>3.14)
       car_road_th=car_road_th-6.28;
     else if (car_road_th<-3.14)

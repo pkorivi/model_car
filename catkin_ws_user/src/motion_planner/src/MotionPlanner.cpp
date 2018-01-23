@@ -17,7 +17,8 @@
 #include "polyfit.h"
 #include <autonomos_obstacle_msgs/Obstacles.h>
 #include <autonomos_obstacle_msgs/Obstacle.h>
-#include "CreateTraj2.cpp"
+//#include "CreateTraj2.cpp"
+#include "CreateTraj3.cpp"
 #include "CollisionCheck.cpp"
 #include <fstream>
 #include <cmath>
@@ -92,7 +93,7 @@ namespace fub_motion_planner{
         double s_target = m_vehicle_path.frenet_path.back().s;
 
         if(vel_current<=vel_target){
-      		std::cout << "acceleration" << '\n';
+      		//std::cout << "acceleration" << '\n';
       		for(int j=0; j<=2;j++){
       			for(auto d_eval : d_ranges){
               //(D,S,V,A,COST)
@@ -100,13 +101,13 @@ namespace fub_motion_planner{
       				calc_cost(tgt, vel_current, d_target, prev_d_target);
       				std::cout.width(5);
       				final_states.push_back(tgt);
-      				std::cout << tgt.cost<< "   ";
+      				//std::cout << tgt.cost<< "   ";
       			}
-      			std::cout <<'\n';
+      			//std::cout <<'\n';
       		}
       	}
       	else {
-      		std::cout << "Deceleration" << '\n';
+      		//std::cout << "Deceleration" << '\n';
       		for(int j=3; j<=5;j++){
       			for(auto d_eval : d_ranges){
               //(D,S,V,A,COST)
@@ -114,13 +115,13 @@ namespace fub_motion_planner{
       				calc_cost(tgt, vel_current, d_target, prev_d_target);
       				std::cout.width(5);
       				final_states.push_back(tgt);
-      				std::cout << tgt.cost<< "   ";
+      				//std::cout << tgt.cost<< "   ";
       			}
-      			std::cout <<'\n';
+      			//std::cout <<'\n';
       		}
       	}
       	vel_target =0;
-        std::cout<<"Stopping profiles" <<'\n';
+        //std::cout<<"Stopping profiles" <<'\n';
       	for(int j=3; j<=7;j++){
       		for(auto d_eval : d_ranges){
             //(D,S,V,A,COST) extra cost for going to zero
@@ -128,20 +129,21 @@ namespace fub_motion_planner{
       			calc_cost(tgt, vel_current, d_target, prev_d_target);
       			std::cout.width(5);
       			final_states.push_back(tgt);
-      			std::cout << tgt.cost<< "   ";
+      			//std::cout << tgt.cost<< "   ";
       		}
-      		std::cout <<'\n';
+      		//std::cout <<'\n';
       	}
         //Re initialize for next cycle
         index =1;
 
         sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
       				return ts1.cost < ts2.cost;});
-      	std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
+      	//std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
       	while(final_states.front().evaluated != true){
       		//TODO change to insertion sort - this vector is almost sorted
       		//create_traj(final_states.front());
-          double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
+          //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
+          double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
           //std::cout << "cost" <<cost_val <<'\n';
           std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
       		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){

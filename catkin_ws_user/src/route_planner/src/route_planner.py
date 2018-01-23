@@ -270,7 +270,7 @@ def start():
     graph, rndf = create_graph()
     ###Find the shortest path from source to Destination
     src_coordi = [0.01,0]
-    dst_coordi = [1.22,0.3]
+    dst_coordi = [-0.01,0.0]
     closest_way_pt_src  = closest_node(graph,src_coordi)
     closest_way_pt_dst = closest_node(graph,dst_coordi)
     # The indexes start from 0 and the names start from 1, check indexes and refer to map for points
