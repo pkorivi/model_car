@@ -33,15 +33,17 @@ def pub_obstacle_info():
     new_obstacles_list.header.frame_id = "map"
     new_obstacles_list.header.seq = sequence
     sequence +=1
-    for id_ in range(1):
+    obs_vel = [0.0,0.0]
+    obs_xy = [[1.4,-0.19],[3.0,0.15]]
+    for id_ in range(2):
         new_obstacle = Obstacle()
         new_obstacle.id = id_
         new_obstacle.header.stamp = current_time
         new_obstacle.header.frame_id = "map"
         new_obstacle.header.seq = id_
-        var_abs_vel = 0.5*id_
-        x = 0.3*id_ +2 #id_*2.0#4.19#4.5
-        y = -0.16#-2.48#0.0
+        var_abs_vel = obs_vel[id_]
+        x = obs_xy[id_][0]#0.3*id_ +2.0 #id_*2.0#4.19#4.5
+        y = obs_xy[id_][1]#-2.48#0.0
         #Obstacle odometry
         odom_quat = tf.transformations.quaternion_from_euler(0,0,0)
         odom = Odometry()
@@ -77,7 +79,7 @@ def pub_obstacle_info():
 
         new_obstacle.classification = 1
         new_obstacle.classification_certainty = 0.9
-        new_obstacle.first_observed = current_time - rospy.Duration(20)
+        new_obstacle.first_observed = current_time #- rospy.Duration(20)
         new_obstacle.last_observed = current_time
 
         new_obstacles_list.obstacles.append(new_obstacle)
