@@ -11,16 +11,18 @@ from std_msgs.msg import Int16
 from std_msgs.msg import Float32
 from geometry_msgs.msg import PointStamped
 
-x = np.array([])
-y = np.array([])
-z = np.array([]) #sequence number
 file2write=open("seg_9.txt",'w')
+seq_no =1
 
 def point_callback(data):
+    global seq_no
+    file2write.write(str.format("1.1.{}",seq_no))
+    file2write.write(" ")
     file2write.write(str.format("{0:.2f}",data.point.x))
-    file2write.write(",")
+    file2write.write(" ")
     file2write.write(str.format("{0:.2f}",data.point.y))
     file2write.write("\n")
+    seq_no +=1
 
 
 def main(args):
