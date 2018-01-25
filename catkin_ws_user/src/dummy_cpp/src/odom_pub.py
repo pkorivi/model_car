@@ -21,7 +21,7 @@ rcv_pose = PoseStamped()
 listener = tf.TransformListener()
 
 def pub_odom():
-    vel =0.2
+    vel =0.5
     #print rcv_pose
 
     if rcv_pose.pose.orientation.w == 0:
@@ -61,7 +61,8 @@ def pub_odom():
             #publish the message
             odom_pub.publish(odom)
         except Exception as e:
-            print e
+            pass
+            #print e
 
 def odometry_from_rviz(data):
     global rcv_pose
@@ -72,7 +73,7 @@ def odometry_from_rviz(data):
 def main(args):
     rospy.init_node('odom_pub', anonymous = False)
     rospy.Subscriber("/initialpose", PoseWithCovarianceStamped, odometry_from_rviz)
-    rate = rospy.Rate(1) # 10hz
+    rate = rospy.Rate(3) # 10hz
     while not rospy.is_shutdown():
         pub_odom()
         rate.sleep()
