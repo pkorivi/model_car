@@ -247,7 +247,7 @@ namespace fub_motion_planner{
     m_sampled_traj.header.frame_id = "/map";
     double s_val,d_val,v_val, a_val;
     //sample every 0.2s
-    for(double i=0;i<25;i++){
+    for(double i=0;i<26;i++){
       double t_pt = 0.2*i;//time
 
       double x_der = polyeval_derivative(x_coeffs,t_pt);

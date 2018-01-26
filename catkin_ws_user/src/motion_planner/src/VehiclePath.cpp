@@ -184,6 +184,9 @@ namespace fub_motion_planner{
 
   void VehiclePath::transformToXYandFrenet(){
     size_t number_of_pts = m_path.poses.size();
+    //Clear the path and refill with new path - Important for accepting next segment
+    xy_path.clear();
+    frenet_path.clear();
     if(number_of_pts>0){
       //extract the points from the pose list
       size_t i;

@@ -10,6 +10,9 @@
 //#include <fub_trajectory_msgs/TrajectoryPoint.h>
 #include <autonomos_obstacle_msgs/Obstacles.h>
 #include <autonomos_obstacle_msgs/Obstacle.h>
+#include <ecl/geometry.hpp>
+#include <ecl/containers.hpp>
+
 
 namespace fub_motion_planner{
   class target_state{
@@ -77,7 +80,7 @@ namespace fub_motion_planner{
       ros::Timer m_timer;
     private:
       const double kLookAheadTime = 5.0;
-      const int kNumberOfSamples = 26;
+      const int kNumberOfSamples = 11; //changing to 11 from 26
   };
 } // namespace sample_nodelet_ns
 

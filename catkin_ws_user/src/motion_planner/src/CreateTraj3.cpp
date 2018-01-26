@@ -1,27 +1,9 @@
 namespace fub_motion_planner{
-
   // Evaluate a polynomial.
   double polyeval_m(std::vector<double> coeffs, double x) {
     double result = 0.0;
     for (int i = 0; i < coeffs.size(); i++) {
       result += coeffs[i] * pow(x, i);
-    }
-    return result;
-  }
-
-  // Evaluate a polynomial Derivative.
-  double polyeval_derivative(std::vector<double>  coeffs, double x) {
-    double result = 0.0;
-    for (int i = 1; i < coeffs.size(); i++) {
-      result += i*coeffs[i] * pow(x, i-1);
-    }
-    return result;
-  }
-  // Evaluate a polynomial Double derivative.
-  double polyeval_double_derivative(std::vector<double> coeffs, double x) {
-    double result = 0.0;
-    for (int i = 2; i < coeffs.size(); i++) {
-      result += i*(i-1)*coeffs[i] * pow(x, i-2);
     }
     return result;
   }
@@ -125,11 +107,11 @@ namespace fub_motion_planner{
     //ROS_INFO("frenet s,d %.3f %.3f ", frenet_val.s, frenet_val.d);
     //Initial Points for polyfit
     spts.push_back(frenet_val.s);
-    dpts.push_back(frenet_val.d);
     tpts.push_back(0);
-    //Iniial x,y - as per map coordinates
-    xpts.push_back( pt_stamped_out.point.x);
-    ypts.push_back( pt_stamped_out.point.y);
+    //Iniial x,y - as per map coordinates - TODO .... as of now updating everything in below for loop of populating x,y
+    //dpts.push_back(frenet_val.d);
+    //xpts.push_back( pt_stamped_out.point.x);
+    //ypts.push_back( pt_stamped_out.point.y);
     vpts.push_back(v_current);
     //std::cout << "current x,y "<<xpts[0]<<"  "<<ypts[0] << '\n';
     //ROS_INFO("Initialization: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
@@ -218,16 +200,26 @@ namespace fub_motion_planner{
     //auto d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target, polynomial_order);
     std::vector<double> d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target,frenet_val.th, spts.front(), spts.back());
     //ROS_INFO("d:  %.3f ,%.3f, %.3f, %.3f   th : %.3f",d_coeffs[0],d_coeffs[1],d_coeffs[2],d_coeffs[3],frenet_val.th);
+
+    //ECL ARrays for ecl splines
+    ecl::Array<double> ecl_ts(kNumberOfSamples);
+    ecl::Array<double> ecl_x(kNumberOfSamples);
+    ecl::Array<double> ecl_y(kNumberOfSamples);
     //create xy sample points
     //TODO - make d as a function of s. At high speeds d can be function of time
     //At low speeds d should be function of s to ensure curvature
-    for (size_t i = 1; i < kNumberOfSamples; i++) {
+    for (size_t i = 0; i < kNumberOfSamples; i++) {
       //double d_val1 = polyeval_m( d_coeffs, tpts[i]);
       double d_val1 = polyeval_m( d_coeffs, spts[i]);
       dpts.push_back(d_val1);
       tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(spts[i],d_val1,0,0)); //TODO check yaw stuff
       xpts.push_back(xy[0]);
       ypts.push_back(xy[1]);
+
+      //ECL spline poilts
+      ecl_x[i] = xy[0];
+      ecl_y[i] = xy[1];
+      ecl_ts[i] = i*t_sample;
       //std::cout << "x,y  "<<xy[0]<<"  "<<xy[1] << " vel  "<< vpts[i] <<"   time "<<tpts[i]<<'\n';
     }
 
@@ -242,12 +234,22 @@ namespace fub_motion_planner{
     auto y_coeffs =  polyfit(tpts, ypts,polynomial_order);
     auto v_coeffs =  polyfit(tpts, vpts,polynomial_order);
     */
+
+    /* Replacing with ECL splines
     tk::spline x;
     tk::spline y;
     tk::spline v;
     x.set_points(tpts,xpts);
     y.set_points(tpts,ypts);
     v.set_points(tpts,vpts);
+    */
+    ecl::CubicSpline mSpline_x;
+    ecl::CubicSpline mSpline_y;
+    ecl::CubicSpline mSpline_z;
+    //TODO - last two points are change in velocity for x, y- follow as per fub controller soon
+    mSpline_x = ecl::CubicSpline::ContinuousDerivatives(ecl_ts, ecl_x, v_current*cos(c_yaw), (ecl_x[kNumberOfSamples-1] - ecl_x[kNumberOfSamples-2])/t_sample);
+    mSpline_y = ecl::CubicSpline::ContinuousDerivatives(ecl_ts, ecl_y, v_current*sin(c_yaw), (ecl_y[kNumberOfSamples-1] - ecl_y[kNumberOfSamples-2])/t_sample);
+    //mSpline_z = ecl::CubicSpline::ContinuousDerivatives(x_set, y_set_z, frontVelocity.getZ(), backVelocity.getZ());
 
     //ROS_INFO("polyfit x,y: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
@@ -257,7 +259,7 @@ namespace fub_motion_planner{
     m_sampled_traj.header.frame_id = "/map";
     double s_val,d_val,v_val, a_val;
     //sample every 0.2s
-    for(double i=0;i<25;i++){
+    for(double i=0;i<26;i++){
       double t_pt = 0.2*i;//time
       /* - TODO replace with derivative of spline
       double x_der = polyeval_derivative(x_coeffs,t_pt);
@@ -268,15 +270,17 @@ namespace fub_motion_planner{
 
       //TODO - remove this
       geometry_msgs::PoseStamped examplePose;
-      double x_val = x(t_pt);
-      double y_val = y(t_pt);
-      double v_fit = v(t_pt);
-      //ROS_INFO("xy %.3f,%.3f , s,d %.3f, %.3f , bs x,y: %.3f, %.3f ",x_val, y_val, spts[i], dpts[i], xpts[i], ypts[i]);
+      double x_val = mSpline_x(t_pt);//x(t_pt);
+      double y_val = mSpline_y(t_pt);//y(t_pt);
+      double dv_x = mSpline_x.derivative(t_pt);
+      double dv_y = mSpline_y.derivative(t_pt);
+      double v_fit = sqrt(dv_x*dv_x + dv_y*dv_y); //v(t_pt);
+      //ROS_INFO("xy %.3f,%.3f , s,d %.3f, %.3f , bs x,y: %.3f, %.3f vel %.3f",x_val, y_val, spts[i], dpts[i], xpts[i], ypts[i],v_fit);
       //ROS_INFO("xy %.3f,%.3f , v_xy, v_fit : %.3f  %.3f ", x_val, y_val, v_val, v_fit);
       examplePose.pose.position.x = x_val;
       examplePose.pose.position.y = y_val;
       //Currently this velocity is used in trajectory converted to publish velocity at a point
-      examplePose.pose.position.z = 0;//i*t_sample;//v_fit;//v(t_pt); //velocity saved in z direction
+      examplePose.pose.position.z = v_fit;//i*t_sample;//v_fit;//v(t_pt); //velocity saved in z direction
       examplePose.pose.orientation.x = 0.0;//a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
       examplePose.pose.orientation.y = 0.0f;
       examplePose.pose.orientation.z = 0.0f;

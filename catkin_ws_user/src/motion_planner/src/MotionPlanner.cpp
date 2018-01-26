@@ -38,7 +38,7 @@ namespace fub_motion_planner{
       m_vehicle_path.setup(getNodeHandle());
       //TODO change execution frequency to a bigger value and also parameter of a config file
       //double execution_frequency = 0.02;
-      ros::Duration timerPeriod = ros::Duration(4);
+      ros::Duration timerPeriod = ros::Duration(5.00);
       m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj", 11);
       mp_traj1 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_1", 1);
       mp_traj2 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_2", 1);
@@ -87,7 +87,7 @@ namespace fub_motion_planner{
         double vel_target = 1.0;
         //TODO a_tgt and d_tgt - part of matrix
         double a_target = acc_prof[0];
-        double d_target = 0.17;
+        double d_target = 0.0;
         int polynomial_order = 4;
         double vel_current = current_vehicle_state.m_current_speed_front_axle_center;
         double s_target = m_vehicle_path.frenet_path.back().s;
@@ -142,8 +142,8 @@ namespace fub_motion_planner{
       	while(final_states.front().evaluated != true){
       		//TODO change to insertion sort - this vector is almost sorted
       		//create_traj(final_states.front());
-          //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
           double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
+          //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
           //std::cout << "cost" <<cost_val <<'\n';
           std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
       		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){

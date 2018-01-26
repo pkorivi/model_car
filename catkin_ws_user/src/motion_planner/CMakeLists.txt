@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   nodelet
   autonomos_obstacle_msgs
+  ecl_geometry
 )
 
 ###################################
