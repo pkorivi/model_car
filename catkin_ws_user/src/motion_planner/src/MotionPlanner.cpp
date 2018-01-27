@@ -11,12 +11,15 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "Eigen-3.3/Eigen/LU"
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
 #include "time.h"
 #include "polyfit.h"
 #include <autonomos_obstacle_msgs/Obstacles.h>
 #include <autonomos_obstacle_msgs/Obstacle.h>
+#include <fub_trajectory_msgs/Trajectory.h>
+#include <fub_trajectory_msgs/TrajectoryPoint.h>
 //#include "CreateTraj2.cpp"
 #include "CreateTraj3.cpp"
 #include "CollisionCheck.cpp"
@@ -39,7 +42,8 @@ namespace fub_motion_planner{
       //TODO change execution frequency to a bigger value and also parameter of a config file
       //double execution_frequency = 0.02;
       ros::Duration timerPeriod = ros::Duration(5.00);
-      m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj", 11);
+      mp_final_traj = getNodeHandle().advertise<fub_trajectory_msgs::Trajectory>("/model_car/trajectory", 1);
+      m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj", 1);
       mp_traj1 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_1", 1);
       mp_traj2 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_2", 1);
       mp_traj3 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_3", 1);
@@ -61,6 +65,66 @@ namespace fub_motion_planner{
   	//TODO Add S term
   	tgt.cost += fabs(vel_achvd- tgt.v_tgt) + fabs(tgt.a_tgt) + \
   							(fabs(d_tgt -tgt.d_eval)*8)/10 + (fabs(prev_d_tgt -tgt.d_eval)*2)/10; //80% weightage to maintaining target value , 20% weightage to change wrt old path
+  }
+
+  void MotionPlanner::convert_path_to_fub_traj(nav_msgs::Path p, double initial_yaw=0){
+
+    fub_trajectory_msgs::Trajectory traj;
+    ros::Time t_n = ros::Time::now();
+    traj.header.seq = gPubSeqNum++;
+    traj.header.stamp = t_n;
+    traj.header.frame_id = "/odom";
+    traj.child_frame_id = "/base_link";
+    fub_trajectory_msgs::TrajectoryPoint tp;
+    geometry_msgs::PointStamped pt_in,pt_out;
+    double t_sample = kLookAheadTime/(p.poses.size()-1);
+    for(size_t i=0;i<p.poses.size();i++){
+      //transform each pose x,y into odom frame
+      pt_in.header.seq = 1;
+      pt_in.header.frame_id = "/map";
+      pt_in.header.stamp = t_n;
+      pt_in.point.x = p.poses[i].pose.position.x;
+      pt_in.point.y = p.poses[i].pose.position.y;
+      pt_in.point.z =0;
+      try{
+        m_tf_listener.listener.transformPoint("/odom",pt_in,pt_out);
+      }
+      catch (tf::TransformException &ex) {
+        ROS_ERROR("%s",ex.what());
+      }
+      //Fill x,y in trajectory point
+      tp.pose.position.x = pt_out.point.x;
+      tp.pose.position.y = pt_out.point.y;
+      tp.pose.position.z = 0;
+      double l_yaw;
+      //Initial fill vehicle yaw
+      if(i == 0){
+        //TODO - add current vehicle yaw
+        l_yaw = initial_yaw;
+        //l_yaw = atan2((p.poses[i+1].pose.position.y - p.poses[i].pose.position.y),(p.poses[i+1].pose.position.x-p.poses[i].pose.position.x));
+      }
+      else if(i==p.poses.size()-1){ //Last Point - fill with road orientation
+        FrenetCoordinate fp =  m_vehicle_path.getFenet(tf::Point{pt_in.point.x,pt_in.point.y,0},0);
+        l_yaw = fp.th;//Here road angle is returned
+      }
+      else{ // slope of sample points is the orientation
+        l_yaw = atan2((p.poses[i+1].pose.position.y - p.poses[i].pose.position.y),(p.poses[i+1].pose.position.x-p.poses[i].pose.position.x));
+      }
+      //calculate the angle of the car at each pose
+      tf::Quaternion qat =  tf::createQuaternionFromYaw(l_yaw*180/M_PI);
+      tp.pose.orientation.x = qat[0];
+      tp.pose.orientation.y = qat[1];
+      tp.pose.orientation.z = qat[2];
+      tp.pose.orientation.w = qat[3];
+
+      //fill velocity
+      tp.velocity.linear.x = p.poses[i].pose.position.z;
+      //fill acceleration TODO check if its needed
+      tp.acceleration.linear.x = 0;
+      tp.time_from_start =ros::Duration(t_sample*i);
+      traj.trajectory.push_back(tp);
+    }
+    mp_final_traj.publish(traj);
   }
 
   void MotionPlanner::callbackTimer(const ros::TimerEvent &){
@@ -87,7 +151,7 @@ namespace fub_motion_planner{
         double vel_target = 1.0;
         //TODO a_tgt and d_tgt - part of matrix
         double a_target = acc_prof[0];
-        double d_target = 0.0;
+        double d_target = 0.17;
         int polynomial_order = 4;
         double vel_current = current_vehicle_state.m_current_speed_front_axle_center;
         double s_target = m_vehicle_path.frenet_path.back().s;
@@ -161,6 +225,7 @@ namespace fub_motion_planner{
         //final_states.push_back(tgt);
         nav_msgs::Path p1 = final_states.front().path;
         mp_traj2.publish(p1);
+        convert_path_to_fub_traj(p1,current_vehicle_state.getVehicleYaw());
         prev_d_target = final_states.front().d_eval;
         std::cout <<" Final Published ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
         std::cout << final_states.front().path.poses[0].pose.position.x << '\n';

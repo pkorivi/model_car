@@ -106,8 +106,8 @@ namespace fub_motion_planner{
       frenet_d *= -1; //lets say frenet coordinates are -ve on left side of reference driving line.
 
     double frenet_s = frenet_path[prev_wp].s + distance(xy_path[prev_wp],pt_on_line);
-    //Car to Road angle difference
-    double car_road_th = frenet_path[next_wp].th - theta;
+    //Road to car angle difference
+    double car_road_th = frenet_path[next_wp].th -theta;
     if (car_road_th>3.14)
       car_road_th=car_road_th-6.28;
     else if (car_road_th<-3.14)
@@ -142,10 +142,10 @@ namespace fub_motion_planner{
     double heading = slope(pt,xy_path[closest_way_pt]);
     double angle = theta - heading;
     //Normalize angle to be in -pi to pi
-    if (angle>3.14)
-      angle=angle-6.28;
-    else if (angle<-3.14)
-      angle=angle+6.28;
+    if (angle>M_PI)
+      angle=angle-2*M_PI;
+    else if (angle<-M_PI)
+      angle=angle+2*M_PI;
     angle = abs(angle);
     //If the orientation of the point/car position and closest_way_pt is more than
     // 45 degrees, then the point is behind the car. so choose the next point

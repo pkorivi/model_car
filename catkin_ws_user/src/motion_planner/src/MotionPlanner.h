@@ -52,6 +52,7 @@ namespace fub_motion_planner{
       ros::Publisher mp_traj2;
       ros::Publisher mp_traj3;
       ros::Publisher mp_traj4;
+      ros::Publisher mp_final_traj;
       //Publishers to vizualize obstacle paths
       ros::Publisher obst_path_1;
       ros::Publisher obst_path_2;
@@ -76,11 +77,13 @@ namespace fub_motion_planner{
       void callbackTimer(const ros::TimerEvent&);
       double CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts, std::vector<double> d_coeffs);
       void calc_cost(target_state &tgt, double vel_current, double d_tgt,double prev_d_tgt);
+      void convert_path_to_fub_traj(nav_msgs::Path p, double initial_yaw);
       // timer triggering our execution // TODO: use WallTimer?
       ros::Timer m_timer;
     private:
       const double kLookAheadTime = 5.0;
       const int kNumberOfSamples = 11; //changing to 11 from 26
+      unsigned int gPubSeqNum=0;
   };
 } // namespace sample_nodelet_ns
 
