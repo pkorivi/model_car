@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/test_singleton.dir/singleton.cpp.o  -o /home/korivi/model_car/ecl_lib/devel_isolated/ecl_utilities/lib/ecl_utilities/test_singleton  -L/home/korivi/model_car/ecl_lib/build_isolated/ecl_utilities/gtest -rdynamic ../../gtest/libgtest.so -lpthread -Wl,-rpath,/home/korivi/model_car/ecl_lib/build_isolated/ecl_utilities/gtest 

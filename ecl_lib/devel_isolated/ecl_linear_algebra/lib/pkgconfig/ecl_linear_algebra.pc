@@ -1,8 +1,0 @@
-prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_linear_algebra
-
-Name: ecl_linear_algebra
-Description: Description of ecl_linear_algebra
-Version: 0.61.18
-Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_linear_algebra/include -I/home/korivi/model_car/ecl_lib/install_isolated/share/sophus/../../include -I/usr/include/eigen3
-Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_linear_algebra/lib -lecl_linear_algebra
-Requires: ecl_build ecl_eigen ecl_exceptions ecl_formatters ecl_math

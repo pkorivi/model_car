@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/demo_sigslots_lite.dir/sigslots.cpp.o  -o /home/korivi/model_car/ecl_lib/devel_isolated/ecl_sigslots_lite/lib/ecl_sigslots_lite/demo_sigslots_lite -rdynamic 

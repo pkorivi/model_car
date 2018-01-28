@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/ecl_detect_sizes.dir/detect_sizes.cpp.o  -o /home/korivi/model_car/ecl_lib/devel_isolated/ecl_type_traits/bin/ecl_detect_sizes -rdynamic /home/korivi/model_car/ecl_lib/devel_isolated/ecl_type_traits/lib/libecl_type_traits.so -Wl,-rpath,/home/korivi/model_car/ecl_lib/devel_isolated/ecl_type_traits/lib: 

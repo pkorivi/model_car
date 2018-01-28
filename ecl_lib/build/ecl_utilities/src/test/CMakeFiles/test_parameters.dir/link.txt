@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/test_parameters.dir/parameters.cpp.o  -o /home/korivi/model_car/ecl_lib/devel/lib/ecl_utilities/test_parameters  -L/home/korivi/model_car/ecl_lib/build/gtest -rdynamic ../../../gtest/libgtest.so -lpthread -Wl,-rpath,/home/korivi/model_car/ecl_lib/build/gtest 

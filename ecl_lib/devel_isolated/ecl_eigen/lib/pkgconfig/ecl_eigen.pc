@@ -1,8 +1,0 @@
-prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_eigen
-
-Name: ecl_eigen
-Description: Description of ecl_eigen
-Version: 0.61.18
-Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_eigen/include -I/home/korivi/model_car/ecl_lib/devel_isolated/ecl_eigen/include -I/usr/include/eigen3
-Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_eigen/lib 
-Requires: 

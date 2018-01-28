@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/demo_exception_tracer.dir/exception_tracer.cpp.o  -o /home/korivi/model_car/ecl_lib/devel_isolated/ecl_exceptions/lib/ecl_exceptions/demo_exception_tracer -rdynamic 

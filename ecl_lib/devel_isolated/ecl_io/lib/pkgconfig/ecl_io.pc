@@ -1,8 +1,0 @@
-prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_io
-
-Name: ecl_io
-Description: Description of ecl_io
-Version: 0.61.6
-Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_io/include
-Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_io/lib -lecl_io
-Requires: 

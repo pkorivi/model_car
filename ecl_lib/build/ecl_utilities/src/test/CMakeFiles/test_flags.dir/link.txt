@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/test_flags.dir/flags.cpp.o  -o /home/korivi/model_car/ecl_lib/devel/lib/ecl_utilities/test_flags  -L/home/korivi/model_car/ecl_lib/build/gtest -rdynamic ../../../gtest/libgtest.so -lpthread -Wl,-rpath,/home/korivi/model_car/ecl_lib/build/gtest 

@@ -1,8 +1,0 @@
-prefix=/home/korivi/model_car/ecl_lib/devel_isolated/ecl_time
-
-Name: ecl_time
-Description: Description of ecl_time
-Version: 0.61.18
-Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_time/include
-Libs: -L/home/korivi/model_car/ecl_lib/devel_isolated/ecl_time/lib -lecl_time
-Requires: ecl_build ecl_config ecl_errors ecl_exceptions ecl_time_lite

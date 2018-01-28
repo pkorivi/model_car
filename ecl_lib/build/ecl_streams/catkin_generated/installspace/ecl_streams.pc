@@ -1,8 +1,0 @@
-prefix=/home/korivi/model_car/ecl_lib/install
-
-Name: ecl_streams
-Description: Description of ecl_streams
-Version: 0.61.18
-Cflags: -I/home/korivi/model_car/ecl_lib/install/include
-Libs: -L/home/korivi/model_car/ecl_lib/install/lib -lecl_streams
-Requires: ecl_errors ecl_concepts ecl_devices ecl_time ecl_converters ecl_type_traits

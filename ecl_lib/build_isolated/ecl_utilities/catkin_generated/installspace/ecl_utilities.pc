@@ -1,8 +1,0 @@
-prefix=/home/korivi/model_car/ecl_lib/install_isolated
-
-Name: ecl_utilities
-Description: Description of ecl_utilities
-Version: 0.61.18
-Cflags: -I/home/korivi/model_car/ecl_lib/install_isolated/include
-Libs: -L/home/korivi/model_car/ecl_lib/install_isolated/lib 
-Requires: ecl_mpl ecl_concepts

@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/ecl_demo_socketpair.dir/socketpair.cpp.o  -o /home/korivi/model_car/ecl_lib/devel/lib/ecl_io/ecl_demo_socketpair -rdynamic /home/korivi/model_car/ecl_lib/devel/lib/libecl_io.so /home/korivi/model_car/ecl_lib/devel/lib/libecl_errors.so -Wl,-rpath,/home/korivi/model_car/ecl_lib/devel/lib: 

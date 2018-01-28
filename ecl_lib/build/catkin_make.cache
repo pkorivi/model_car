@@ -1,2 +1,0 @@
-ecl_build:ecl_command_line:ecl_concepts:ecl_config:ecl_console:ecl_containers:ecl_converters:ecl_converters_lite:ecl_core:ecl_core_apps:ecl_devices:ecl_eigen:ecl_errors:ecl_exceptions:ecl_filesystem:ecl_formatters:ecl_geometry:ecl_io:ecl_ipc:ecl_license:ecl_linear_algebra:ecl_lite:ecl_math:ecl_mpl:ecl_sigslots:ecl_sigslots_lite:ecl_statistics:ecl_streams:ecl_threads:ecl_time:ecl_time_lite:ecl_tools:ecl_type_traits:ecl_utilities
--DCATKIN_DEVEL_PREFIX=/home/korivi/model_car/ecl_lib/devel -DCMAKE_INSTALL_PREFIX=/home/korivi/model_car/ecl_lib/install -G Unix Makefiles
