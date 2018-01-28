@@ -18,6 +18,8 @@ void VehicleState::plannedPathCallback(const fub_trajectory_msgs::TrajectoryCons
 {
     std::cout << "Received the Path "<<'\n';
     mPath = *msg;
+    ROS_INFO("When Path received: seq: %d x,y %.3f,%.3f   vel: %.3f  yaw:%.3f odom_time %f",msg->header.seq,mVehiclePosition[0],\
+              mVehiclePosition[1], mCurrentSpeedFrontAxleCenter,getVehicleYaw(), mLastOdomTimeStampReceived.toSec());
 }
 void VehicleState::odometryCallback(const nav_msgs::OdometryConstPtr & msg)
 {

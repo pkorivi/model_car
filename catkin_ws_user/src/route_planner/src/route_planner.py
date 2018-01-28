@@ -113,8 +113,8 @@ def create_graph():
     #pullData = open('rndf_1_way_loop.txt',"r").read()
     #pullData = open('rndf_2_way_road.txt',"r").read()
     #pullData = open('rndf_simulator_map_2way.txt',"r").read()
-    #pullData = open('/home/korivi/Desktop/frei_traj/code/RNDF_Creation/rndf_files/rndf_1_way_simulator.txt',"r").read()
-    pullData = open('/home/korivi/model_car/catkin_ws_user/src/route_planner/src/rndf_map_1_wap_lab.txt',"r").read()
+    pullData = open('/home/korivi/Desktop/frei_traj/code/RNDF_Creation/rndf_files/rndf_1_way_simulator.txt',"r").read()
+    #pullData = open('/home/korivi/model_car/catkin_ws_user/src/route_planner/src/rndf_map_1_wap_lab.txt',"r").read()
 
     #pullData = open('/home/korivi/model_car/catkin_ws_user/src/route_planner/src/sample_map_origin_map_1.txt',"r").read()
     dataArray = pullData.split('\n')
@@ -269,8 +269,10 @@ def start():
     #Save the Grah & rndf to a pickled file for easy retreive next time
     graph, rndf = create_graph()
     ###Find the shortest path from source to Destination
-    src_coordi = [0.01,0]
-    dst_coordi = [-0.01,0.0]
+    #src_coordi = [0.00,0]
+    #dst_coordi = [-0.8,0.2]
+    src_coordi = [-0.75,0]
+    dst_coordi = [1.58,-4.21]
     closest_way_pt_src  = closest_node(graph,src_coordi)
     closest_way_pt_dst = closest_node(graph,dst_coordi)
     # The indexes start from 0 and the names start from 1, check indexes and refer to map for points

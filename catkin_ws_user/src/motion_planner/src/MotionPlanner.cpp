@@ -41,7 +41,7 @@ namespace fub_motion_planner{
       m_vehicle_path.setup(getNodeHandle());
       //TODO change execution frequency to a bigger value and also parameter of a config file
       //double execution_frequency = 0.02;
-      ros::Duration timerPeriod = ros::Duration(5.00);
+      ros::Duration timerPeriod = ros::Duration(1);
       mp_final_traj = getNodeHandle().advertise<fub_trajectory_msgs::Trajectory>("/model_car/trajectory", 1);
       m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj", 1);
       mp_traj1 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_1", 1);
@@ -135,6 +135,11 @@ namespace fub_motion_planner{
       VehicleState current_vehicle_state = m_vehicle_state;
       //Vehicle Path
       if (m_vehicle_path.route_path_exists == true) {
+
+        /*TODO REMOVE DEBUG - sync with controller*/
+        ROS_INFO("Init processing : x,y %.3f,%.3f   vel: %.3f  yaw:%.3f odom_time %f",current_vehicle_state.m_vehicle_position[0],\
+                  current_vehicle_state.m_vehicle_position[1], current_vehicle_state.m_current_speed_front_axle_center,current_vehicle_state.getVehicleYaw(), current_vehicle_state.m_last_odom_time_stamp_received.toSec());
+
         ros::Time t = ros::Time::now();
         clock_t tStart = clock();
         std::vector<target_state> final_states;
@@ -144,11 +149,11 @@ namespace fub_motion_planner{
         std::vector<double> d_ranges = {-0.25,-0.17,-0.1,0,0.1,0.17,0.25};
         std::vector<double> acc_prof = {0.2,0.1,0,-0.1,-0.2,-0.4,-0.6, -0.8};
         //TODO min_max Update this values from map
-        double v_max = 1.0;
+        double v_max = 0.8;
         double v_min = 0; // stand still, no negative speeds
         //target values
         //V_ Target indicated by behavioral layer
-        double vel_target = 1.0;
+        double vel_target = 0.8;
         //TODO a_tgt and d_tgt - part of matrix
         double a_target = acc_prof[0];
         double d_target = 0.17;
@@ -209,7 +214,7 @@ namespace fub_motion_planner{
           double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
           //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
           //std::cout << "cost" <<cost_val <<'\n';
-          std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
+          //std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
       		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
          				return ts1.cost < ts2.cost;});
       		//std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
@@ -227,9 +232,14 @@ namespace fub_motion_planner{
         mp_traj2.publish(p1);
         convert_path_to_fub_traj(p1,current_vehicle_state.getVehicleYaw());
         prev_d_target = final_states.front().d_eval;
-        std::cout <<" Final Published ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
-        std::cout << final_states.front().path.poses[0].pose.position.x << '\n';
-        std::cout << final_states.front().path.poses[0].pose.position.y << '\n';
+        //std::cout <<" Final Published ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
+        //std::cout << final_states.front().path.poses[0].pose.position.x << '\n';
+        //std::cout << final_states.front().path.poses[0].pose.position.y << '\n';
+
+        ROS_INFO("End of processing : seq: %d x,y: %.3f,%.3f   vel: %.3f  yaw: %.3f odom_time: %f",gPubSeqNum-1,m_vehicle_state.m_vehicle_position[0],\
+                  m_vehicle_state.m_vehicle_position[1], m_vehicle_state.m_current_speed_front_axle_center,m_vehicle_state.getVehicleYaw(), m_vehicle_state.m_last_odom_time_stamp_received.toSec());
+
+
         ROS_INFO("Time taken: %f", (double)(clock() - tStart)/CLOCKS_PER_SEC);
       }
       else{

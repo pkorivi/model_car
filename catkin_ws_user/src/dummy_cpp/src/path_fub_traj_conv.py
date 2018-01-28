@@ -45,11 +45,11 @@ def conv_to_traj(data):
         tp.pose.position.x = tpt.point.x
         tp.pose.position.y = tpt.point.y
         #print "xy :: ",tp.pose.position.x,"  ",tp.pose.position.y
-        tp.pose.position.z = 0.01
+        tp.pose.position.z = 0.00
         if(i < (no_of_poses-1)):
             #slope = ((points[i+1][1]-points[i][1])/(points[i+1][0] - points[i][0]))
             #print "il::",i,"slope::",slope
-            yaw = math.atan2((data.poses[i+1].pose.position.y - tp.pose.position.y),(data.poses[i+1].pose.position.x-tp.pose.position.x))
+            yaw = math.atan2((data.poses[i+1].pose.position.y - data.poses[i].pose.position.y),(data.poses[i+1].pose.position.x-data.poses[i].pose.position.x))
         else:
             #slope = ((points[i][1]-points[i-1][1])/(points[i][0] - points[i-1][0]))
             #print "idk::",i,"slope::",slope
@@ -66,7 +66,7 @@ def conv_to_traj(data):
         tp.pose.orientation.z = qat[2]
         tp.pose.orientation.w = qat[3]
 
-        tp.velocity.linear.x = 0#data.poses[i].pose.position.z
+        tp.velocity.linear.x = data.poses[i].pose.position.z
         tp.acceleration.linear.x = 0#data.poses[i].pose.orientation.x
         #25 points are published with 0.2s of time gap
         tp.time_from_start =rospy.Duration(0.2*i)
