@@ -1,8 +1,0 @@
-prefix=/home/korivi/model_car/ecl_lib/install_isolated
-
-Name: ecl_mpl
-Description: Description of ecl_mpl
-Version: 0.61.18
-Cflags: -I/home/korivi/model_car/ecl_lib/install_isolated/include
-Libs: -L/home/korivi/model_car/ecl_lib/install_isolated/lib 
-Requires: 
