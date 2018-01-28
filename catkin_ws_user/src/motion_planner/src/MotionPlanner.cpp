@@ -137,9 +137,10 @@ namespace fub_motion_planner{
       if (m_vehicle_path.route_path_exists == true) {
 
         /*TODO REMOVE DEBUG - sync with controller*/
+        /*
         ROS_INFO("Init processing : x,y %.3f,%.3f   vel: %.3f  yaw:%.3f odom_time %f",current_vehicle_state.m_vehicle_position[0],\
                   current_vehicle_state.m_vehicle_position[1], current_vehicle_state.m_current_speed_front_axle_center,current_vehicle_state.getVehicleYaw(), current_vehicle_state.m_last_odom_time_stamp_received.toSec());
-
+        */
         ros::Time t = ros::Time::now();
         clock_t tStart = clock();
         std::vector<target_state> final_states;
@@ -207,7 +208,7 @@ namespace fub_motion_planner{
 
         sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
       				return ts1.cost < ts2.cost;});
-      	//std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
+      	std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
       	while(final_states.front().evaluated != true){
       		//TODO change to insertion sort - this vector is almost sorted
       		//create_traj(final_states.front());
@@ -217,7 +218,7 @@ namespace fub_motion_planner{
           //std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
       		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
          				return ts1.cost < ts2.cost;});
-      		//std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
+      		std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
       	}
 
         //(D,S,V,A,COST)
@@ -232,13 +233,13 @@ namespace fub_motion_planner{
         mp_traj2.publish(p1);
         convert_path_to_fub_traj(p1,current_vehicle_state.getVehicleYaw());
         prev_d_target = final_states.front().d_eval;
-        //std::cout <<" Final Published ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
+        std::cout <<" Final Published ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
         //std::cout << final_states.front().path.poses[0].pose.position.x << '\n';
         //std::cout << final_states.front().path.poses[0].pose.position.y << '\n';
-
+        /*
         ROS_INFO("End of processing : seq: %d x,y: %.3f,%.3f   vel: %.3f  yaw: %.3f odom_time: %f",gPubSeqNum-1,m_vehicle_state.m_vehicle_position[0],\
                   m_vehicle_state.m_vehicle_position[1], m_vehicle_state.m_current_speed_front_axle_center,m_vehicle_state.getVehicleYaw(), m_vehicle_state.m_last_odom_time_stamp_received.toSec());
-
+        */
 
         ROS_INFO("Time taken: %f", (double)(clock() - tStart)/CLOCKS_PER_SEC);
       }

@@ -280,7 +280,7 @@ namespace fub_motion_planner{
       examplePose.pose.position.x = x_val;
       examplePose.pose.position.y = y_val;
       //Currently this velocity is used in trajectory converted to publish velocity at a point
-      examplePose.pose.position.z = v_fit;//i*t_sample;//v_fit;//v(t_pt); //velocity saved in z direction
+      examplePose.pose.position.z = 0;//v_fit;//i*t_sample;//v_fit;//v(t_pt); //velocity saved in z direction
       examplePose.pose.orientation.x = 0.0;//a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
       examplePose.pose.orientation.y = 0.0f;
       examplePose.pose.orientation.z = 0.0f;

@@ -47,21 +47,20 @@ namespace fub_motion_planner{
   				// We need velocity of the obstacle to predicte the position of the obstacle
   				geometry_msgs::Vector3 obstVel;
   				obstVel=obst.abs_velocity.twist.linear;
-  				if (obstVel.x!=obstVel.x) //check if velocity is nan.
+  				if (std::isnan(obstVel.x)) //check if velocity is nan.
   				{
   					ROS_ERROR("Obstacle %d 's speed is NAN!!!",obst.id);
   					obstVel.x=0;
   				}
           FrenetCoordinate obst_frenet =  m_vehicle_path.getFenet(obstPos,yaw);
-          //std::cout << "obst x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d "<<obst_frenet.s<<" "<<obst_frenet.d<<" vel "<<obstVel.x<< '\n';
+          std::cout << "obst x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d "<<obst_frenet.s<<" "<<obst_frenet.d<<" vel "<<obstVel.x<< '\n';
           //TODO replace wih correct values
           //This should be wcar/2 + wobst/2+safe_dist
           double d_min_diff = 0.20;
           //Lets say W_obst =
           //Obstacle at 0, 2 ,4,5 sec
           std::vector<double> obst_s = {obst_frenet.s, obst_frenet.s+ obstVel.x*2,obst_frenet.s+ obstVel.x*4, obst_frenet.s+ obstVel.x*5 };
-          std::vector<double> ego_vehicle_s = {s_pts[0],s_pts[10],s_pts[20],s_pts[25]};
-          std::vector<double> ego_vehicle_d = {d_pts[0],d_pts[10],d_pts[20],d_pts[25]};
+          double ego_vehicle_start = polyeval_m(d_coeffs,s_pts.front());
           //TODO - Remove this obstacle path debug
           nav_msgs::Path m_obst_traj;
           m_obst_traj.header.stamp = ros::Time::now();
@@ -81,19 +80,15 @@ namespace fub_motion_planner{
             examplePose.pose.orientation.w = 1.0f;
             //push PoseStamped into Path
             m_obst_traj.poses.push_back(examplePose);
-
-            //std::cout << "obstacle "<<obst_s[i]<<" "<<obst_frenet.d<< " vehicle "<<ego_vehicle_s[i]<<" "<<ego_vehicle_d[i] << '\n';
           }
           obst_path_1.publish(m_obst_traj);
           //end of obstacle traj publishing
           /* TODO - Remove
           std::cout << "debug" << '\n';
           std::cout << "obst s " <<obst_s[0] <<" "<<obst_s[1] <<" "<<obst_s[2] <<" "<<obst_s[3] <<" "<<'\n';
-          std::cout << "ego_vehicle_s " <<ego_vehicle_s[0] <<" "<<ego_vehicle_s[1] <<" "<<ego_vehicle_s[2] <<" "<<ego_vehicle_s[3] <<" "<<'\n';
-          std::cout << "ego_vehicle_d" <<ego_vehicle_d[0] <<" "<<ego_vehicle_d[1] <<" "<<ego_vehicle_d[2] <<" "<<ego_vehicle_d[3] <<" "<<'\n';
           */
           //If the obstacle is behind ego vehcile dont consider it for collision check
-          if(obst_s[0] < ego_vehicle_s[0] && fabs(ego_vehicle_d[0] - obst_frenet.d)<d_min_diff){
+          if(obst_s[0] < s_pts[0] && fabs(ego_vehicle_start - obst_frenet.d)<d_min_diff){
             //cost =0; //Obstacle is behind dont check for collision
             //std::cout << "obst behind car" << '\n';
             continue; //go to next obstacle
@@ -102,9 +97,9 @@ namespace fub_motion_planner{
           else {
             //check for intersection in s
             const double kSafetyDist = 0.25; //TODO - config file or constant in .h file
-            std::vector<double> intersection = {std::max(obst_s.front()-kSafetyDist,ego_vehicle_s.front()-kSafetyDist),
-                                                std::min(obst_s.back()+kSafetyDist,ego_vehicle_s.back()+kSafetyDist)};
-            //std::cout << "intersection  "<<intersection.front()<<"  "<<intersection.back() << '\n';
+            std::vector<double> intersection = {std::max(obst_s.front()-kSafetyDist,s_pts.front()-kSafetyDist),
+                                                std::min(obst_s.back()+kSafetyDist,s_pts.back()+kSafetyDist)};
+            std::cout << "intersection  "<<intersection.front()<<"  "<<intersection.back() << '\n';
             //check for collision in s
             if (intersection.back()<intersection.front()) {
               //cost =  0; // No intersection in s, no potential collision
@@ -113,7 +108,7 @@ namespace fub_motion_planner{
             else{ //check for collision in d where s is intersecting
               double d_val1 = polyeval_m( d_coeffs,intersection.front());
               double d_val2 = polyeval_m( d_coeffs,intersection.back());
-              //std::cout << "d_ego "<<d_val1<<" "<<d_val2<<" obs_D "<<obst_frenet.d << '\n';
+              std::cout << "d_ego "<<d_val1<<" "<<d_val2<<" obs_D "<<obst_frenet.d << '\n';
               if((fabs(d_val1 - obst_frenet.d)> d_min_diff)&&   //start of intersection
                   (fabs(d_val2 - obst_frenet.d)> d_min_diff)&&  //end of intersection
                   (fabs((d_val1+d_val2)/2 - obst_frenet.d)> d_min_diff)){ //in middle of intersection also road is free
@@ -172,19 +167,3 @@ namespace fub_motion_planner{
   }//end of collision check
 
 }//end of namespace
-
-/* taken from //Its not behind, check for collision - add this portion later
-for (size_t i = 0; i < 3; i++) {
-  //check for s overlap
-  //consider two ranges  [s1....e1], [s2....e2], they dont overlap if e1<s2 or e2<s1
-  if(!(ego_vehicle_s[i+1] < obst_s[i] || obst_s[i+1]<ego_vehicle_s[i])){
-    //s overlaps, check if they collidie by measuring difference between d
-    if(fabs(d_pts[i] - obst_frenet.d)< d_min_diff || \
-    fabs(d_pts[i+1] - obst_frenet.d)< d_min_diff ){
-      //collision -  add more weight if collision is immediate ,
-      //TODO  add car velocity at the moment component also in future - check the weight
-      cost = 5 + (3-i);
-    } //if for collision check in d
-  } //if for
-}//local loop for checking collision
-*/
