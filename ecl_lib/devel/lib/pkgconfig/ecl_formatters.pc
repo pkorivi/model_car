@@ -1,8 +1,0 @@
-prefix=/home/korivi/model_car/ecl_lib/devel
-
-Name: ecl_formatters
-Description: Description of ecl_formatters
-Version: 0.61.18
-Cflags: -I/home/korivi/model_car/ecl_lib/src/ecl_formatters/include
-Libs: -L/home/korivi/model_car/ecl_lib/devel/lib -lecl_formatters
-Requires: ecl_config ecl_exceptions ecl_converters
