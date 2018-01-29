@@ -1,0 +1,24 @@
+{
+	"linters": {
+		"codestyle_python": {
+			"type": "pep8",
+			"include": "(\\.py$)",
+			"severity": {
+				"E501": "disabled"
+			}
+
+		},
+		"chmod": {
+			"type": "chmod"
+		},
+		"spelling": {
+			"type": "spelling"
+		},
+		"astyle": {
+			"type": "script-and-regex",
+			"include": "(\\.cpp$|\\.hpp$|\\.h$|\\.c$)",
+			"script-and-regex.script": "sh -c 'echo \"ERROR :\"$(astyle -Q -v --options=/usr/share/autonomos/codestyle/artistic.style $0): $0 : \"File was not formatted according to coding conventions\"'",
+			"script-and-regex.regex": "/^(?P<ERROR>ERROR).*1 formatted.*: (?P<message>.* : .*)$/m"
+		}
+	}
+}
