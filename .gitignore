@@ -18,3 +18,4 @@ ecl_lib/build_isolated/
 ecl_lib/devel_isolated/
 ecl_lib/install_isolated/
 ecl_lib/.metadata/
+catkin_ws_user/src/autonomos_obstacle_msgs/
