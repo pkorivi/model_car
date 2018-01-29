@@ -14,4 +14,7 @@ catkin_ws/.metadata/
 ecl_lib/build/
 ecl_lib/devel/
 ecl_lib/logs/
+ecl_lib/build_isolated/
+ecl_lib/devel_isolated/
+ecl_lib/install_isolated/
 ecl_lib/.metadata/
