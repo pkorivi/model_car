@@ -25,6 +25,7 @@ namespace fub_motion_planner{
   		bool evaluated = false;
   		nav_msgs::Path path;
       int id;
+      double s_reched = 0;
 
   		target_state(double s_tgt, double d_eval, double v_tgt, double a_tgt, double cost, int idx){
   			this->d_eval = d_eval;

@@ -56,6 +56,7 @@ namespace fub_motion_planner{
     double a_target= tgt.a_tgt;
     double d_target= tgt.d_eval;
     double s_target = tgt.s_tgt;
+    double  cost =0;
      //TODO use this instead of end of the path
     clock_t tStart = clock();
     //current values
@@ -65,8 +66,9 @@ namespace fub_motion_planner{
     if((v_current > v_target && a_target > 0)||(v_current < v_target && a_target < 0)){
       ROS_ERROR("V_Cur is > v_tgt and acceleration is requested or v_cur<v_tgt and decelration requested");
       //TODO return proper value in future, traj cost and other things
-      tgt.cost += 20;
-      return 20;
+      cost =20;
+      tgt.cost += cost;
+      return cost;
     }
     //Odom frame to map frame conversion for trajectory
     geometry_msgs::PointStamped pt_Stamped_in,pt_stamped_out;
@@ -149,6 +151,7 @@ namespace fub_motion_planner{
           //TODO changed a_tgt to v_tgt - its working fine, just check if its ok - may affect the deceleration protion
           if((d_brake > (s_target - spts[i] - 0.1))&&(v_target>0)){
             c_acc_phase =BRAKE_DEC;
+            cost += 2.0; //TODO how much to add, need to clarify
           }
           //TODO If the velocity is in bounds of 0.04 around then skip to zero acceleration phase
           else if((v_ref==v_target)||(a_target == 0)){
@@ -171,6 +174,7 @@ namespace fub_motion_planner{
           //TODO - add constants in config file
           if((d_brake > (s_target - spts[i] - 0.1))&&(v_target>0)){
             c_acc_phase =BRAKE_DEC;
+            cost += 2.0; //TODO how much to add, need to clarify
           }
           break;
         }
@@ -223,7 +227,7 @@ namespace fub_motion_planner{
       //std::cout << "x,y  "<<xy[0]<<"  "<<xy[1] << " vel  "<< vpts[i] <<"   time "<<tpts[i]<<'\n';
     }
 
-    double cost = CollisionCheck(current_state,spts,dpts,tpts,d_coeffs);
+    cost += CollisionCheck(current_state,spts,dpts,tpts,d_coeffs);
     //ROS_INFO("frenet to xy conversion: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
 
@@ -293,6 +297,8 @@ namespace fub_motion_planner{
     tStart = clock();
     //Publish as path with velocity in z dimension
     traj_pub.publish(m_sampled_traj);
+    //last point reached in s
+    tgt.s_reched = spts[kNumberOfSamples-1];
     tgt.cost += cost;
     tgt.path = m_sampled_traj;
     //std::cout << "cost in planner "<<tgt.cost << " ret cost "<<cost << '\n';
