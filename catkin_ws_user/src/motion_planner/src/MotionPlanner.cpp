@@ -131,7 +131,6 @@ namespace fub_motion_planner{
       // create a copy of the vehicle state - we do NOT want these values to
       // change while we are working with them
       // TODO: ensure that data does not change during copying
-      //std::cout << "VS in cb tmr " <<m_vehicle_state.m_vehicle_position[0]<<" , "<<m_vehicle_state.m_vehicle_position[1]<< '\n';
       VehicleState current_vehicle_state = m_vehicle_state;
       //Vehicle Path
       if (m_vehicle_path.route_path_exists == true) {

@@ -15,6 +15,8 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 from nav_msgs.msg import Path
+from nav_msgs.msg import Odometry
+import tf
 
 
 #Different weights for straight edge and turning edge.
@@ -40,8 +42,11 @@ path_pub = rospy.Publisher("/route_planner/sub_path",Path,queue_size=100)
 
 ##gloabl
 seg_sub_paths = None
-sub_path_number = 0
-
+current_sub_path = 0
+current_position_odom = None
+current_goal_position  = None
+graph = None
+listener = tf.TransformListener()
 
 ###
 #Classes to support create RNDF Graph
@@ -203,10 +208,10 @@ def create_graph():
 
 
 #### Find the nearest point in the Graph from any point
-def closest_node(G, pt):
+def closest_node(pt):
     closest_dist =100000.0
     closest_node = None
-    for x in G.nodes():
+    for x in graph.nodes():
         dist = (x.coordi[0]-pt[0])**2 + (x.coordi[1]-pt[1])**2
         if(dist<closest_dist):
             closest_dist = dist
@@ -220,27 +225,27 @@ def get_sub_paths(path,src_coordi,dst_coordi):
     subpaths = []
     sub_path =[]
     prev_parent = path[0].parent.parent.name
-    sub_path.append(src_coordi)
+    #TODO removed src and destination from list, as this is corrupting if the src and first point are same etc. frenet conversion fails.
+    #We need to only provide refernce path to follow, best would be to add a predecessor and success at start and end. Issues at corners there can be two predecessor and successors
+    #sub_path.append(src_coordi)
     for node in path:
         #print node.name
         if(node.parent.parent.name == prev_parent):
             sub_path.append(node.coordi)
         else:
             subpaths.append(sub_path)
-            sub_path = []
+            #Use the previous sub paths last point as start for this path
+            sub_path = [subpaths[-1][-1]]
             sub_path.append(node.coordi)
             prev_parent = node.parent.parent.name
-    sub_path.append(dst_coordi)
+    #sub_path.append(dst_coordi)
     subpaths.append(sub_path)
     #print "Segment wise Sub Paths",subpaths, len(subpaths)
     return subpaths
 
-def completed_sub_path(data):
-    print data
-    global sub_path_number
-    sub_path_number += 1
-    print "published new sub path: ", sub_path_number, len(seg_sub_paths)
-    if(sub_path_number < len(seg_sub_paths)):
+def publish_sub_paths(sub_path_id):
+    rospy.loginfo("published new sub path: %d of %d", current_sub_path, len(seg_sub_paths)-1)
+    if(sub_path_id < len(seg_sub_paths)):
         #posestamped list
         pose_list = list()
         #path to send the Rviz
@@ -248,7 +253,7 @@ def completed_sub_path(data):
         my_path.header.stamp = rospy.Time.now()
         my_path.header.frame_id = '/map'
 
-        for pt in seg_sub_paths[sub_path_number]:
+        for pt in seg_sub_paths[sub_path_id]:
             pose = PoseStamped()
             pose.pose.position.x =pt[0]
             pose.pose.position.y =pt[1]
@@ -257,30 +262,70 @@ def completed_sub_path(data):
 
         path_pub.publish(my_path)
     else:
-        print"Destination Reached"
+        rospy.logerr("Requested subpath to publish is not in range")
+
+
+
+
+def completed_sub_path(data):
+    global current_sub_path
+    current_sub_path += 1
+    if(current_sub_path < len(seg_sub_paths)):
+        publish_sub_paths(current_sub_path)
+    else:
+        rospy.loginfo("Destination Reached - provide new goal")
+
+#save current car position
+def odom_callback(data):
+    global current_position_odom
+    current_position_odom = data
+
+#Callback when a new goal is received from the user
+def goal_callback(data):
+    global current_goal_position,seg_sub_paths,current_sub_path
+    #Reset current sub path to zero
+    current_sub_path=0
+    current_goal_position = data
+    #Initial values
+    src_coordi = [0,0]
+    dst_coordi = [current_goal_position.pose.position.x,current_goal_position.pose.position.y]
+
+    #Convert odometry to map frame for source
+    try:
+        src_pose = PoseStamped()
+        src_pose.header = current_position_odom.header
+        src_pose.pose = current_position_odom.pose.pose
+        pose_map = listener.transformPose("/map",src_pose)
+        src_coordi[0] = pose_map.pose.position.x
+        src_coordi[1] = pose_map.pose.position.y
+    except Exception as e:
+        print e
+
+    #find the closest way points
+    closest_way_pt_src  = closest_node(src_coordi)
+    closest_way_pt_dst = closest_node(dst_coordi)
+    path =  nx.shortest_path(graph,source=closest_way_pt_src,target=closest_way_pt_dst, weight= 'weight')
+    if(len(path)<2):
+        rospy.logerr("Choose a goal which is minimum of 0.5m ")
+    #Update global sub paths for the robot to follow
+    seg_sub_paths = get_sub_paths(path,src_coordi,dst_coordi)
+    publish_sub_paths(current_sub_path)
+
 
 
 def start():
-    global seg_sub_paths, path_pub
+    global seg_sub_paths, path_pub, graph
     #Initialize the ROS Node for this functionality
     rospy.init_node('RNDF_High_level_Route_Planner')
     rospy.Subscriber("/completed_sub_path", Int16, completed_sub_path)
+    rospy.Subscriber("/odom",Odometry, odom_callback)
+    rospy.Subscriber("/move_base_simple/goal",PoseStamped,goal_callback)
     #path_pub = rospy.Publisher("/route_planner_sub_path",Path,queue_size=100) #make gloabl
     #Creates and returns an RNDF graph
     #Save the Grah & rndf to a pickled file for easy retreive next time
     graph, rndf = create_graph()
-    ###Find the shortest path from source to Destination
-    src_coordi = [0.00,0]
-    dst_coordi = [-0.8,0.2]
-    #src_coordi = [-0.75,0]
-    #dst_coordi = [1.58,-4.21]
-    closest_way_pt_src  = closest_node(graph,src_coordi)
-    closest_way_pt_dst = closest_node(graph,dst_coordi)
-    # The indexes start from 0 and the names start from 1, check indexes and refer to map for points
-    #s = rndf.segments[0].lanes[0].waypoints[1] #If to provide the src and destination from way points directly
-    path =  nx.shortest_path(graph,source=closest_way_pt_src,target=closest_way_pt_dst, weight= 'weight')
-    seg_sub_paths = get_sub_paths(path,src_coordi,dst_coordi)
-
+    rospy.loginfo("Current odom position is considered as source")
+    rospy.loginfo("Provide Goal using Rviz- 2D NavGoal")
     """ Debug purpose - printing path
     print "src ",src_coordi, " dst ", dst_coordi
     print closest_way_pt_src.name, closest_way_pt_dst.name
@@ -294,21 +339,6 @@ def start():
     """
     #Sleep for a while to let all nodes Initialize
     time.sleep(.300)
-    #posestamped list
-    pose_list = list()
-    #path to send the Rviz
-    my_path = Path()
-    my_path.header.stamp = rospy.Time.now()
-    my_path.header.frame_id = '/map'
-    for pt in seg_sub_paths[0]:
-        pose = PoseStamped()
-        pose.pose.position.x =pt[0]
-        pose.pose.position.y =pt[1]
-        pose.pose.orientation.w =1
-        pose_list.append(pose)
-        my_path.poses.append(pose)
-    #TODO Add a way point which is bfore the start line to keep the flow
-    path_pub.publish(my_path)
     #This keeps the  active till it is killed
     rospy.spin()
 

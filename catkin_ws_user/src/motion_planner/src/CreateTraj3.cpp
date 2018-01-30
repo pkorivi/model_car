@@ -102,8 +102,8 @@ namespace fub_motion_planner{
     enum AccStates { CONSTANT_ACC, ZERO_ACC, BRAKE_DEC};
     AccStates c_acc_phase = CONSTANT_ACC;
     //current point in frenet
+    //ROS_INFO("map-xyz %.3f,%.3f, %.3f , odom x,y : %.3f,%.3f , v: %.3f , yaw = %.3f",cp[0],cp[1],cp[2],current_state.m_vehicle_position[0],current_state.m_vehicle_position[1],v_current,c_yaw);
     FrenetCoordinate frenet_val =  m_vehicle_path.getFenet(cp,c_yaw);
-    //ROS_INFO("map-xy %.3f,%.3f , odom x,y : %.3f,%.3f , cur a: 0 v: %.3f ",cp[0],cp[1],current_state.m_vehicle_position[0],current_state.m_vehicle_position[1],v_current);
     //ROS_INFO("frenet s,d %.3f %.3f ", frenet_val.s, frenet_val.d);
     //Initial Points for polyfit
     spts.push_back(frenet_val.s);

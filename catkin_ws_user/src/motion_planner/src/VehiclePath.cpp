@@ -68,7 +68,7 @@ namespace fub_motion_planner{
     //the line segment closest to the current point
     int next_wp = NextWayPoint(xy_pt, theta);
     if(next_wp==0){
-      ROS_ERROR("Oops something is wrong, the vehicle is away from the map, next pt is made 1");
+      ROS_ERROR("Oops, the vehicle is away from the map, next pt is made 1, x,y: %.3f %.3f, th %.3f",xy_pt[0],xy_pt[1],theta);
       //TODO - This is done if the source is origin then the next waypoint is zero - may be add condition for origin
       next_wp = 1;
     }
