@@ -12,6 +12,7 @@
 #include <autonomos_obstacle_msgs/Obstacle.h>
 #include <ecl/geometry.hpp>
 #include <ecl/containers.hpp>
+#include <geometry_msgs/PointStamped.h>
 
 
 namespace fub_motion_planner{
@@ -58,6 +59,8 @@ namespace fub_motion_planner{
       ros::Publisher obst_path_1;
       ros::Publisher obst_path_2;
       ros::Publisher obst_path_3;
+      //Subscriber Lane information
+      ros::Subscriber m_subscribe_click_point;
       double prev_d_target=0;
       int index =1;
 
@@ -79,6 +82,7 @@ namespace fub_motion_planner{
       double CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts, std::vector<double> d_coeffs);
       void calc_cost(target_state &tgt, double vel_current, double d_tgt,double prev_d_tgt);
       void convert_path_to_fub_traj(nav_msgs::Path p, double initial_yaw);
+      void ClickPointCallback(const geometry_msgs::PointStamped & msg);
       tf::Point convert_to_map_coordinate(tf::Point odom_coordi);
       // timer triggering our execution // TODO: use WallTimer?
       ros::Timer m_timer;
@@ -86,6 +90,7 @@ namespace fub_motion_planner{
       const double kLookAheadTime = 5.0;
       const int kNumberOfSamples = 11; //changing to 11 from 26
       unsigned int gPubSeqNum=0;
+      double gTargetd = 0.17;
   };
 } // namespace sample_nodelet_ns
 

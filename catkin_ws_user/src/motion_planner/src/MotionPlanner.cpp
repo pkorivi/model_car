@@ -53,7 +53,15 @@ namespace fub_motion_planner{
       obst_path_1 = getNodeHandle().advertise<nav_msgs::Path>("/obstacle_path1", 10);
       obst_path_2 = getNodeHandle().advertise<nav_msgs::Path>("/obstacle_path2", 10);
       obst_path_3 = getNodeHandle().advertise<nav_msgs::Path>("/obstacle_path3", 10);
+      m_subscribe_click_point = getNodeHandle().subscribe("/clicked_point", 1, &MotionPlanner::ClickPointCallback, this, ros::TransportHints().tcpNoDelay());
   }
+  /*
+    Every Time click point is clicked, change the target lane selection.
+  */
+  void MotionPlanner::ClickPointCallback(const geometry_msgs::PointStamped & msg){
+    gTargetd *= -1;
+  }
+
 
 
   void MotionPlanner::calc_cost(target_state &tgt, double vel_current, double d_tgt,double prev_d_tgt){
@@ -180,7 +188,7 @@ namespace fub_motion_planner{
         vel_target = vel_target<v_min?v_min:vel_target;
         //TODO a_tgt and d_tgt - part of matrix
         double a_target = acc_prof[0];
-        double d_target = 0.17;
+        double d_target = gTargetd;//Use the same target d for the complete loop
         int polynomial_order = 4;
         double vel_current = current_vehicle_state.m_current_speed_front_axle_center;
         double s_target = m_vehicle_path.frenet_path.back().s;
