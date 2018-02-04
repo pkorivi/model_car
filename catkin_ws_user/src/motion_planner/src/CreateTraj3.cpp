@@ -134,13 +134,8 @@ namespace fub_motion_planner{
         case CONSTANT_ACC: {
           //std::cout << "  :  const acc" << '\n';
           v_ref = v_previous + a_target*t_sample;
-          // Bound the velocity
-          v_ref = v_ref>v_max?v_max:v_ref;
-          v_ref = v_ref<v_min?v_min:v_ref;
-
-          //If the v_ref reaches near v_target, make it v_target - this is mainly useful while acceleration and prevent overshoots
-          if(fabs(v_target-v_ref) < 0.03)
-            v_ref = v_target;
+          // Bound the velocity - if acc vel should be <= target, if decc vel >= tgt
+          v_ref = (a_target>=0)?(v_ref>v_target?v_target:v_ref):(v_ref<v_target?v_target:v_ref);
 
           spts.push_back((v_ref>0)?(spts[i-1] + v_previous*t_sample + 0.5*a_target*t_sample*t_sample):spts[i-1]);
           d_brake =(v_ref*v_ref)/(2*brake_dec);
@@ -163,9 +158,9 @@ namespace fub_motion_planner{
           //std::cout << "  : zero" << '\n';
           //Zero acceleration
           v_ref = v_previous;//zero acceleration - constant previous velocity
-          // Bound the velocity
-          v_ref = v_ref>v_max?v_max:v_ref;
-          v_ref = v_ref<v_min?v_min:v_ref;
+          // Bound the velocity - if acc vel should be <= target, if decc vel >= tgt
+          v_ref = (a_target>=0)?(v_ref>v_target?v_target:v_ref):(v_ref<v_target?v_target:v_ref);
+
           spts.push_back((v_ref>0)?(spts[i-1] + v_ref*t_sample):spts[i-1]);
           d_brake =(v_ref*v_ref)/(2*brake_dec);
           //0.1 of  extra buffer stopping distance
@@ -224,7 +219,8 @@ namespace fub_motion_planner{
       ecl_x[i] = xy[0];
       ecl_y[i] = xy[1];
       ecl_ts[i] = i*t_sample;
-      //std::cout << "x,y  "<<xy[0]<<"  "<<xy[1] << " vel  "<< vpts[i] <<"   time "<<tpts[i]<<'\n';
+      //std::cout.width(3);
+      //std::cout << "x,y  "<<xy[0]<<","<<xy[1] <<"      s,d  "<<spts[i] <<","<< dpts[i]<<"    vel  "<< vpts[i] <<"   time "<<tpts[i]<<'\n';
     }
 
     cost += CollisionCheck(current_state,spts,dpts,tpts,d_coeffs);
@@ -299,6 +295,18 @@ namespace fub_motion_planner{
     traj_pub.publish(m_sampled_traj);
     //last point reached in s
     tgt.s_reched = spts[kNumberOfSamples-1];
+
+    //Add cost if s_reached is more than target over threshold
+    //TODO make this threshold as a constant or in config file
+    const double kThresholdDist = 0.25;
+    if(tgt.s_reched > s_target+kThresholdDist)
+      cost += fabs(tgt.s_reched - s_target+kThresholdDist);
+
+    //Reduce cost if target is reached //TODO make the low trajectories evaluated when one of the traj reaches end
+    if((fabs(tgt.s_reched - s_target) <= kThresholdDist)&&(tgt.v_tgt==0)){
+      cost -= 1; //Promote these trajectories which reach end with zero velocity
+    }
+
     tgt.cost += cost;
     tgt.path = m_sampled_traj;
     //std::cout << "cost in planner "<<tgt.cost << " ret cost "<<cost << '\n';

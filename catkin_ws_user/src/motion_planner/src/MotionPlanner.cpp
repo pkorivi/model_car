@@ -41,7 +41,7 @@ namespace fub_motion_planner{
       m_vehicle_path.setup(getNodeHandle());
       //TODO change execution frequency to a bigger value and also parameter of a config file
       //double execution_frequency = 0.02;
-      ros::Duration timerPeriod = ros::Duration(1);
+      ros::Duration timerPeriod = ros::Duration(5);
       mp_final_traj = getNodeHandle().advertise<fub_trajectory_msgs::Trajectory>("/model_car/trajectory", 1);
       m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj", 1);
       mp_traj1 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_1", 1);
@@ -65,6 +65,27 @@ namespace fub_motion_planner{
   	//TODO Add S term
   	tgt.cost += fabs(vel_achvd- tgt.v_tgt) + fabs(tgt.a_tgt) + \
   							(fabs(d_tgt -tgt.d_eval)*8)/10 + (fabs(prev_d_tgt -tgt.d_eval)*2)/10; //80% weightage to maintaining target value , 20% weightage to change wrt old path
+  }
+  tf::Point MotionPlanner::convert_to_map_coordinate(tf::Point odom_coordi){
+    //Odom frame to map frame conversion for trajectory
+    geometry_msgs::PointStamped pt_Stamped_in,pt_stamped_out;
+    pt_Stamped_in.header.seq =1;
+    pt_Stamped_in.header.stamp = ros::Time::now();
+    pt_Stamped_in.header.frame_id= "/odom";
+    pt_Stamped_in.point.x = odom_coordi[0];//current_state.m_vehicle_position[0];
+    pt_Stamped_in.point.y = odom_coordi[1];//current_state.m_vehicle_position[1];
+    pt_Stamped_in.point.z = 0;
+    try{
+      m_tf_listener.listener.transformPoint("/map", pt_Stamped_in, pt_stamped_out);
+    }
+    catch (tf::TransformException &ex) {
+      ROS_ERROR("%s",ex.what());
+    }
+    return tf::Point {pt_stamped_out.point.x,pt_stamped_out.point.y,0};
+    //current values in Map frame
+    //tf::Point cp ;
+    //cp[0] =  pt_stamped_out.point.x;
+    //cp[1] =  pt_stamped_out.point.y;
   }
 
   void MotionPlanner::convert_path_to_fub_traj(nav_msgs::Path p, double initial_yaw=0){
@@ -147,19 +168,26 @@ namespace fub_motion_planner{
         */
         //Amax for profiles TODO : Update the Amax based on current velocity
         std::vector<double> d_ranges = {-0.25,-0.17,-0.1,0,0.1,0.17,0.25};
-        std::vector<double> acc_prof = {0.2,0.1,0,-0.1,-0.2,-0.4,-0.6, -0.8};
+        std::vector<double> acc_prof = {0.2,0.1,0,-0.1,-0.2,-0.4,-0.6,-0.8};
         //TODO min_max Update this values from map
-        double v_max = 0.8;
+        double v_max = 1.1;
         double v_min = 0; // stand still, no negative speeds
         //target values
         //V_ Target indicated by behavioral layer
         double vel_target = 0.8;
+        //Check that this is always in between min and max
+        vel_target = vel_target>v_max?v_max:vel_target;
+        vel_target = vel_target<v_min?v_min:vel_target;
         //TODO a_tgt and d_tgt - part of matrix
         double a_target = acc_prof[0];
         double d_target = 0.17;
         int polynomial_order = 4;
         double vel_current = current_vehicle_state.m_current_speed_front_axle_center;
         double s_target = m_vehicle_path.frenet_path.back().s;
+
+        //std::cout << "s_tgt  "<<s_target << '\n';
+        //tf::Point current_pos = convert_to_map_coordinate(current_vehicle_state.m_vehicle_position);
+        //FrenetCoordinate frenet_val =  m_vehicle_path.getFenet(current_pos,current_vehicle_state.getVehicleYaw());
 
         if(vel_current<=vel_target){
       		//std::cout << "acceleration" << '\n';
@@ -170,9 +198,9 @@ namespace fub_motion_planner{
       				calc_cost(tgt, vel_current, d_target, prev_d_target);
       				std::cout.width(5);
       				final_states.push_back(tgt);
-      				//std::cout << tgt.cost<< "   ";
+      				std::cout << tgt.cost<< "   ";
       			}
-      			//std::cout <<'\n';
+      			std::cout <<'\n';
       		}
       	}
       	else {
@@ -190,8 +218,8 @@ namespace fub_motion_planner{
       		}
       	}
       	vel_target =0;
-        //std::cout<<"Stopping profiles" <<'\n';
-      	for(int j=3; j<=7;j++){
+        //std::cout<<"Stopping profiles" <<'\n'; - try with various d
+      	for(int j=3; j<=4;j++){
       		for(auto d_eval : d_ranges){
             //(D,S,V,A,COST) extra cost for going to zero
       			target_state tgt(s_target,d_eval,vel_target,acc_prof[j], 2,index++);
@@ -201,6 +229,16 @@ namespace fub_motion_planner{
       			//std::cout << tgt.cost<< "   ";
       		}
       		//std::cout <<'\n';
+      	}
+        //High decceleration profiles
+        for(int j=5; j<=7;j++){
+            //(D,S,V,A,COST) extra cost for going to zero with high braking +3 cost
+            //TODO - change prev_d_target to d_current
+      			target_state tgt(s_target,prev_d_target,vel_target,acc_prof[j], 2.3,index++);
+      			calc_cost(tgt, vel_current, d_target, prev_d_target);
+      			std::cout.width(5);
+      			final_states.push_back(tgt);
+      			//std::cout << tgt.cost<<'\n';
       	}
         //Re initialize for next cycle
         index =1;
@@ -215,9 +253,9 @@ namespace fub_motion_planner{
           //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
           //std::cout << "cost" <<cost_val <<'\n';
           //std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
+          //std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
       		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
          				return ts1.cost < ts2.cost;});
-      		std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
       	}
 
         //(D,S,V,A,COST)

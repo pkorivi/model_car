@@ -31,7 +31,7 @@ namespace fub_motion_planner{
     //TODO check if >= is fine, made condition >= from >, to accomodate origin or zero distance
     //std::cout <<"get xy _ frenet s :  "<< frenet_pt.s << '\n';
     while((frenet_pt.s >= frenet_path[next_wp].s) && \
-            (next_wp < (frenet_path.size()))){
+            (next_wp < (frenet_path.size()-1))){
       next_wp++;
     }
     if(next_wp>0){
