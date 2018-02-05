@@ -204,25 +204,38 @@ namespace fub_motion_planner{
         th = slope(xy_path[0],xy_path[1]);
         FrenetCoordinate start_(0,0,initial_curvature,th);
         frenet_path.push_back(start_);
-        //leave the last two points as curvature cannot be calculated, Initialize it with last known curvature or straight line
-        for (i = 1; i < number_of_pts-2; i++) {
+        //As the points are closely placed this is causing the radius of curvature to be small. Thus to avoid it sample points alternatively
+        for (i = 1; i < number_of_pts-4; i++) {
           length_ = distance(xy_path[i],xy_path[i-1]);
-          curv = calc_curvature(xy_path[i],xy_path[i+1],xy_path[i+2]);
+          curv = calc_curvature(xy_path[i],xy_path[i+2],xy_path[i+4]);
           th = slope(xy_path[i-1],xy_path[i]);
           FrenetCoordinate fp(frenet_path[i-1].s + length_,0,curv,th);
           frenet_path.push_back(fp);
         }
+        length_ = distance(xy_path[i],xy_path[i-1]);
+        curv = calc_curvature(xy_path[i],xy_path[i+2],xy_path[i+4]);
+        th = slope(xy_path[i-1],xy_path[i]);
+        FrenetCoordinate fp = FrenetCoordinate(frenet_path[i-1].s + length_,0,curv,th);
+        frenet_path.push_back(fp);
+        i++;
+        length_ = distance(xy_path[i],xy_path[i-1]);
+        curv = calc_curvature(xy_path[i],xy_path[i+2],xy_path[i+4]);
+        th = slope(xy_path[i-1],xy_path[i]);
+        fp = FrenetCoordinate(frenet_path[i-1].s + length_,0,curv,th);
+        frenet_path.push_back(fp);
+        i++;
+
         //last but one point - i is already incremented before loop breaks & keep last calculated curvature
         length_ = distance(xy_path[i],xy_path[i-1]);
         th = slope(xy_path[i-1],xy_path[i]);
-        FrenetCoordinate fp(frenet_path[i-1].s + length_,0,curv,th);
+        fp = FrenetCoordinate(frenet_path[i-1].s + length_,0,curv,th);
         frenet_path.push_back(fp);
         i++;
         //last point
         length_ = distance(xy_path[i],xy_path[i-1]);
         th = slope(xy_path[i-1],xy_path[i]);
-        FrenetCoordinate fp1(frenet_path[i-1].s + length_,0,curv,th);
-        frenet_path.push_back(fp1);
+        fp =  FrenetCoordinate(frenet_path[i-1].s + length_,0,curv,th);
+        frenet_path.push_back(fp);
       }
       else{ //If there are only two points in received path
         th = slope(xy_path[0],xy_path[1]);
@@ -243,8 +256,8 @@ namespace fub_motion_planner{
     /*
     Speed limit = min(legal speed, allowed speed due to curvature)
     speed_limit = sqrt(|a_lat/curv|)
-    here choosing a_lat max = 3; and speed_limit is factored by 10 to align with interests of model car
-    thus sl_curv = 0.1*sqrt(3)/sqrt(curv) = 0.173/sqrt(curv)
+    here choosing a_lat max = 3(constnat defined in vehicle path); and speed_limit is factored by 10 to align with interests of model car
+    thus sl_curv = sqrt(0.3/curv)
     */
     speed_limit.clear();
     double s_val = frenet_path.front().s;
@@ -252,9 +265,17 @@ namespace fub_motion_planner{
       double avg_curv=0, speed_lmt=0;
       //lets say 0-5 (6)points, here 0-1 is limit @ 0, 1-2, limit@1, 2-3 limit @2 - last two columns are left to bring speed to zero
       size_t i=0;
-      for (i = 0; i < frenet_path.size()-3; i++) {
-        avg_curv = (frenet_path[i].k + frenet_path[i+1].k + frenet_path[i+2].k)/3;
-        speed_lmt= (avg_curv>0)?(std::min(kLegalSpeedLimit,0.173/sqrt(avg_curv))):kLegalSpeedLimit;
+      avg_curv = (frenet_path[0].k + frenet_path[1].k + frenet_path[2].k)/3;
+      speed_lmt= (avg_curv>0)?(std::min(kLegalSpeedLimit,sqrt(kMaxLatAccLimit/avg_curv))):kLegalSpeedLimit;
+      speed_lmt = (speed_lmt<kMinSpeedLimit)?kMinSpeedLimit:speed_lmt;
+      //Assign same speed limit till next way point in increments of 0.1m
+      while(s_val<frenet_path[1].s){
+        speed_limit.push_back(speed_lmt);
+        s_val += 0.1;
+      }
+      for (i = 1; i < frenet_path.size()-3; i++) {
+        avg_curv = (frenet_path[i-1].k + frenet_path[i].k + frenet_path[i+1].k)/3;
+        speed_lmt= (avg_curv>0)?(std::min(kLegalSpeedLimit,sqrt(kMaxLatAccLimit/avg_curv))):kLegalSpeedLimit;
         speed_lmt = (speed_lmt<kMinSpeedLimit)?kMinSpeedLimit:speed_lmt;
         //Assign same speed limit till next way point in increments of 0.1m
         while(s_val<frenet_path[i+1].s){
@@ -262,13 +283,13 @@ namespace fub_motion_planner{
           s_val += 0.1;
         }
       }//for loop
-      //here 3-4 - set speed to half of previous
+      //here 3-4(last but oneportion of path)set speed to half of previous
       while(s_val<frenet_path[i+1].s){
         speed_limit.push_back(speed_lmt/2);
         s_val += 0.1;
       }
       i++;
-      //here 4-5 set limit to zero such that car stops
+      //here 4-5(last portion of path) set limit to zero such that car stops
       while(s_val<=frenet_path[i+1].s){
         speed_limit.push_back(0);
         s_val += 0.1;
@@ -279,10 +300,10 @@ namespace fub_motion_planner{
         speed_limit.push_back(kMinSpeedLimit/3);
         s_val += 0.1;
       }
-      size_t speed_vect = speed_limit.size();
-      speed_limit[speed_vect-1] =0;
-      speed_limit[speed_vect-2] =0;
-      speed_limit[speed_vect-3] =0; //Make last points zero
+      size_t speed_vect_sz = speed_limit.size();
+      speed_limit[speed_vect_sz-1] =0;
+      speed_limit[speed_vect_sz-2] =0;
+      speed_limit[speed_vect_sz-3] =0; //Make last points zero
     }
 
     nav_msgs::Path path_speed = m_path;

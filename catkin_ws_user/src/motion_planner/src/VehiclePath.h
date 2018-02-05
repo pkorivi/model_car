@@ -65,6 +65,7 @@ namespace fub_motion_planner{
       //TODO this is part of info read from the rndf file
       const double kLegalSpeedLimit = 1.5;
       const double kMinSpeedLimit = 0.4;//added as errors in curvature calc can drop the limit to too low
+      const double kMaxLatAccLimit = 0.3;
   };
 }
 #endif /*  vehicle path*/
