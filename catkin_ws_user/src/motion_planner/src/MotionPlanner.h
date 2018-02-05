@@ -13,6 +13,7 @@
 #include <ecl/geometry.hpp>
 #include <ecl/containers.hpp>
 #include <geometry_msgs/PointStamped.h>
+#include <std_msgs/Int16.h>
 
 
 namespace fub_motion_planner{
@@ -59,6 +60,8 @@ namespace fub_motion_planner{
       ros::Publisher obst_path_1;
       ros::Publisher obst_path_2;
       ros::Publisher obst_path_3;
+      //Publisher to indicate the sub path has been completed
+      ros::Publisher sub_path_complete_indicate;
       //Subscriber Lane information
       ros::Subscriber m_subscribe_click_point;
       double prev_d_target=0;
@@ -75,7 +78,7 @@ namespace fub_motion_planner{
       double create_traj_const_acc_xy_polyeval_2(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
               double v_max, double v_min, int polynomial_order, target_state &tgt); //TODO move v_min, v_max, polynomial_order to MotionPlanner.h constants, remove prev state
       double create_traj_const_acc_xy_spline_3(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
-              double v_max, double v_min,int polynomial_order, target_state &tgt);
+              int polynomial_order, target_state &tgt,tf::Point current_pos_map, FrenetCoordinate curr_frenet_coordi);
       /** The callback for the timer that triggers the update.
       */
       void callbackTimer(const ros::TimerEvent&);
@@ -89,6 +92,7 @@ namespace fub_motion_planner{
     private:
       const double kLookAheadTime = 5.0;
       const int kNumberOfSamples = 11; //changing to 11 from 26
+      const double kThresholdDist = 0.25;
       unsigned int gPubSeqNum=0;
       double gTargetd = 0.17;
   };

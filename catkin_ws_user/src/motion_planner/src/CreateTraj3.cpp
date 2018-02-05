@@ -50,7 +50,7 @@ namespace fub_motion_planner{
   }
 
   double MotionPlanner::create_traj_const_acc_xy_spline_3(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
-          double v_max, double v_min,int polynomial_order, target_state &tgt){
+          int polynomial_order, target_state &tgt,tf::Point current_pos_map, FrenetCoordinate frenet_val){
 
     double v_target= tgt.v_tgt;
     double a_target= tgt.a_tgt;
@@ -84,11 +84,6 @@ namespace fub_motion_planner{
     catch (tf::TransformException &ex) {
       ROS_ERROR("%s",ex.what());
     }
-    //current values in Map frame
-    tf::Point cp ;
-    cp[0] =  pt_stamped_out.point.x;
-    cp[1] =  pt_stamped_out.point.y;
-    //std::cout << "map transformed cp "<< cp[0]<<" , "<<cp[1] << '\n';
     double c_yaw = current_state.getVehicleYaw();
     double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();
     //TODO - read from confug file
@@ -104,16 +99,15 @@ namespace fub_motion_planner{
     enum AccStates { CONSTANT_ACC, ZERO_ACC, BRAKE_DEC};
     AccStates c_acc_phase = CONSTANT_ACC;
     //current point in frenet
-    //ROS_INFO("map-xyz %.3f,%.3f, %.3f , odom x,y : %.3f,%.3f , v: %.3f , yaw = %.3f",cp[0],cp[1],cp[2],current_state.m_vehicle_position[0],current_state.m_vehicle_position[1],v_current,c_yaw);
-    FrenetCoordinate frenet_val =  m_vehicle_path.getFenet(cp,c_yaw);
-    //ROS_INFO("frenet s,d %.3f %.3f ", frenet_val.s, frenet_val.d);
-    //Initial Points for polyfit
+    //ROS_INFO("map-xyz %.3f,%.3f, %.3f , odom x,y : %.3f,%.3f , v: %.3f , yaw = %.3f",current_pos_map[0],current_pos_map[1],current_state.m_vehicle_position[0],current_state.m_vehicle_position[1],v_current,c_yaw);
+
+    //Initial Points for spline/polynomial
     spts.push_back(frenet_val.s);
     tpts.push_back(0);
     //Iniial x,y - as per map coordinates - TODO .... as of now updating everything in below for loop of populating x,y
     //dpts.push_back(frenet_val.d);
-    //xpts.push_back( pt_stamped_out.point.x);
-    //ypts.push_back( pt_stamped_out.point.y);
+    //xpts.push_back( current_pos_map[0]);
+    //ypts.push_back( current_pos_map[1]);
     vpts.push_back(v_current);
     //std::cout << "current x,y "<<xpts[0]<<"  "<<ypts[0] << '\n';
     //ROS_INFO("Initialization: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
@@ -178,8 +172,7 @@ namespace fub_motion_planner{
           //constant acceleration
           v_ref = v_previous - brake_dec*t_sample;
           // Bound the velocity
-          v_ref = v_ref>v_max?v_max:v_ref;
-          v_ref = v_ref<v_min?v_min:v_ref;
+          v_ref = v_ref<0?0:v_ref;
           spts.push_back((v_ref>0)?(spts[i-1] + v_previous*t_sample - 0.5*brake_dec*t_sample*t_sample):spts[i-1]);
           break;
         }
@@ -298,7 +291,6 @@ namespace fub_motion_planner{
 
     //Add cost if s_reached is more than target over threshold
     //TODO make this threshold as a constant or in config file
-    const double kThresholdDist = 0.25;
     if(tgt.s_reched > s_target+kThresholdDist)
       cost += fabs(tgt.s_reched - s_target+kThresholdDist);
 
