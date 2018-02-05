@@ -295,8 +295,12 @@ namespace fub_motion_planner{
       cost += fabs(tgt.s_reched - s_target+kThresholdDist);
 
     //Reduce cost if target is reached //TODO make the low trajectories evaluated when one of the traj reaches end
-    if((fabs(tgt.s_reched - s_target) <= kThresholdDist)&&(tgt.v_tgt==0)){
-      cost -= 1; //Promote these trajectories which reach end with zero velocity
+    if((tgt.v_tgt==0)){
+      if((fabs(tgt.s_reched - s_target) <= kThresholdDist)){
+        cost -= 1; //Promote these trajectories which reach end with zero velocity
+      }
+      else
+        cost +=1;  //If the stopping profile is chosen before reaching end then increase its weight so that it does not dominate other profiles
     }
 
     tgt.cost += cost;

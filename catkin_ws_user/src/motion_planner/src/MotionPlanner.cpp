@@ -181,19 +181,17 @@ namespace fub_motion_planner{
         //TODO min_max Update this values from map
         double v_max = 1.1;
         double v_min = 0; // stand still, no negative speeds
-        //target values
-        //V_ Target indicated by behavioral layer
-        double vel_target = 0.8;
-        //Check that this is always in between min and max
-        vel_target = vel_target>v_max?v_max:vel_target;
-        vel_target = vel_target<v_min?v_min:vel_target;
-        //TODO a_tgt and d_tgt - part of matrix
         double d_target = gTargetd;//Use the same target d for the complete loop
         int polynomial_order = 4;
         double vel_current = current_vehicle_state.m_current_speed_front_axle_center;
         double s_target = m_vehicle_path.frenet_path.back().s;
         tf::Point current_pos_map = convert_to_map_coordinate(current_vehicle_state.m_vehicle_position);
         FrenetCoordinate curr_frenet_coordi =  m_vehicle_path.getFenet(current_pos_map,current_vehicle_state.getVehicleYaw());
+        //V_ Target indicated by behavioral layer
+        size_t idx = ((int)(curr_frenet_coordi.s*10));
+        idx = idx>m_vehicle_path.speed_limit.size()-1?m_vehicle_path.speed_limit.size()-1:idx;
+        double vel_target = std::min(v_max,m_vehicle_path.speed_limit[idx]);
+        vel_target = vel_target<v_min?v_min:vel_target;
         //Initialize index for target states
         index =1;
         //destination reached - send a response back to route planner to next new route
