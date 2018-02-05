@@ -41,7 +41,7 @@ namespace fub_motion_planner{
       m_vehicle_path.setup(getNodeHandle());
       //TODO change execution frequency to a bigger value and also parameter of a config file
       //double execution_frequency = 0.02;
-      ros::Duration timerPeriod = ros::Duration(5);
+      ros::Duration timerPeriod = ros::Duration(1);
       mp_final_traj = getNodeHandle().advertise<fub_trajectory_msgs::Trajectory>("/model_car/trajectory", 1);
       m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj", 1);
       mp_traj1 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_1", 1);
@@ -188,100 +188,101 @@ namespace fub_motion_planner{
         vel_target = vel_target>v_max?v_max:vel_target;
         vel_target = vel_target<v_min?v_min:vel_target;
         //TODO a_tgt and d_tgt - part of matrix
-        double a_target = acc_prof[0];
         double d_target = gTargetd;//Use the same target d for the complete loop
         int polynomial_order = 4;
         double vel_current = current_vehicle_state.m_current_speed_front_axle_center;
         double s_target = m_vehicle_path.frenet_path.back().s;
         tf::Point current_pos_map = convert_to_map_coordinate(current_vehicle_state.m_vehicle_position);
         FrenetCoordinate curr_frenet_coordi =  m_vehicle_path.getFenet(current_pos_map,current_vehicle_state.getVehicleYaw());
-
+        //Initialize index for target states
+        index =1;
         //destination reached - send a response back to route planner to next new route
         if(curr_frenet_coordi.s + kThresholdDist > s_target ){
-          m_vehicle_path.route_path_exists = false;
-          std_msgs::Int16 var;
-          var.data = 1;
-          sub_path_complete_indicate.publish(var);
-          //TODO
-          //Publsh stopping path
+          if(vel_current<=0.03){
+            std_msgs::Int16 var;
+            var.data = 1;
+            sub_path_complete_indicate.publish(var);
+            m_vehicle_path.route_path_exists = false;
+            return; //publish that path has been completed and return
+          }
+          else{
+              vel_target =0; //Publish trajectories that stop vehicle safely
+          }
         }
-        else{//Calculate paths and publish them
-          if(vel_current<=vel_target){
-        		//std::cout << "acceleration" << '\n';
-        		for(int j=0; j<=2;j++){
-        			for(auto d_eval : d_ranges){
-                //(D,S,V,A,COST)
-        				target_state tgt(s_target,d_eval,vel_target,acc_prof[j], 0,index++);
-        				calc_cost(tgt, vel_current, d_target, prev_d_target);
-        				std::cout.width(5);
-        				final_states.push_back(tgt);
-        				std::cout << tgt.cost<< "   ";
-        			}
-        			std::cout <<'\n';
-        		}
-        	}
-        	else {
-        		//std::cout << "Deceleration" << '\n';
-        		for(int j=3; j<=5;j++){
-        			for(auto d_eval : d_ranges){
-                //(D,S,V,A,COST)
-        				target_state tgt(s_target,d_eval,vel_target,acc_prof[j], 0,index++);
-        				calc_cost(tgt, vel_current, d_target, prev_d_target);
-        				std::cout.width(5);
-        				final_states.push_back(tgt);
-        				//std::cout << tgt.cost<< "   ";
-        			}
-        			//std::cout <<'\n';
-        		}
-        	}
-        	vel_target =0;
-          //std::cout<<"Stopping profiles" <<'\n'; - try with various d
-        	for(int j=3; j<=4;j++){
-        		for(auto d_eval : d_ranges){
-              //(D,S,V,A,COST) extra cost for going to zero
-        			target_state tgt(s_target,d_eval,vel_target,acc_prof[j], 2,index++);
-        			calc_cost(tgt, vel_current, d_target, prev_d_target);
-        			std::cout.width(5);
-        			final_states.push_back(tgt);
-        			//std::cout << tgt.cost<< "   ";
-        		}
-        		//std::cout <<'\n';
-        	}
-          //High decceleration profiles
-          for(int j=5; j<=7;j++){
-              //(D,S,V,A,COST) extra cost for going to zero with high braking +3 cost
-              //TODO - change prev_d_target to d_current
-        			target_state tgt(s_target,prev_d_target,vel_target,acc_prof[j], 2.3,index++);
-        			calc_cost(tgt, vel_current, d_target, prev_d_target);
-        			std::cout.width(5);
-        			final_states.push_back(tgt);
-        			//std::cout << tgt.cost<<'\n';
-        	}
-          //Re initialize for next cycle
-          index =1;
 
-          sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
-        				return ts1.cost < ts2.cost;});
-        	std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
-        	while(final_states.front().evaluated != true){
-        		//TODO change to insertion sort - this vector is almost sorted
-        		//create_traj(final_states.front());
-            double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1,polynomial_order, final_states.front(),current_pos_map,curr_frenet_coordi);
-            //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
-            //std::cout << "cost" <<cost_val <<'\n';
-            //std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
-            //std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
-        		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
-           				return ts1.cost < ts2.cost;});
-        	}
+        if(vel_current<=vel_target){
+      		//std::cout << "acceleration" << '\n';
+      		for(int j=0; j<=2;j++){
+      			for(auto d_eval : d_ranges){
+              //(D,S,V,A,COST)
+      				target_state tgt(s_target,d_eval,vel_target,acc_prof[j], 0,index++);
+      				calc_cost(tgt, vel_current, d_target, prev_d_target);
+      				std::cout.width(5);
+      				final_states.push_back(tgt);
+      				//std::cout << tgt.cost<< "   ";
+      			}
+      			//std::cout <<'\n';
+      		}
+      	}
+      	else {
+      		//std::cout << "Deceleration" << '\n';
+      		for(int j=3; j<=5;j++){
+      			for(auto d_eval : d_ranges){
+              //(D,S,V,A,COST)
+      				target_state tgt(s_target,d_eval,vel_target,acc_prof[j], 0,index++);
+      				calc_cost(tgt, vel_current, d_target, prev_d_target);
+      				std::cout.width(5);
+      				final_states.push_back(tgt);
+      				//std::cout << tgt.cost<< "   ";
+      			}
+      			//std::cout <<'\n';
+      		}
+      	}
+      	vel_target =0;
+        //std::cout<<"Stopping profiles" <<'\n'; - try with various d
+      	for(int j=3; j<=4;j++){
+      		for(auto d_eval : d_ranges){
+            //(D,S,V,A,COST) extra cost for going to zero
+      			target_state tgt(s_target,d_eval,vel_target,acc_prof[j], 2,index++);
+      			calc_cost(tgt, vel_current, d_target, prev_d_target);
+      			std::cout.width(5);
+      			final_states.push_back(tgt);
+      			//std::cout << tgt.cost<< "   ";
+      		}
+      		//std::cout <<'\n';
+      	}
+        //High decceleration profiles
+        for(int j=5; j<=7;j++){
+            //(D,S,V,A,COST) extra cost for going to zero with high braking +3 cost
+      			target_state tgt(s_target,curr_frenet_coordi.d,vel_target,acc_prof[j], 2.3,index++);
+      			calc_cost(tgt, vel_current, d_target, prev_d_target);
+      			std::cout.width(5);
+      			final_states.push_back(tgt);
+      			//std::cout << tgt.cost<<'\n';
+      	}
 
-          nav_msgs::Path p1 = final_states.front().path;
-          mp_traj2.publish(p1);
-          convert_path_to_fub_traj(p1,current_vehicle_state.getVehicleYaw());
-          prev_d_target = final_states.front().d_eval;
-          std::cout <<" Final Published ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
-          ROS_INFO("Time taken: %f", (double)(clock() - tStart)/CLOCKS_PER_SEC);
-        } //else of if destination not reached
+        sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
+      				return ts1.cost < ts2.cost;});
+      	std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
+      	while(final_states.front().evaluated != true){
+      		//TODO change to insertion sort - this vector is almost sorted
+      		//create_traj(final_states.front());
+          double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1,polynomial_order, final_states.front(),current_pos_map,curr_frenet_coordi);
+          //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
+          //std::cout << "cost" <<cost_val <<'\n';
+          //std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
+          //std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
+      		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
+         				return ts1.cost < ts2.cost;});
+      	}
+
+        nav_msgs::Path p1 = final_states.front().path;
+        mp_traj2.publish(p1);
+        convert_path_to_fub_traj(p1,current_vehicle_state.getVehicleYaw());
+        prev_d_target = final_states.front().d_eval;
+        std::cout <<" Final Published ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
+        ROS_INFO("Time taken: %f", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+
       }//if path exists
       else{
         ROS_INFO("waiting for route path");
