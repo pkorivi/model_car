@@ -8,6 +8,7 @@ namespace fub_motion_planner{
   void VehiclePath::setup(ros::NodeHandle & nh){
       ROS_INFO("Vehicle_Path setup");
       m_subscribe_route_planner  = nh.subscribe("/route_planner/sub_path", 1, &VehiclePath::RoutePlannerCallback, this, ros::TransportHints().tcpNoDelay());
+      path_with_speed_profiles = nh.advertise<nav_msgs::Path>("/path_speed_limits", 10);
   }
   //route planner callback
   void VehiclePath::RoutePlannerCallback(const nav_msgs::Path & msg){
@@ -16,6 +17,7 @@ namespace fub_motion_planner{
     m_path = msg;
     //Trigger transormation to frenet function
     transformToXYandFrenet();
+    calc_speed_limit();
   }
 
   /*
@@ -232,9 +234,65 @@ namespace fub_motion_planner{
       }
     }
     else{
-      ROS_INFO("Path is empty");
+      ROS_ERROR("Path is empty");
       //TODO Initialize all the mpath, vectors to none
     }
   }//end of transformToXYandFrenet
+
+  void VehiclePath::calc_speed_limit(){
+    /*
+    Speed limit = min(legal speed, allowed speed due to curvature)
+    speed_limit = sqrt(|a_lat/curv|)
+    here choosing a_lat max = 3; and speed_limit is factored by 10 to align with interests of model car
+    thus sl_curv = 0.1*sqrt(3)/sqrt(curv) = 0.173/sqrt(curv)
+    */
+    speed_limit.clear();
+    double s_val = frenet_path.front().s;
+    if(frenet_path.size()>3){
+      double avg_curv=0, speed_lmt=0;
+      //lets say 0-5 (6)points, here 0-1 is limit @ 0, 1-2, limit@1, 2-3 limit @2 - last two columns are left to bring speed to zero
+      size_t i=0;
+      for (i = 0; i < frenet_path.size()-3; i++) {
+        avg_curv = (frenet_path[i].k + frenet_path[i+1].k + frenet_path[i+2].k)/3;
+        speed_lmt= (avg_curv>0)?(std::min(kLegalSpeedLimit,0.173/sqrt(avg_curv))):kLegalSpeedLimit;
+        speed_lmt = (speed_lmt<kMinSpeedLimit)?kMinSpeedLimit:speed_lmt;
+        //Assign same speed limit till next way point in increments of 0.1m
+        while(s_val<frenet_path[i+1].s){
+          speed_limit.push_back(speed_lmt);
+          s_val += 0.1;
+        }
+      }//for loop
+      //here 3-4 - set speed to half of previous
+      while(s_val<frenet_path[i+1].s){
+        speed_limit.push_back(speed_lmt/2);
+        s_val += 0.1;
+      }
+      i++;
+      //here 4-5 set limit to zero such that car stops
+      while(s_val<=frenet_path[i+1].s){
+        speed_limit.push_back(0);
+        s_val += 0.1;
+      }
+    }
+    else{//Small path keep velocity low
+      while(s_val<=frenet_path.back().s){
+        speed_limit.push_back(kMinSpeedLimit/3);
+        s_val += 0.1;
+      }
+      size_t speed_vect = speed_limit.size();
+      speed_limit[speed_vect-1] =0;
+      speed_limit[speed_vect-2] =0;
+      speed_limit[speed_vect-3] =0; //Make last points zero
+    }
+
+    nav_msgs::Path path_speed = m_path;
+    for (size_t i = 0; i < path_speed.poses.size(); i++) {
+      size_t idx = ((int)(frenet_path[i].s*10));
+      idx = idx>speed_limit.size()-1?speed_limit.size()-1:idx;
+      path_speed.poses[i].pose.position.z = speed_limit[idx];
+    }
+    path_with_speed_profiles.publish(path_speed);
+
+  }//Calculate Speed limit
 
 }//end of namespace

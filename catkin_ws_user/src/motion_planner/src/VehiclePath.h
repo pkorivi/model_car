@@ -49,6 +49,7 @@ namespace fub_motion_planner{
       /*returns index of he next way point to given point*/
       int NextWayPoint(tf::Point pt,double theta);
       double calc_curvature(tf::Point pts0,tf::Point pts1,tf::Point pts2);
+      void calc_speed_limit();
     public:
       //Currently planned path
       nav_msgs::Path m_path;
@@ -57,8 +58,13 @@ namespace fub_motion_planner{
       std::vector<tf::Point> xy_path;
       //Frenet Path
       std::vector<FrenetCoordinate> frenet_path;
+      std::vector<double> speed_limit;
     private:
       ros::Subscriber m_subscribe_route_planner;
+      ros::Publisher path_with_speed_profiles;
+      //TODO this is part of info read from the rndf file
+      const double kLegalSpeedLimit = 1.5;
+      const double kMinSpeedLimit = 0.4;//added as errors in curvature calc can drop the limit to too low
   };
 }
 #endif /*  vehicle path*/
