@@ -53,7 +53,7 @@ namespace fub_motion_planner{
   					obstVel.x=0;
   				}
           FrenetCoordinate obst_frenet =  m_vehicle_path.getFenet(obstPos,yaw);
-          std::cout << "obst x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d "<<obst_frenet.s<<" "<<obst_frenet.d<<" vel "<<obstVel.x<< '\n';
+          std::cout <<"obst Id "<<obst.id <<" x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d "<<obst_frenet.s<<" "<<obst_frenet.d<<" vel "<<obstVel.x<< '\n';
           //TODO replace wih correct values
           //This should be wcar/2 + wobst/2+safe_dist
           double d_min_diff = 0.20;

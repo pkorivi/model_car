@@ -31,6 +31,7 @@ double SteerController::control(const VehicleState &vehicleState, double deltaT,
     mSteerIntegral = boost::algorithm::clamp(mSteerIntegral, -mConfig.limit_steer_integral, mConfig.limit_steer_integral);
 
     double currentSpeed = vehicleState.mCurrentSpeedFrontAxleCenter;
+    std::cout << "kp "<<mConfig.kp_steer_low_speed_value<<" , "<< mConfig.kp_steer_high_speed_value << '\n';
     double steerOutput =
           newSteerError * Math::boundedLinearInterpolation(currentSpeed, mConfig.low_speed_value, mConfig.high_speed_value, mConfig.kp_steer_low_speed_value, mConfig.kp_steer_high_speed_value)
         + mSteerIntegral * Math::boundedLinearInterpolation(currentSpeed, mConfig.low_speed_value, mConfig.high_speed_value, mConfig.ki_steer_low_speed_value, mConfig.ki_steer_high_speed_value)

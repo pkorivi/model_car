@@ -34,7 +34,7 @@ def pub_obstacle_info():
     new_obstacles_list.header.seq = sequence
     sequence +=1
     obs_vel = [0.0,0.0]
-    obs_xy = [[2.0,-0.19],[4.0,0.15]]
+    obs_xy = [[2.8,-0.19],[3.35,2.8]]
     for id_ in range(2):
         new_obstacle = Obstacle()
         new_obstacle.id = id_

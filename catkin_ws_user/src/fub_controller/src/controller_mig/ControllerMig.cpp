@@ -124,7 +124,7 @@ void ControllerMig::update(VehicleState const & currentVehicleState)
     int16_t speed_pub =  static_cast<int16_t>(wantedSpeed *(-308.26));
     int16_t steer_pub =  static_cast<int16_t>(80.0 * mSteeringAngleNormalized) + 81;
     ROS_INFO("Commanded Values: steer_pb %d  norm_str %.3f   speed_pb %d   raw_spd %.3f ",steer_pub,mSteeringAngleNormalized,speed_pub, wantedSpeed);
-    ROS_INFO("When Path received:  x,y %.3f,%.3f   vel: %.3f  yaw:%.3f odom_time %f",currentVehicleState.mVehiclePosition[0],\
+    ROS_INFO("cur_state:  x,y %.3f,%.3f   vel: %.3f  yaw:%.3f odom_time %.3f",currentVehicleState.mVehiclePosition[0],\
               currentVehicleState.mVehiclePosition[1], currentVehicleState.mCurrentSpeedFrontAxleCenter,currentVehicleState.getVehicleYaw(),\
                currentVehicleState.mLastOdomTimeStampReceived.toSec());
     //TODO remove till here

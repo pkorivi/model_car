@@ -188,9 +188,21 @@ namespace fub_motion_planner{
     }//for loop
     //ROS_INFO("for loop: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
+    //This trajectory is not moving min 0.01 distance should  be travelled
+    if ( fabs(spts.back()-spts.front())<=0.02) {
+        ROS_ERROR("Trajectory traverses zero distance");
+      cost =60;
+      tgt.cost += cost;
+      return cost;
+    }
     //d_calc
     //auto d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target, polynomial_order);
     std::vector<double> d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target,frenet_val.th, spts.front(), spts.back());
+    if(std::isnan(d_coeffs[0])||std::isnan(d_coeffs[1])||std::isnan(d_coeffs[2])||std::isnan(d_coeffs[3])){
+      ROS_ERROR("Nan in evaluation of d coeffs - traj planner");
+      std::cout << "dcoeffs "<<d_coeffs[0]<<"," <<d_coeffs[1]<<"," <<d_coeffs[2]<<"," <<d_coeffs[3]<<"  car_d "<<frenet_val.d\
+      << "  tgt_d "<<d_target<<"  th "<<frenet_val.th<<" smin_max "<<spts.front()<<","<<spts.back() << '\n';
+    }
     //ROS_INFO("d:  %.3f ,%.3f, %.3f, %.3f   th : %.3f",d_coeffs[0],d_coeffs[1],d_coeffs[2],d_coeffs[3],frenet_val.th);
 
     //ECL ARrays for ecl splines
@@ -252,8 +264,8 @@ namespace fub_motion_planner{
     m_sampled_traj.header.frame_id = "/map";
     double s_val,d_val,v_val, a_val;
     //sample every 0.2s
-    for(double i=0;i<26;i++){
-      double t_pt = 0.2*i;//time
+    for(double i=0;i<51;i++){
+      double t_pt = 0.1*i;//time
       /* - TODO replace with derivative of spline
       double x_der = polyeval_derivative(x_coeffs,t_pt);
       double y_der = polyeval_derivative(y_coeffs,t_pt);

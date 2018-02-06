@@ -179,7 +179,7 @@ namespace fub_motion_planner{
         std::vector<double> d_ranges = {-0.25,-0.17,-0.1,0,0.1,0.17,0.25};
         std::vector<double> acc_prof = {0.2,0.1,0,-0.1,-0.2,-0.4,-0.6,-0.8};
         //TODO min_max Update this values from map
-        double v_max = 1.1;
+        double v_max = 0.7;
         double v_min = 0; // stand still, no negative speeds
         double d_target = gTargetd;//Use the same target d for the complete loop
         int polynomial_order = 4;
@@ -238,7 +238,7 @@ namespace fub_motion_planner{
       	}
       	vel_target =0;
         //std::cout<<"Stopping profiles" <<'\n'; - try with various d
-      	for(int j=3; j<=4;j++){
+      	for(int j=3; j<=5;j++){
       		for(auto d_eval : d_ranges){
             //(D,S,V,A,COST) extra cost for going to zero
       			target_state tgt(s_target,d_eval,vel_target,acc_prof[j], 2,index++);
@@ -261,25 +261,32 @@ namespace fub_motion_planner{
 
         sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
       				return ts1.cost < ts2.cost;});
-      	std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
+      	//std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
       	while(final_states.front().evaluated != true){
       		//TODO change to insertion sort - this vector is almost sorted
       		//create_traj(final_states.front());
           double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1,polynomial_order, final_states.front(),current_pos_map,curr_frenet_coordi);
           //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
-          //std::cout << "cost" <<cost_val <<'\n';
           //std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
-          //std::cout << "id "<<final_states.front().id<<" cost "<<final_states.front().cost << '\n';
+          //ROS_INFO("Traj Eval ID: %d, cost %.3f cur v,s %.3f,%.3f , tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
+          final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
       		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
          				return ts1.cost < ts2.cost;});
       	}
-
-        nav_msgs::Path p1 = final_states.front().path;
+        nav_msgs::Path p1;
+        if (final_states.front().cost<20) {
+          p1 = final_states.front().path;
+          ROS_INFO("Final Published ID: %d, cost %.3f cur v,s %.3f,%.3f , tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
+          final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
+        }
+        else{
+          p1 = final_states.back().path;
+          ROS_ERROR("No Path found - Publishing stopping path :: update to choose the profile with max deceleration - recheck this");
+        }
         mp_traj2.publish(p1);
         convert_path_to_fub_traj(p1,current_vehicle_state.getVehicleYaw());
         prev_d_target = final_states.front().d_eval;
-        std::cout <<" Final Published ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
-        ROS_INFO("Time taken: %f", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+        //ROS_INFO("Time taken: %f", (double)(clock() - tStart)/CLOCKS_PER_SEC);
 
       }//if path exists
       else{
