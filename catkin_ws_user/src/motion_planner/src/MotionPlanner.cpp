@@ -268,19 +268,22 @@ namespace fub_motion_planner{
           double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1,polynomial_order, final_states.front(),current_pos_map,curr_frenet_coordi);
           //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, final_states.front());
           //std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
-          //ROS_INFO("Traj Eval ID: %d, cost %.3f cur v,s %.3f,%.3f , tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
-          final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
+          ROS_INFO("Traj Eval ID: %d, cost %.3f cur v,s,d %.3f,%.3f,%.3f , tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
+          curr_frenet_coordi.d,final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
       		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
          				return ts1.cost < ts2.cost;});
       	}
         nav_msgs::Path p1;
         if (final_states.front().cost<20) {
           p1 = final_states.front().path;
-          ROS_INFO("Final Published ID: %d, cost %.3f cur v,s %.3f,%.3f , tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
-          final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
+          ROS_INFO("Final Published ID: %d, cost %.3f cur v,s,d %.3f,%.3f,%.3f , tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
+          curr_frenet_coordi.d,final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
         }
         else{
-          p1 = final_states.back().path;
+          target_state emergency_tgt(s_target,curr_frenet_coordi.d,0,acc_prof[7], 0,0);
+          double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1,polynomial_order, emergency_tgt ,current_pos_map,curr_frenet_coordi);
+          p1 = emergency_tgt.path;
+          m_vehicle_path.route_path_exists = false;
           ROS_ERROR("No Path found - Publishing stopping path :: update to choose the profile with max deceleration - recheck this");
         }
         mp_traj2.publish(p1);

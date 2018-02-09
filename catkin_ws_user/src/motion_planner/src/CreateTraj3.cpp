@@ -191,7 +191,7 @@ namespace fub_motion_planner{
     //This trajectory is not moving min 0.01 distance should  be travelled
     if ( fabs(spts.back()-spts.front())<=0.02) {
         ROS_ERROR("Trajectory traverses zero distance");
-      cost =60;
+      cost =30;
       tgt.cost += cost;
       return cost;
     }
