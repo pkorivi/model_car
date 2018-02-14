@@ -53,19 +53,35 @@ namespace fub_motion_planner{
   					obstVel.x=0;
   				}
           FrenetCoordinate obst_frenet =  m_vehicle_path.getFenet(obstPos,yaw);
+
+          //Obstacle direction -0 default - something ahead is moving laterally - someone driving across or walking across
+          int direction = 0;
+          //TODO check that 0,180 dont mess here else its screwed up :-p
+          //TODO Check if the angle should be wrt to road ro vehicle? May be vehicle then only the intersections thing work else it will be screwed up 
+          //if the angle betwen vehicle and road is between -pi/3 to pi/3 then its driving along the road direction = +1
+          if (fabs(obst_frenet.th)<M_PI/3) {
+            direction = 1;
+          }else if(fabs(obst_frenet.th)>2*M_PI/3){ // If it is between -2/3pi and 2/3pi then it is driving opposite to the road -1.
+            direction = -1;
+          }
+
           //TODO replace wih correct values
           //This should be wcar/2 + wobst/2+safe_dist
           double d_min_diff = 0.20;
-          //Lets say W_obst =
-          //Obstacle at 0, 2 ,4,5 sec
-          std::vector<double> obst_s = {obst_frenet.s, obst_frenet.s+ obstVel.x*2,obst_frenet.s+ obstVel.x*4, obst_frenet.s+ obstVel.x*5 };
+          //Obstacle location over look ahead time
+          std::vector<double> obst_s;
+          for (size_t i = 0; i <= kLookAheadTime; i++) {
+            double nxt_pt_s = obst_frenet.s+ obstVel.x*i*direction;
+            obst_s.push_back(nxt_pt_s>0?nxt_pt_s:0);
+          }
+
           double ego_vehicle_start = polyeval_m(d_coeffs,s_pts.front());
           //TODO - Remove this obstacle path debug
           nav_msgs::Path m_obst_traj;
           m_obst_traj.header.stamp = ros::Time::now();
           m_obst_traj.header.frame_id = "/map";
           std::vector<int> times_check = {0,2,4,5};
-          for (size_t i = 0; i < 4; i++) {
+          for (size_t i = 0; i <= kLookAheadTime; i++) {
             //TODO - remove or make it better
             tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(obst_s[i],obst_frenet.d,0,0));
             geometry_msgs::PoseStamped examplePose;
@@ -86,25 +102,23 @@ namespace fub_motion_planner{
           std::cout << "debug" << '\n';
           std::cout << "obst s " <<obst_s[0] <<" "<<obst_s[1] <<" "<<obst_s[2] <<" "<<obst_s[3] <<" "<<'\n';
           */
-          //If the obstacle is behind ego vehcile dont consider it for collision check
+          //If the obstacle is in same lane and behind ego vehcile dont consider it for collision check
           if(obst_s[0] < s_pts[0] && fabs(ego_vehicle_start - obst_frenet.d)<d_min_diff){
-            //cost =0; //Obstacle is behind dont check for collision
             //std::cout << "obst behind car" << '\n';
             continue; //go to next obstacle
           }
           //Its not behind, check for collision
           else {
-            //check for intersection in s
-            const double kSafetyDist = 0.25; //TODO - config file or constant in .h file
-            std::vector<double> intersection = {std::max(obst_s.front()-kSafetyDist,s_pts.front()-kSafetyDist),
-                                                std::min(obst_s.back()+kSafetyDist,s_pts.back()+kSafetyDist)};
+            //check for intersection in s -  min, max of obst travel distance to accomodate obstacles in opposite direction
+            std::vector<double> intersection = {std::max(*std::min_element(obst_s.begin(),obst_s.end())-kSafetyDist,s_pts.front()-kSafetyDist),
+                                                std::min(*std::max_element(obst_s.begin(),obst_s.end())+kSafetyDist,s_pts.back()+kSafetyDist)};
             //check for collision in s
             if (intersection.back()<intersection.front()) {
               //cost =  0; // No intersection in s, no potential collision
               continue; //go to next obstacle
             }
             else{ //check for collision in d where s is intersecting
-              std::cout <<"obst Id "<<obst.id <<" x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d "<<obst_frenet.s<<" "<<obst_frenet.d<<" vel "<<obstVel.x<< '\n';
+              std::cout <<"obst Id "<<obst.id <<" x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d th"<<obst_frenet.s<<" "<<obst_frenet.d<<" "<<obst_frenet.th <<" vel "<<obstVel.x<< '\n';
               double d_val1 = polyeval_m( d_coeffs,intersection.front());
               double d_val2 = polyeval_m( d_coeffs,intersection.back());
               std::cout << "intersection  "<<intersection.front()<<"  "<<intersection.back() <<"  d_ego "<<d_val1<<" "<<d_val2<<" obs_D "<<obst_frenet.d << '\n';
@@ -123,7 +137,7 @@ namespace fub_motion_planner{
                     if((intersection.front()<=s_pts[i]) && (fabs(d_pts[i] - obst_frenet.d)<= d_min_diff)){
                       i = (i>0?i-1:i); //If the intersection is less than the first element consider 0 time
                       ego_t1 = i*pt_duration; //Time of Intersection for ego vehicle
-                      obst_t1 = (s_pts[i] - obst_frenet.s)/obstVel.x ; // s_@ = s_0 + vel*time // Time of intersection for obstacle
+                      obst_t1 = fabs(s_pts[i] - obst_frenet.s)/obstVel.x ; // s_@ = s_0 + vel*time // Time of intersection for obstacle
                       break;
                     } //found where time starts
                   }
@@ -133,7 +147,7 @@ namespace fub_motion_planner{
                   for (i = s_pts.size()-2; i >=0; i--) {
                     if((intersection.back()>=s_pts[i]) && (fabs(d_pts[i] - obst_frenet.d)<= d_min_diff)){
                       ego_t2 = (i+1)*pt_duration; // Margin as higher end of time
-                      obst_t2 = (s_pts[i+1] - obst_frenet.s)/obstVel.x ;
+                      obst_t2 = fabs(s_pts[i+1] - obst_frenet.s)/obstVel.x ;
                       break;
                     } //found where time starts
                   }

@@ -93,6 +93,7 @@ namespace fub_motion_planner{
       const double kLookAheadTime = 5.0;
       const int kNumberOfSamples = 11; //changing to 11 from 26
       const double kThresholdDist = 0.25;
+      const double kSafetyDist = 0.25; 
       unsigned int gPubSeqNum=0;
       double gTargetd = 0.17;
   };
