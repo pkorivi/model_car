@@ -1,0 +1,7 @@
+<launch>
+	<node pkg="nodelet" type="nodelet" args="manager"
+    name="op_nodelet_manager" output="screen" />
+	<node pkg="nodelet" type="nodelet" args="load ObstaclePublisher/ObstaclePublisher op_nodelet_manager"
+    name="ObstaclePublisher" output="screen">
+	</node>
+</launch>

@@ -1,0 +1,8 @@
+<library path="lib/libObstaclePublisher">
+	<class name="ObstaclePublisher/ObstaclePublisher" type="fub_obstacle_publisher::ObstaclePublisher"
+		base_class_type="nodelet::Nodelet">
+		<description>
+			ObstaclePublisher.
+		</description>
+	</class>
+</library>
