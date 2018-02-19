@@ -12,6 +12,8 @@
 #include <tf/transform_listener.h>
 #include <autonomos_obstacle_msgs/Obstacles.h>
 #include <autonomos_obstacle_msgs/Obstacle.h>
+#include <nodelet/nodelet.h>
+#include <pluginlib/class_list_macros.h>
 
 namespace fub_motion_planner{
   class VehicleState {    //: public nodelet::Nodelet

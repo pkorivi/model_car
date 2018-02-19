@@ -2,14 +2,15 @@
 
  */
 #include "VehicleState.h"
-#include <nodelet/nodelet.h>
-#include <pluginlib/class_list_macros.h>
 
 namespace fub_motion_planner{
+  /** Class Constructor and Destructor
+  **
+  ** @param Currently None
+  */
   VehicleState::VehicleState(){
     //ROS_INFO("VehicleState Constructor");
   }
-
   VehicleState::~VehicleState(){
     //ROS_INFO("VehicleState Destructor");
   }
@@ -18,15 +19,22 @@ namespace fub_motion_planner{
       NODELET_INFO("VehicleState - %s", __FUNCTION__);
   }*/
 
+  /** Setup function - generally called from init of the Nodelet to setup this class.
+  **
+  ** @param nodehandle
+  */
   void VehicleState::setup(ros::NodeHandle & nh)
   {
-      // TODO: increase odom queue to at least 32
       ROS_INFO("Vehicle_State setup");
-      m_subscribe_odom  = nh.subscribe("/odom", 1, &VehicleState::odometryCallback, this, ros::TransportHints().tcpNoDelay());
+      m_subscribe_odom  = nh.subscribe("/odom", 32, &VehicleState::odometryCallback, this, ros::TransportHints().tcpNoDelay());
       m_subscribe_obstacles = nh.subscribe("obstacles", 1, &VehicleState::callbackObstacles, this,ros::TransportHints().tcpNoDelay());
       //ROS_INFO("Vehicle state setup");
   }
 
+  /** Callback for Odometry messages.
+  **
+  ** @param msg
+  */
   void VehicleState::odometryCallback(const nav_msgs::OdometryConstPtr & msg){
     //ROS_INFO("odom_received");
     m_ego_state_pose = msg->pose;
@@ -46,7 +54,10 @@ namespace fub_motion_planner{
     //std::cout << "Callback obstacles " << m_obstacle_msg->obstacles[0].abs_velocity.twist.linear.x << '\n';
   }
 
-
+  /** Function to compute vehicle yaw from the odom pose orientation
+  **
+  ** @param None
+  */
   double VehicleState::getVehicleYaw() const{
       double yaw = tf::getYaw(m_ego_state_pose.pose.orientation);// * radians;
       return std::isnan(yaw)?0:yaw;

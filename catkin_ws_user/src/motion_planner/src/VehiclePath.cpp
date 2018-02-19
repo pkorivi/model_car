@@ -5,26 +5,35 @@
 namespace fub_motion_planner{
   VehiclePath::VehiclePath(){}
   VehiclePath::~VehiclePath(){}
+  /** Setup function - generally called from init of the Nodelet to setup this class.
+  **
+  ** @param nodehandle
+  */
   void VehiclePath::setup(ros::NodeHandle & nh){
       ROS_INFO("Vehicle_Path setup");
       m_subscribe_route_planner  = nh.subscribe("/route_planner/sub_path", 1, &VehiclePath::RoutePlannerCallback, this, ros::TransportHints().tcpNoDelay());
       path_with_speed_profiles = nh.advertise<nav_msgs::Path>("/path_speed_limits", 10);
   }
-  //route planner callback
+  /** Route planner callback - invoked when router planner publishes a path
+  **
+  ** @param msg containg path for robot to follow
+  */
   void VehiclePath::RoutePlannerCallback(const nav_msgs::Path & msg){
     ROS_INFO("path_received");
     route_path_exists = true;
     m_path = msg;
-    //Trigger transormation to frenet function
+    //Trigger transormation to frenet and store xy as points
     transformToXYandFrenet();
+    //compute speed limit along the path
     calc_speed_limit();
   }
 
-  /*
-  Path is represented by number of line segments,  find the line segment to which
-  this s belongs to then find the point on a line perpendicular to that line segment
-  at lateral distnace d
-  */
+  /**
+  ** Path is represented by number of line segments,  find the line segment to which
+  ** frenet coordinate´s s belongs, then find the point on a line perpendicular to that line segment
+  ** at lateral distnace d
+  ** @param : Frenet Coordinate
+  **/
   tf::Point VehiclePath::getXY(FrenetCoordinate frenet_pt){
     //ROS_INFO("fp s %f, d %f ",frenet_pt.s,frenet_pt.d);
     int next_wp = 0;
@@ -66,6 +75,10 @@ namespace fub_motion_planner{
     }
   }
 
+  /**Function to calculate frenet coordinate
+  **
+  ** @param point in x,y coordinate and vehicle yaw
+  */
   FrenetCoordinate VehiclePath::getFenet(tf::Point xy_pt, double theta){
     //the line segment closest to the current point
     int next_wp = NextWayPoint(xy_pt, theta);
@@ -87,10 +100,9 @@ namespace fub_motion_planner{
     double m_x = xy_pt[0] -  xy_path[prev_wp][0];
     double m_y = xy_pt[1] -  xy_path[prev_wp][1];
 
-    //TODO Check this
     //n.m = dotproduct(n,m)
     //projection of line m onto n is given by p = (n.m/n.n)n
-    //multiplication facto of dot product
+    //multiplication factor of dot product
     double proj_norm = (m_x*n_x+m_y*n_y)/(n_x*n_x+n_y*n_y);
     double proj_x = xy_path[prev_wp][0] + (proj_norm*n_x);
   	double proj_y = xy_path[prev_wp][1] + (proj_norm*n_y);
@@ -121,8 +133,10 @@ namespace fub_motion_planner{
   }
 
 
-
-  //Find the way point which is closest to a given point
+  /**Find the way point which is closest to a given point from list of waypoints on refernce path.
+  **
+  ** @param point
+  */
   int VehiclePath::closestWayPoint(tf::Point pt){
     double closest_len= 100000; //some large number
     int closest_way_pt = 0;
@@ -137,7 +151,10 @@ namespace fub_motion_planner{
     return closest_way_pt;
   }
 
-  //Find the next way point in driving direction
+  /**Find the next way point in driving direction
+  **
+  ** @param point
+  */
   int VehiclePath::NextWayPoint(tf::Point pt, double theta){
     int closest_way_pt  = closestWayPoint(pt);
     //angle between the point and the closest_way_pt
@@ -158,32 +175,28 @@ namespace fub_motion_planner{
     return closest_way_pt;
   }
 
-  /*
+  /* Function to calculate curvature given 3 points
     curvature = 1/Radius_of_circumcircle_formemd_these points
     https://en.wikipedia.org/wiki/Menger_curvature,
-    0 for a line and increases as radius decreases.
+    0 for a straight line and increases as radius decreases.
   */
   double VehiclePath::calc_curvature(tf::Point pts0,tf::Point pts1,tf::Point pts2){
     //for a triancle abc, area_twice = (a.x-c.x)*(b.y-a.y) - (a.x-b.x)*(c.y-a.y)
     double area = ((pts0[0]-pts2[0])*(pts1[1]-pts0[1]) - \
                     (pts0[0]-pts1[0])*(pts2[1]-pts0[1]))/2;
-    //TODO Remove this debug information
-    /*
-    double a=distance(pts0,pts1);
-    double b=distance(pts1,pts2);
-    double c=distance(pts2,pts0);
-    */
+
    //formula for curvature = 4*triangleArea/(sideLength1*sideLength2*sideLength3)
    double curvature = 0;
    if(area !=0){
      curvature = 4*area/(distance(pts0,pts1)*distance(pts1,pts2)*distance(pts2,pts0));
-     //curvature = 4*area/(a*b*c);
    }
-
    //ROS_INFO("curvature: %f area: %f, dist a: %f, b: %f , c: %f",curvature, area,a,b,c);
    return curvature;
   }
 
+  /**Function to convert path to based frenet frame and base coordinates in form of tf::Points
+  ** @param - None
+  **/
   void VehiclePath::transformToXYandFrenet(){
     size_t number_of_pts = m_path.poses.size();
     //Clear the path and refill with new path - Important for accepting next segment
@@ -207,6 +220,8 @@ namespace fub_motion_planner{
         //As the points are closely placed this is causing the radius of curvature to be small. Thus to avoid it sample points alternatively
         for (i = 1; i < number_of_pts-4; i++) {
           length_ = distance(xy_path[i],xy_path[i-1]);
+          // TODO - This may need to chnage - some other good method which is robust to errors is good
+          // As the points in corners are closeby taking points at a farther distance bby skipping some to makes ure that curvature is not verz high.
           curv = calc_curvature(xy_path[i],xy_path[i+2],xy_path[i+4]);
           th = slope(xy_path[i-1],xy_path[i]);
           FrenetCoordinate fp(frenet_path[i-1].s + length_,0,curv,th);
@@ -252,13 +267,13 @@ namespace fub_motion_planner{
     }
   }//end of transformToXYandFrenet
 
+  /* Function to calculate speed limit along the path
+  Speed limit = min(legal speed, allowed speed due to curvature)
+  speed_limit = sqrt(|a_lat/curv|)
+  here choosing a_lat max = 3(constnat defined in vehicle path); and speed_limit is factored by 10 to align with interests of model car
+  thus sl_curv = sqrt(0.3/curv)
+  */
   void VehiclePath::calc_speed_limit(){
-    /*
-    Speed limit = min(legal speed, allowed speed due to curvature)
-    speed_limit = sqrt(|a_lat/curv|)
-    here choosing a_lat max = 3(constnat defined in vehicle path); and speed_limit is factored by 10 to align with interests of model car
-    thus sl_curv = sqrt(0.3/curv)
-    */
     speed_limit.clear();
     double s_val = frenet_path.front().s;
     if(frenet_path.size()>3){

@@ -33,16 +33,13 @@ namespace fub_motion_planner{
       // Observe each step of xy and frenet transform and fix the issue
       FrenetCoordinate getFenet(tf::Point xy_pt, double theta);
       tf::Point getXY(FrenetCoordinate frenet_pt);
-      //creates a frenet coordinate frame using the m_path and fills up frenet_path
-      void transformToXYandFrenet();
       double distance(tf::Point a, tf::Point b){
         return sqrt((b[0]-a[0])*(b[0]-a[0]) + (b[1]-a[1])*(b[1]-a[1]));
       }
       double slope(tf::Point a, tf::Point b){
         return atan2((b[1]-a[1]),(b[0]-a[0]));
       }
-    //TODO change to protected or private
-    public:
+    private:
       void RoutePlannerCallback(const nav_msgs::Path & msg);
       /*returns index of he closest way point to given point*/
       int closestWayPoint(tf::Point pt);
@@ -50,6 +47,8 @@ namespace fub_motion_planner{
       int NextWayPoint(tf::Point pt,double theta);
       double calc_curvature(tf::Point pts0,tf::Point pts1,tf::Point pts2);
       void calc_speed_limit();
+      //creates a frenet coordinate frame using the m_path and fills up frenet_path
+      void transformToXYandFrenet();
     public:
       //Currently planned path
       nav_msgs::Path m_path;
@@ -62,7 +61,7 @@ namespace fub_motion_planner{
     private:
       ros::Subscriber m_subscribe_route_planner;
       ros::Publisher path_with_speed_profiles;
-      //TODO this is part of info read from the rndf file
+      //TODO this should be part of info read from the rndf file or supplied from the behavioral layer
       const double kLegalSpeedLimit = 1.5;
       const double kMinSpeedLimit = 0.4;//added as errors in curvature calc can drop the limit to too low
       const double kMaxLatAccLimit = 0.3;
