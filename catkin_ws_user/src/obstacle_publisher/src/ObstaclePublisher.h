@@ -12,6 +12,28 @@
 #include <std_msgs/Int16.h>
 
 namespace fub_obstacle_publisher{
+  class obstacle_def{
+    public:
+      double obst_start;
+      double obst_end;
+      double obst_cur_s;
+      double obst_d;
+      double obst_vel;
+      double obst_yaw;
+      int obst_id;
+
+      //Constructor
+      obstacle_def(double obst_start,double obst_end,double obst_d,double obst_vel,double obst_yaw, int obst_id){
+         this->obst_start = obst_start;
+         this->obst_end = obst_end;
+         this->obst_d = obst_d;
+         this->obst_vel = obst_vel;
+         this->obst_id = obst_id;
+         this->obst_yaw = obst_yaw;
+         this->obst_cur_s = obst_start;
+      }
+
+  };
 
 class ObstaclePublisher : public nodelet::Nodelet{
     public:
@@ -21,7 +43,7 @@ class ObstaclePublisher : public nodelet::Nodelet{
     protected:
       VehiclePath m_vehicle_path;
       //Pushlishers
-
+      ros::Publisher obstacles_list;
       //Publishers to vizualize obstacle paths
       ros::Publisher obst_path_1;
       ros::Publisher obst_path_2;
@@ -33,6 +55,10 @@ class ObstaclePublisher : public nodelet::Nodelet{
       void convert_path_to_obst_pos();
       ros::Timer m_timer;
     private:
+
+      std::vector<obstacle_def> obst_to_publish;
+      unsigned int gSeqNum=0;
+      double time_period_loop=0;
       //Constants
   };
 } // namespace fub_obstacle_publisher
