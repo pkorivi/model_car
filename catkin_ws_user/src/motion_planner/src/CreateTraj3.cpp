@@ -50,7 +50,7 @@ namespace fub_motion_planner{
   }
 
   double MotionPlanner::create_traj_const_acc_xy_spline_3(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
-          int polynomial_order, target_state &tgt,tf::Point current_pos_map, FrenetCoordinate frenet_val){
+           target_state &tgt,tf::Point current_pos_map, FrenetCoordinate frenet_val){
 
     double v_target= tgt.v_tgt;
     double a_target= tgt.a_tgt;
@@ -196,7 +196,6 @@ namespace fub_motion_planner{
       return cost;
     }
     //d_calc
-    //auto d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target, polynomial_order);
     std::vector<double> d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target,frenet_val.th, spts.front(), spts.back());
     if(std::isnan(d_coeffs[0])||std::isnan(d_coeffs[1])||std::isnan(d_coeffs[2])||std::isnan(d_coeffs[3])){
       ROS_ERROR("Nan in evaluation of d coeffs - traj planner");
@@ -232,22 +231,6 @@ namespace fub_motion_planner{
     //ROS_INFO("frenet to xy conversion: %f\n", (double)(clock() - tStart)/CLOCKS_PER_SEC);
     tStart = clock();
 
-    //Fit the points path points to a polynomial of given order
-    //std::cout << "sizes : "<< tpts.size()<<" "<< xpts.size()<<" "<< ypts.size()<<" " << '\n';
-    /* TODO - replacing with spline
-    auto x_coeffs =  polyfit(tpts, xpts,polynomial_order);
-    auto y_coeffs =  polyfit(tpts, ypts,polynomial_order);
-    auto v_coeffs =  polyfit(tpts, vpts,polynomial_order);
-    */
-
-    /* Replacing with ECL splines
-    tk::spline x;
-    tk::spline y;
-    tk::spline v;
-    x.set_points(tpts,xpts);
-    y.set_points(tpts,ypts);
-    v.set_points(tpts,vpts);
-    */
     ecl::CubicSpline mSpline_x;
     ecl::CubicSpline mSpline_y;
     ecl::CubicSpline mSpline_z;

@@ -10,6 +10,22 @@ TODO - Adjust the weights to give proper predictions
 //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order, tgt);
 //double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, tgt);
 
+
+different calls for different planners implemented
+
+/* TODO - remove these
+void create_traj_spline(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
+        double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
+void create_traj(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
+        double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
+void create_traj_const_acc(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
+        double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
+void create_traj_const_acc_xy_polyeval(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
+        double v_target,double a_target,double d_target,double v_max, double v_min, int polynomial_order);
+double create_traj_const_acc_xy_polyeval_2(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
+        double v_max, double v_min, int polynomial_order, target_state &tgt); //TODO move v_min, v_max, polynomial_order to MotionPlanner.h constants, remove prev state
+*/
+
 class target_state{
   public:
     target_state(double, double, double, double);
