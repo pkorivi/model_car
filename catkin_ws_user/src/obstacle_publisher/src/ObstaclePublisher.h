@@ -20,10 +20,13 @@ namespace fub_obstacle_publisher{
       double obst_d;
       double obst_vel;
       double obst_yaw;
+      double obst_width;
+      double obst_length;
       int obst_id;
 
       //Constructor
-      obstacle_def(double obst_start,double obst_end,double obst_d,double obst_vel,double obst_yaw, int obst_id){
+      obstacle_def(double obst_start,double obst_end,double obst_d,double obst_vel, \
+        double obst_yaw, int obst_id, double obst_width, double obst_length){
          this->obst_start = obst_start;
          this->obst_end = obst_end;
          this->obst_d = obst_d;
@@ -31,6 +34,8 @@ namespace fub_obstacle_publisher{
          this->obst_id = obst_id;
          this->obst_yaw = obst_yaw;
          this->obst_cur_s = obst_start;
+         this->obst_width = obst_width;
+         this->obst_length = obst_length;
       }
 
   };
