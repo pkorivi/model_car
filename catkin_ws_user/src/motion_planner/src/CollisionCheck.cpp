@@ -8,7 +8,7 @@ namespace fub_motion_planner{
   ** @param msg
   */
 
-  double MotionPlanner::CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts, std::vector<double> d_coeffs){
+  double MotionPlanner::CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> d_coeffs){
       //Move this to motion planner callback timer
       double cost = 0;
       if(current_state.m_obstacle_msg){
@@ -57,7 +57,7 @@ namespace fub_motion_planner{
           //Obstacle direction -0 default - something ahead is moving laterally - someone driving across or walking across
           int direction = 0;
           //TODO check that 0,180 dont mess here else its screwed up :-p
-          //TODO Check if the angle should be wrt to road ro vehicle? May be vehicle then only the intersections thing work else it will be screwed up 
+          //TODO Check if the angle should be wrt to road ro vehicle? May be vehicle then only the intersections thing work else it will be screwed up
           //if the angle betwen vehicle and road is between -pi/3 to pi/3 then its driving along the road direction = +1
           if (fabs(obst_frenet.th)<M_PI/3) {
             direction = 1;

@@ -90,7 +90,7 @@ namespace fub_motion_planner{
       /** callback for the timer that triggers the replanning */
       void callbackTimer(const ros::TimerEvent&);
       /*Function to perform CollisionCheck*/
-      double CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> t_pts, std::vector<double> d_coeffs);
+      double CollisionCheck(VehicleState current_state,std::vector<double> s_pts,std::vector<double> d_pts, std::vector<double> d_coeffs);
       /*Function to perform initial cost calculation for target state */
       void calc_cost(target_state &tgt, double vel_current, double d_tgt,double prev_d_tgt);
       /*create trajectory returns traj in nav_msgs::Path form, it should be converted to fub trajectory message before conversion */
