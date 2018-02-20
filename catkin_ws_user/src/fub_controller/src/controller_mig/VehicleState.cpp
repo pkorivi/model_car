@@ -17,7 +17,17 @@ void VehicleState::setup(ros::NodeHandle & nh)
 void VehicleState::plannedPathCallback(const fub_trajectory_msgs::TrajectoryConstPtr & msg)
 {
     std::cout << "Received the Path "<<'\n';
-    mPath = *msg;
+    //mPath = *msg;
+    /*To Run on Car*/
+    mPath.trajectory.clear();
+    mPath.header.seq = msg->header.seq;
+    mPath.header.stamp =  msg->header.stamp;
+    mPath.header.frame_id = msg->header.frame_id;
+    mPath.child_frame_id = msg->child_frame_id;
+    for (size_t i = 0; i < msg->trajectory.size(); i++) {
+      mPath.trajectory.push_back(msg->trajectory[i]);
+    }
+
     //TODO - Remove after debug
     ROS_INFO("When Path received: seq: %d x,y %.3f,%.3f   vel: %.3f  yaw:%.3f odom_time %f",msg->header.seq,mVehiclePosition[0],\
               mVehiclePosition[1], mCurrentSpeedFrontAxleCenter,getVehicleYaw(), mLastOdomTimeStampReceived.toSec());

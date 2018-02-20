@@ -115,19 +115,12 @@ void ControllerMig::update(VehicleState const & currentVehicleState)
         steerAngle = steerAngle * 3.0;
     }
 */
-    //ROS_INFO("x,y = %.3f, %.3f v_cur %.3f, v_req %.3f steer %.3f ",currentVehicleState.mVehiclePosition[0],currentVehicleState.mVehiclePosition[1],\
-    currentVehicleState.mCurrentSpeedFrontAxleCenter, wantedSpeed, mSteeringAngleNormalized);
+    ROS_INFO("cur_state:  x,y %.3f,%.3f   vel: %.3f  yaw:%.3f odom_time %.3f",currentVehicleState.mVehiclePosition[0],\
+          currentVehicleState.mVehiclePosition[1], currentVehicleState.mCurrentSpeedFrontAxleCenter,currentVehicleState.getVehicleYaw(),\
+           currentVehicleState.mLastOdomTimeStampReceived.toSec());
     publish(currentVehicleState);
 
     publishWantedSpeedAndFrontWheelAngle(wantedSpeed, mSteeringAngleNormalized);
-    //TODO Remove after debug
-    int16_t speed_pub =  static_cast<int16_t>(wantedSpeed *(-308.26));
-    int16_t steer_pub =  static_cast<int16_t>(80.0 * mSteeringAngleNormalized) + 81;
-    ROS_INFO("Commanded Values: steer_pb %d  norm_str %.3f   speed_pb %d   raw_spd %.3f ",steer_pub,mSteeringAngleNormalized,speed_pub, wantedSpeed);
-    ROS_INFO("cur_state:  x,y %.3f,%.3f   vel: %.3f  yaw:%.3f odom_time %.3f",currentVehicleState.mVehiclePosition[0],\
-              currentVehicleState.mVehiclePosition[1], currentVehicleState.mCurrentSpeedFrontAxleCenter,currentVehicleState.getVehicleYaw(),\
-               currentVehicleState.mLastOdomTimeStampReceived.toSec());
-    //TODO remove till here
 }
 
 void ControllerMig::publish(VehicleState const & vehicleState)
@@ -155,14 +148,24 @@ void ControllerMig::publishWantedSpeedAndFrontWheelAngle(double speed, double wh
         min max accc =  [-0.65, 0.65] lets limit it to [-0.5:0.5]
         1m - 5.1366 rotations of wheel.
         */
+
+        //Condition - This should be 0.5 on car and 0 on simulator
+        //TODO - set a speed limit on max value also
+        speed = speed<mConfig.min_speed?mConfig.min_speed:speed;
         wantedSpeedMsg.data        = static_cast<int16_t>(speed *(-308.26));
         mWantedSpeedPublisher.publish(wantedSpeedMsg);
 
+        //TODO - config file doesnt support -1 &1 so used 0,2 in .cfg file and here it is used as direction-1 to switch direction for simulator and car
         // publish wanted steering angle
         std_msgs::Int16 wantedAngleMsg;
         //TODO : Korivi - the eqn (90.0 * wheelAngle) + 90 changed to below for making them suitable for the model car
         //TODO - looks like the original 0 is left and 180 is right, simulator is reservse. change this
-        wantedAngleMsg.data = static_cast<int16_t>(80.0 * wheelAngle) + 81;
+        //TODO Remove after debug
+        int16_t speed_pub =  static_cast<int16_t>(speed *(-308.26));
+        int16_t steer_pub =  static_cast<int16_t>(mConfig.steer_center + (mConfig.steer_direction-1)*(mConfig.steer_max * wheelAngle)) ;
+        ROS_INFO("Commanded Values: steer_pb %d  norm_str %.3f   speed_pb %d   raw_spd %.3f ",steer_pub,wheelAngle,speed_pub, speed);
+        //TODO remove till here
+        wantedAngleMsg.data = static_cast<int16_t>(mConfig.steer_center + (mConfig.steer_direction-1)*(mConfig.steer_max * wheelAngle)) ;
         mWantedSteeringAnglePublisher.publish(wantedAngleMsg);
 }
 
