@@ -160,9 +160,31 @@ namespace fub_motion_planner{
 
     //This trajectory is not moving min 0.01 distance should  be travelled
     if ( fabs(spts.back()-spts.front())<=0.02) {
-        ROS_ERROR("Trajectory traverses zero distance");
-      cost =30; //TODO adjust the cost
+      ROS_INFO("Trajectory traverses zero distance");
+      cost =10; //TODO adjust the cost
+      nav_msgs::Path m_sampled_traj;
+      m_sampled_traj.header.stamp = ros::Time::now();
+      m_sampled_traj.header.frame_id = "/map";
+      for(double i=0;i<10;i++){
+        double t_pt = 0.1*i;//time
+        geometry_msgs::PoseStamped examplePose;
+        //ROS_INFO("xy %.3f,%.3f , v_xy, v_fit : %.3f  %.3f ", x_val, y_val, v_val, v_fit);
+        examplePose.pose.position.x = current_pos_map[0];
+        examplePose.pose.position.y = current_pos_map[1];
+        //Currently this velocity is used in trajectory converted to publish velocity at a point
+        examplePose.pose.position.z = 0;//i*t_sample;//v_fit;//v(t_pt); //velocity saved in z direction
+        examplePose.pose.orientation.x = 0.0;//a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
+        examplePose.pose.orientation.y = 0.0f;//TODO fix orientation
+        examplePose.pose.orientation.z = 0.0f;
+        examplePose.pose.orientation.w = 1.0f;
+        //push PoseStamped into Path
+        m_sampled_traj.poses.push_back(examplePose);
+      }
+      tgt.path = m_sampled_traj;
       tgt.cost += cost;
+      //last point reached in s
+      tgt.s_reched = spts.back();
+
       return cost;
     }
 
@@ -224,7 +246,7 @@ namespace fub_motion_planner{
       examplePose.pose.orientation.x = 0.0;//a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
       examplePose.pose.orientation.y = 0.0f;
       examplePose.pose.orientation.z = 0.0f;
-      examplePose.pose.orientation.w = 1.0f;
+      examplePose.pose.orientation.w = 1.0f;//TODO fix orientation -  we have dx, dy it should be fairly easy to use these and calcluate orientation
 
       //push PoseStamped into Path
       m_sampled_traj.poses.push_back(examplePose);

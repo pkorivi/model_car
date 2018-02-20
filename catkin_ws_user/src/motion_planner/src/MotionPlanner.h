@@ -106,8 +106,10 @@ namespace fub_motion_planner{
       const int kNumberOfSamples = 11;
       //Distance when the car is near the target - This could be improved to perfect value
       const double kThresholdDist = 0.25;
-      //Safety distance for the car - Half width of car(0.10)  + 0.05m extra for safety
-      const double kSafetyDist = 0.15;
+      //Safety distance for the car - of car(0.20)  + 0.10m extra for safety
+      const double kSafetyDist = 0.30;
+      // safety width for car - car width = 0.1, safety 0.5 and this should be added to hald width of obstacle
+      const double kSafetyWidth = 0.15;
       //sequence number for the trajectory
       unsigned int gPubSeqNum=0;
       //target d value - lane selection - updated in click point callback

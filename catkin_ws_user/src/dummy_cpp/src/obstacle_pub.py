@@ -33,9 +33,9 @@ def pub_obstacle_info():
     new_obstacles_list.header.frame_id = "map"
     new_obstacles_list.header.seq = sequence
     sequence +=1
-    obs_vel = [0.0,0.0]
-    obs_xy = [[2.8,-0.19],[3.35,2.8]]
-    for id_ in range(2):
+    obs_vel = [0.25,0.0,0.0]
+    obs_xy = [[2.3,-0.19],[3.35,2.3],[3.69,2.4]]
+    for id_ in range(3):
         new_obstacle = Obstacle()
         new_obstacle.id = id_
         new_obstacle.header.stamp = current_time
