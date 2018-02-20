@@ -66,23 +66,6 @@ namespace fub_motion_planner{
       tgt.cost += cost;
       return cost;
     }
-
-    /*
-    //Odom frame to map frame conversion for trajectory
-    geometry_msgs::PointStamped pt_Stamped_in,pt_stamped_out;
-    pt_Stamped_in.header.seq =1;
-    pt_Stamped_in.header.stamp = ros::Time::now();
-    pt_Stamped_in.header.frame_id= "/odom";
-    pt_Stamped_in.point.x = current_state.m_vehicle_position[0];
-    pt_Stamped_in.point.y = current_state.m_vehicle_position[1];
-    pt_Stamped_in.point.z = 0;
-    try{
-      m_tf_listener.listener.transformPoint("/map", pt_Stamped_in, pt_stamped_out);
-    }
-    catch (tf::TransformException &ex) {
-      ROS_ERROR("%s",ex.what());
-    }
-    */
     //current yaw
     double c_yaw = current_state.getVehicleYaw();
     //double time_from_prev_cycle = (current_state.m_last_odom_time_stamp_received - prev_state.m_last_odom_time_stamp_received).toSec();

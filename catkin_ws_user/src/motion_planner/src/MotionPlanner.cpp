@@ -79,7 +79,8 @@ namespace fub_motion_planner{
     pt_Stamped_in.point.y = odom_coordi[1];//current_state.m_vehicle_position[1];
     pt_Stamped_in.point.z = 0;
     try{
-      m_tf_listener.listener.transformPoint("/map", pt_Stamped_in, pt_stamped_out);
+      //m_tf_listener.listener.transformPoint("/map", pt_Stamped_in, pt_stamped_out);
+      m_tf_listener.listener.transformPoint("/map",ros::Time(0), pt_Stamped_in, "/odom", pt_stamped_out);
     }
     catch (tf::TransformException &ex) {
       ROS_ERROR("%s",ex.what());
@@ -110,7 +111,8 @@ namespace fub_motion_planner{
       pt_in.point.y = p.poses[i].pose.position.y;
       pt_in.point.z =0;
       try{
-        m_tf_listener.listener.transformPoint("/odom",pt_in,pt_out);
+        //m_tf_listener.listener.transformPoint("/odom",pt_in,pt_out);
+        m_tf_listener.listener.transformPoint("/odom",ros::Time(0), pt_in, "/map", pt_out);
       }
       catch (tf::TransformException &ex) {
         ROS_ERROR("%s",ex.what());
