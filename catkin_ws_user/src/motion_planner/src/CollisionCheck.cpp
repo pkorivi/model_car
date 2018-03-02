@@ -64,10 +64,8 @@ namespace fub_motion_planner{
           }else if(fabs(obst_frenet.th)>2*M_PI/3){ // If it is between -2/3pi and 2/3pi then it is driving opposite to the road -1.
             direction = -1;
           }
-
-          //TODO replace wih correct values
-          //This should be wcar/2 + wobst/2+safe_dist
-          double d_min_diff = 0.20;
+          //Bounding box y coordinate indicates width. thus width to left of center, right of center divided by 2
+          double d_min_diff = kSafetyWidth + (fabs(obst.bounding_box_min.y)+fabs(obst.bounding_box_max.y))/2;
           //Obstacle location over look ahead time
           std::vector<double> obst_s;
           for (size_t i = 0; i <= kLookAheadTime; i++) {
