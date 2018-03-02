@@ -80,10 +80,11 @@ namespace fub_motion_planner{
     pt_Stamped_in.point.z = 0;
     try{
       //m_tf_listener.listener.transformPoint("/map", pt_Stamped_in, pt_stamped_out);
-      m_tf_listener.listener.transformPoint("/map",ros::Time(0), pt_Stamped_in, "/odom", pt_stamped_out);
+      m_tf_listener.listener.waitForTransform("/map","/odom",ros::Time::now(),ros::Duration(0.01));
+      m_tf_listener.listener.transformPoint("/map",ros::Time(0), pt_Stamped_in, "/map", pt_stamped_out);
     }
     catch (tf::TransformException &ex) {
-      ROS_ERROR("%s",ex.what());
+      ROS_ERROR("to map fails %s",ex.what());
     }
     return tf::Point {pt_stamped_out.point.x,pt_stamped_out.point.y,0};
   }
@@ -111,11 +112,12 @@ namespace fub_motion_planner{
       pt_in.point.y = p.poses[i].pose.position.y;
       pt_in.point.z =0;
       try{
-        //m_tf_listener.listener.transformPoint("/odom",pt_in,pt_out);
-        m_tf_listener.listener.transformPoint("/odom",ros::Time(0), pt_in, "/map", pt_out);
+       // m_tf_listener.listener.transformPoint("/odom",pt_in,pt_out);
+	      m_tf_listener.listener.waitForTransform("/odom","/map",ros::Time::now(),ros::Duration(0.01));
+	      m_tf_listener.listener.transformPoint("/odom",ros::Time(0), pt_in, "/map", pt_out);
       }
       catch (tf::TransformException &ex) {
-        ROS_ERROR("%s",ex.what());
+        ROS_ERROR(" to odom conv fails %s",ex.what());
       }
       //Fill x,y in trajectory point
       tp.pose.position.x = pt_out.point.x;
@@ -254,8 +256,8 @@ namespace fub_motion_planner{
       		//create_traj(final_states.front());
           double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1, final_states.front(),current_pos_map,curr_frenet_coordi);
           //std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
-          ROS_INFO("Traj Eval ID: %d, cost %.3f cur v,s,d %.3f,%.3f,%.3f , tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
-          curr_frenet_coordi.d,final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
+          ROS_INFO("Traj Eval ID: %d, cost %.3f cur v,s,d,th %.3f,%.3f,%.3f,%.3f ,x,y %.3f,%.3f  ,tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
+          curr_frenet_coordi.d,curr_frenet_coordi.th,current_pos_map[0],current_pos_map[1],final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
       		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
          				return ts1.cost < ts2.cost;});
       	}
