@@ -209,8 +209,7 @@ namespace fub_motion_planner{
       ecl_x[i] = xy[0];
       ecl_y[i] = xy[1];
       ecl_ts[i] = i*t_sample;
-      //std::cout.width(3);
-      //std::cout << "x,y  "<<xy[0]<<","<<xy[1] <<"      s,d  "<<spts[i] <<","<< dpts[i]<<"    vel  "<< vpts[i] <<'\n';
+
     }
 
     cost += CollisionCheck(current_state,spts,dpts,d_coeffs);
@@ -224,7 +223,7 @@ namespace fub_motion_planner{
     mSpline_x = ecl::CubicSpline::ContinuousDerivatives(ecl_ts, ecl_x, v_current*cos(c_yaw), (ecl_x[kNumberOfSamples-1] - ecl_x[kNumberOfSamples-2])/t_sample);
     mSpline_y = ecl::CubicSpline::ContinuousDerivatives(ecl_ts, ecl_y, v_current*sin(c_yaw), (ecl_y[kNumberOfSamples-1] - ecl_y[kNumberOfSamples-2])/t_sample);
     //mSpline_z = ecl::CubicSpline::ContinuousDerivatives(x_set, y_set_z, frontVelocity.getZ(), backVelocity.getZ());
-
+    //ROS_INFO("mp xy %.3f,%.3f conv_map_xy %.3f,%.3f, spline x,y %.3f,%.3f, v_xy %.3f,%.3f ",current_pos_map[0],current_pos_map[1],ecl_x[0],ecl_y[0],mSpline_x(0),mSpline_y(0),v_current*cos(c_yaw),v_current*sin(c_yaw));
     nav_msgs::Path m_sampled_traj;
     m_sampled_traj.header.stamp = ros::Time::now();
     m_sampled_traj.header.frame_id = "/map";

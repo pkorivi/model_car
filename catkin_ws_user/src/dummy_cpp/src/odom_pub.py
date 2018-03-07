@@ -21,7 +21,7 @@ rcv_pose = PoseStamped()
 listener = tf.TransformListener()
 
 def pub_odom():
-    vel =0.2
+    vel =0.3
     #print rcv_pose
 
     if rcv_pose.pose.orientation.w == 0:

@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="ideal_controller" type="ideal_controller" name="ideal_controller" output="screen">
+    </node>
+</launch>

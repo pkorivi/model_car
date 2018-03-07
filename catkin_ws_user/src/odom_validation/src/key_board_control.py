@@ -17,10 +17,10 @@ CTRL-C to quit
 """
 
 speedBindings = {
-        'u':100,
-		'j':-100,
-        'U':100,
-        'J':-100,
+        'u':50,
+		'j':-50,
+        'U':50,
+        'J':-50,
 	       }
 turnBindings = {
         'i':3,
@@ -43,7 +43,7 @@ def getKey():
     return key
 
 speed_val = 0
-turn_val = 81
+turn_val = 90
 
 def vels(speed,turn):
     return "currently:\tspeed %s\tturn %s " % (speed,turn)
@@ -63,10 +63,10 @@ if __name__=="__main__":
             if key in speedBindings.keys():
                 #print "mv key!!",key,"!!"
                 speed_val +=  speedBindings[key]
-                if (speed_val > 800):
-                    speed_val = 800
-                elif (speed_val <-800):
-                    speed_val = -800
+                if (speed_val > 200):
+                    speed_val = 200
+                elif (speed_val <-200):
+                    speed_val = -200
             elif key in turnBindings.keys():
                 #print "sp key!!",key,"!!"
                 turn_val += turnBindings[key]
@@ -75,11 +75,11 @@ if __name__=="__main__":
                 elif turn_val <0:
                     turn_val =0;
             elif key in stopBindings.keys():
-                turn_val = 81
+                turn_val = 90
                 speed_val = 0
             if (key == '\x03'):
                 speed.publish(0)
-                turn.publish(81)
+                turn.publish(90)
                 break
 
             print vels(speed_val,turn_val)

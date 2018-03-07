@@ -120,12 +120,20 @@ namespace fub_motion_planner{
       frenet_d *= -1; //lets say frenet coordinates are -ve on left side of reference driving line.
 
     double frenet_s = frenet_path[prev_wp].s + distance(xy_path[prev_wp],pt_on_line);
-    //Road to car angle difference
-    double car_road_th = frenet_path[next_wp].th -theta;
-    if (car_road_th>3.14)
-      car_road_th=car_road_th-6.28;
-    else if (car_road_th<-3.14)
-      car_road_th=car_road_th+6.28;
+    //Road to car angle difference -  //TODO check if this averaging is a good idea or not - may be its good to just not average
+    double car_road_th=0;
+    if (next_wp==frenet_path.size()-1) {
+      car_road_th = frenet_path[next_wp].th -theta;
+    }
+    else{
+      //Average of angle formed by previous and next waypoint also
+      //car_road_th = (frenet_path[next_wp-1].th+frenet_path[next_wp].th+frenet_path[next_wp+1].th)/3 -theta;
+      car_road_th = frenet_path[next_wp].th -theta;
+    }
+    if (car_road_th>M_PI)
+      car_road_th=car_road_th-2*M_PI;
+    else if (car_road_th<-M_PI)
+      car_road_th=car_road_th+2*M_PI;
     //TODO remove debug
     //ROS_INFO("Gt Frnt projxy %f, %f, prev_x,y %f, %f , next_xy %f %f", proj_x,proj_y,xy_path[prev_wp][0],xy_path[prev_wp][1],xy_path[next_wp][0],xy_path[next_wp][1]);
     //ROS_INFO("nwp %d pwp %d , pwp_s %f , ",next_wp,prev_wp,frenet_path[prev_wp].s,distance(xy_path[prev_wp],pt_on_line));
@@ -157,21 +165,25 @@ namespace fub_motion_planner{
   */
   int VehiclePath::NextWayPoint(tf::Point pt, double theta){
     int closest_way_pt  = closestWayPoint(pt);
-    //angle between the point and the closest_way_pt
-    double heading = slope(pt,xy_path[closest_way_pt]);
-    double angle = theta - heading;
-    //Normalize angle to be in -pi to pi
-    if (angle>M_PI)
-      angle=angle-2*M_PI;
-    else if (angle<-M_PI)
-      angle=angle+2*M_PI;
-    angle = abs(angle);
-    //If the orientation of the point/car position and closest_way_pt is more than
-    // 45 degrees, then the point is behind the car. so choose the next point
-    if((angle>(M_PI/4)) && (closest_way_pt < (xy_path.size()-1))) //If the closest point is already the end point dont increment it
-      closest_way_pt++;
-    //TODO Remove debug
-    //ROS_INFO("NW closest_wp %d , heading = %f , angle = %f ",closest_way_pt, heading, angle);
+    if (closest_way_pt == 0) {
+      return 1; // Default choose next waypoint
+    }
+    else{
+      double heading = slope(pt,xy_path[closest_way_pt]);
+      double heading2 = slope(xy_path[closest_way_pt-1],xy_path[closest_way_pt]);
+      //Find the angle formed by the point, closest point and point prev to closest
+      double angle = heading-heading2;
+      //Normalize angle to be in -pi to pi
+      if (angle>M_PI)
+        angle=angle-2*M_PI;
+      else if (angle<-M_PI)
+        angle=angle+2*M_PI;
+      angle = fabs(angle);
+      //If the angle formed is greater than 90 degrees then the next way point is obtained by incrementing closest point
+      if (angle > M_PI/2) {
+        closest_way_pt++;
+      }
+    }
     return closest_way_pt;
   }
 

@@ -1,7 +1,8 @@
 <launch>
   <arg name="map_file" default="$(find dummy_cpp)/launch/map2.yaml"/>
   <!-- Map file with 0,0 origin for visual GPS-->
-  <!--arg name="map_file" default="$(find dummy_cpp)/launch/map3.yaml"/-->
+  <!--arg name="map_file" default="$(find dummy_cpp)/launch/map2.yaml"/-->
+  <!--arg name="map_file" default="$(find dummy_cpp)/launch/map4.yaml"/-->
   <!-- Run the map server -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
     </node>

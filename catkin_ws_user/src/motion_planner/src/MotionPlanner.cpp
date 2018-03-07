@@ -29,7 +29,7 @@ namespace fub_motion_planner{
       m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj", 1);
       mp_traj1 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_1", 1);
       mp_traj2 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_2", 1);
-      mp_traj3 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_3", 1);
+      mp_traj3 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_3", 20);
       mp_traj4 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_4", 1);
       m_timer = getNodeHandle().createTimer(timerPeriod, &MotionPlanner::callbackTimer, this);
       //TODO Initialize obstacle publishers - Remove at end
@@ -97,7 +97,7 @@ namespace fub_motion_planner{
     fub_trajectory_msgs::Trajectory traj;
     ros::Time t_n = ros::Time::now();
     traj.header.seq = gPubSeqNum++;
-    traj.header.stamp = t_n;
+    traj.header.stamp = m_vehicle_state.m_last_odom_time_stamp_received;//t_n;
     traj.header.frame_id = "/odom";
     traj.child_frame_id = "/base_link";
     fub_trajectory_msgs::TrajectoryPoint tp;
@@ -127,17 +127,21 @@ namespace fub_motion_planner{
       /*Yaw of the car plays a crucial role as the car can be in different orientations wrt road and it needs be mapped properly */
       //Initial fill vehicle yaw
       if(i == 0){
-        l_yaw = initial_yaw;
+        //TODO check this
+        //l_yaw = initial_yaw;
+        l_yaw = atan2((p.poses[i+1].pose.position.y - p.poses[i].pose.position.y),(p.poses[i+1].pose.position.x-p.poses[i].pose.position.x));
       }
       else if(i==p.poses.size()-1){ //Last Point - fill with road orientation
-        FrenetCoordinate fp =  m_vehicle_path.getFenet(tf::Point{pt_in.point.x,pt_in.point.y,0},0);
-        l_yaw = fp.th;//Here road angle is returned
+        //TODO check this
+        //FrenetCoordinate fp =  m_vehicle_path.getFenet(tf::Point{pt_in.point.x,pt_in.point.y,0},0);
+        //l_yaw = fp.th;//Here road angle is returned
+        l_yaw = atan2((p.poses[i].pose.position.y - p.poses[i-1].pose.position.y),(p.poses[i].pose.position.x-p.poses[i-1].pose.position.x));
       }
       else{ // slope of sample points is the orientation - the points are already in order that the car can follow
         l_yaw = atan2((p.poses[i+1].pose.position.y - p.poses[i].pose.position.y),(p.poses[i+1].pose.position.x-p.poses[i].pose.position.x));
       }
       //calculate the angle of the car at each pose
-      tf::Quaternion qat =  tf::createQuaternionFromYaw(l_yaw*180/M_PI);
+      tf::Quaternion qat =  tf::createQuaternionFromYaw(l_yaw);
       tp.pose.orientation.x = qat[0];
       tp.pose.orientation.y = qat[1];
       tp.pose.orientation.z = qat[2];
@@ -180,6 +184,19 @@ namespace fub_motion_planner{
         double s_target = m_vehicle_path.frenet_path.back().s;
         tf::Point current_pos_map = convert_to_map_coordinate(current_vehicle_state.m_vehicle_position);
         FrenetCoordinate curr_frenet_coordi =  m_vehicle_path.getFenet(current_pos_map,current_vehicle_state.getVehicleYaw());
+
+        //Stop the car if it leaves the track- with some buffer - emergency
+        if(fabs(curr_frenet_coordi.d) > 0.45){
+          target_state emergency_tgt(s_target,curr_frenet_coordi.d,0,acc_prof[7], 0,0);
+          double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1, emergency_tgt ,current_pos_map,curr_frenet_coordi);
+          nav_msgs::Path emer_path = emergency_tgt.path;
+          m_vehicle_path.route_path_exists = false;
+          ROS_ERROR("vehicle out of the path - triggering emergency stop");
+          mp_traj2.publish(emer_path);
+          convert_path_to_fub_traj(emer_path,current_vehicle_state.getVehicleYaw());
+          m_vehicle_path.route_path_exists = false;
+          return;
+        }
         //velocity target is taken from speed limit information stored in the path - look into how speed limit is calculated for further reference
         size_t idx = ((int)(curr_frenet_coordi.s*10));
         idx = idx>m_vehicle_path.speed_limit.size()-1?m_vehicle_path.speed_limit.size()-1:idx;
@@ -209,7 +226,7 @@ namespace fub_motion_planner{
               //(S,D,V,A,COST,id)
       				target_state tgt(s_target,d_eval,vel_target,acc_prof[j], 0,index++);
       				calc_cost(tgt, vel_current, d_target, prev_d_target);
-      				std::cout.width(5);
+      				std::cout.precision(2);
       				final_states.push_back(tgt);
       			}
       		}
@@ -220,7 +237,7 @@ namespace fub_motion_planner{
               //(S,D,V,A,COST,id)
       				target_state tgt(s_target,d_eval,vel_target,acc_prof[j], 0,index++);
       				calc_cost(tgt, vel_current, d_target, prev_d_target);
-      				std::cout.width(5);
+      				std::cout.precision(2);
       				final_states.push_back(tgt);
       			}
       		}
@@ -232,7 +249,7 @@ namespace fub_motion_planner{
             //(S,D,V,A,COST,id) extra cost for going to zero
       			target_state tgt(s_target,d_eval,vel_target,acc_prof[j], 2,index++);
       			calc_cost(tgt, vel_current, d_target, prev_d_target);
-      			std::cout.width(5);
+      			std::cout.precision(2);
       			final_states.push_back(tgt);
       		}
       	}
@@ -241,7 +258,7 @@ namespace fub_motion_planner{
             //(S,D,V,A,COST,id) extra cost for going to zero with high braking +3 cost
       			target_state tgt(s_target,curr_frenet_coordi.d,vel_target,acc_prof[j], 2.3,index++);
       			calc_cost(tgt, vel_current, d_target, prev_d_target);
-      			std::cout.width(5);
+      			std::cout.precision(2);
       			final_states.push_back(tgt);
       			//std::cout << tgt.cost<<'\n';
       	}
@@ -256,8 +273,8 @@ namespace fub_motion_planner{
       		//create_traj(final_states.front());
           double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1, final_states.front(),current_pos_map,curr_frenet_coordi);
           //std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
-          ROS_INFO("Traj Eval ID: %d, cost %.3f cur v,s,d,th %.3f,%.3f,%.3f,%.3f ,x,y %.3f,%.3f  ,tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
-          curr_frenet_coordi.d,curr_frenet_coordi.th,current_pos_map[0],current_pos_map[1],final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
+          ROS_INFO("Traj Eval ID: %d, cost %.2f cur v,s,d,th %.2f,%.2f,%.2f,%.2f ,x,y,yaw %.2f,%.2f,%.3f odom x,y %.3f,%.3f ,tgt a,v,s,d %.2f,%.2f,%.2f,%.2f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
+          curr_frenet_coordi.d,curr_frenet_coordi.th,current_pos_map[0],current_pos_map[1],current_vehicle_state.getVehicleYaw(),current_vehicle_state.m_vehicle_position[0],current_vehicle_state.m_vehicle_position[1],final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
       		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
          				return ts1.cost < ts2.cost;});
       	}
@@ -267,8 +284,9 @@ namespace fub_motion_planner{
         //If cost of the chosen trajectory is less than 20 then the path created is collision free then publish that path
         if (final_states.front().cost<20) {
           p1 = final_states.front().path;
-          ROS_INFO("Final Published ID: %d, cost %.3f cur v,s,d %.3f,%.3f,%.3f , tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
+          //ROS_INFO("Final Published ID: %d, cost %.3f cur v,s,d %.3f,%.3f,%.3f , tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
           curr_frenet_coordi.d,final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
+          ROS_INFO("Final published %d",final_states.front().id);
         }
         else{ //No path exists - emergency breaking
           target_state emergency_tgt(s_target,curr_frenet_coordi.d,0,acc_prof[7], 0,0);
