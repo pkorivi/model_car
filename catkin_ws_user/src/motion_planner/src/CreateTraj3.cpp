@@ -17,6 +17,9 @@ namespace fub_motion_planner{
     details provided in concept of Master thesis document also.
   */
   std::vector<double> evaluate_d_coeffs(double d_cur,double d_tgt, double theta, double s_i, double s_f){
+    /*TODO Remove this limit once everything works fine - limiting the road to vehicle angle ot max of 30 degrees*/
+    theta = theta>M_PI/6?M_PI/6:theta;
+    theta = theta<-M_PI/6?-M_PI/6:theta;
     Eigen::MatrixXd A = Eigen::MatrixXd(4,4);
     double si_sq = s_i*s_i;
     double sf_sq = s_f*s_f;
