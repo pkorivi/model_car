@@ -54,6 +54,8 @@ class ObstaclePublisher : public nodelet::Nodelet{
       ros::Publisher obst_path_2;
       ros::Publisher obst_path_3;
 
+      ros::Publisher obst_odom_1;
+
       /** The callback for the timer that triggers the update.
       */
       void callbackTimer(const ros::TimerEvent&);

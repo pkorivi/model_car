@@ -110,6 +110,12 @@ namespace fub_motion_planner{
       const double kSafetyDist = 0.30;
       // safety width for car - car width = 0.1, safety 0.5 and this should be added to hald width of obstacle
       const double kSafetyWidth = 0.15;
+      //Safety distance in terms of time
+      const double kSafetyTimeDiff = 1;
+      //Safety Time cost multiple
+      const double kSafetyTimeDiffCostMul = 3;
+      //Min velocity to consider obstacle moving
+      const double kMinMovingObstvel = 0.05;
       //sequence number for the trajectory
       unsigned int gPubSeqNum=0;
       //target d value - lane selection - updated in click point callback

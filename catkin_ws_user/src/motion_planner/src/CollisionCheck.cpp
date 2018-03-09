@@ -56,16 +56,21 @@ namespace fub_motion_planner{
 
           //Obstacle direction -0 default - something ahead is moving laterally - someone driving across or walking across
           int direction = 0;
-          //TODO check that 0,180 dont mess here else its screwed up :-p
           //TODO Check if the angle should be wrt to road ro vehicle? May be vehicle then only the intersections thing work else it will be screwed up
           //if the angle betwen vehicle and road is between -pi/3 to pi/3 then its driving along the road direction = +1
           if (fabs(obst_frenet.th)<M_PI/3) {
             direction = 1;
           }else if(fabs(obst_frenet.th)>2*M_PI/3){ // If it is between -2/3pi and 2/3pi then it is driving opposite to the road -1.
             direction = -1;
+          }else{ //Jay walking or vehicles driving cross at intersection
+            direction =0;
           }
           //Bounding box y coordinate indicates width. thus width to left of center, right of center divided by 2
           double d_min_diff = kSafetyWidth + (fabs(obst.bounding_box_min.y)+fabs(obst.bounding_box_max.y))/2;
+          //Increase the lateral safety distance by lane width such that if he is here far end of other lane then onöly drive
+          if ((direction == 0) && (obstVel.x > kMinMovingObstvel)) {
+            d_min_diff += 0.25;
+          }
           //Obstacle location over look ahead time
           std::vector<double> obst_s;
           for (size_t i = 0; i <= kLookAheadTime; i++) {
@@ -116,7 +121,7 @@ namespace fub_motion_planner{
               continue; //go to next obstacle
             }
             else{ //check for collision in d where s is intersecting
-              std::cout <<"obst Id "<<obst.id <<" x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d th"<<obst_frenet.s<<" "<<obst_frenet.d<<" "<<obst_frenet.th <<" vel "<<obstVel.x<< '\n';
+              std::cout <<"obst Id "<<obst.id <<" x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d th"<<obst_frenet.s<<" "<<obst_frenet.d<<" "<<obst_frenet.th <<" vel "<<obstVel.x<<" direc "<<direction <<'\n';
               double d_val1 = polyeval_m( d_coeffs,intersection.front());
               double d_val2 = polyeval_m( d_coeffs,intersection.back());
               std::cout << "intersection  "<<intersection.front()<<"  "<<intersection.back() <<"  d_ego "<<d_val1<<" "<<d_val2<<" obs_D "<<obst_frenet.d << '\n';
@@ -125,8 +130,8 @@ namespace fub_motion_planner{
                   (fabs((d_val1+d_val2)/2 - obst_frenet.d)> d_min_diff)){ //in middle of intersection also road is free
                     continue; //go to next obstacle
                   }
-              else{ //collision in s and d, //TODO may be remove this 0.05 and make zero
-                if(obstVel.x>0.05){ // for collision in t for dynamic obstacles
+              else{ //collision in s and d, //TODO may be remove this kMinMovingObstvel and make zero
+                if(obstVel.x>kMinMovingObstvel && direction !=0){ // for collision in t for dynamic obstacles
                   //Check for timing - dynamic obstacle - static obstacle not needed consider it collision
                   double pt_duration = kLookAheadTime/(s_pts.size()-1);
                   size_t i=0;
@@ -145,7 +150,7 @@ namespace fub_motion_planner{
                   for (i = s_pts.size()-2; i >=0; i--) {
                     if((intersection.back()>=s_pts[i]) && (fabs(d_pts[i] - obst_frenet.d)<= d_min_diff)){
                       ego_t2 = (i+1)*pt_duration; // Margin as higher end of time
-                      obst_t2 = fabs(s_pts[i+1] - obst_frenet.s)/obstVel.x ;
+                      obst_t2 = fabs(s_pts[i+1] - obst_frenet.s)/obstVel.x ; //TODO safer to keep here i instead of i+1 while behind the obstacle and +1 while infront of obstacle choose what to do
                       break;
                     } //found where time starts
                   }
@@ -156,7 +161,7 @@ namespace fub_motion_planner{
                     double minimum_time_diff = std::min(fabs(ego_t1-obst_t1),fabs(ego_t2-obst_t2));
                     //If the  minimum time difference is >2s then all good, safe to derivative
                     //If the time is less than 2, add a proportional cost to how close it gets to obstacle
-                    cost += (minimum_time_diff>2)?0:(2-minimum_time_diff)*3; //add cost to all obstacles
+                    cost += (minimum_time_diff>kSafetyTimeDiff)?0:(kSafetyTimeDiff-minimum_time_diff)*kSafetyTimeDiffCostMul; //add cost to all obstacles
                   }//else cost of 50 defined initially will be returned
                   else{
                     cost += 50; //Collision with Dynamic Obstacle

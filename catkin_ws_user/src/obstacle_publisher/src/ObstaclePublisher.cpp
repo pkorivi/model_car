@@ -35,10 +35,23 @@ namespace fub_obstacle_publisher{
     int obst_id =0;
     // obst_start, obst_end, obst_d, obst_vel, obst_yaw wrt to road, obst_id, obst width, obst length
     //Dynamic
-    obst_to_publish.push_back(obstacle_def(1,5,0.17,0.25,0,obst_id++, 0.2,0.3));
-    //Static
-    obst_to_publish.push_back(obstacle_def(2.5,2.5,0.17,0.0,0,obst_id++,0.1,0.2));
+    //in oppsite direction
+    //obst_to_publish.push_back(obstacle_def(9.0,0.1,-0.20,0.3,0,obst_id++, 0.15,0.25));
+    //In same direction
+    obst_to_publish.push_back(obstacle_def(1.0,6,-0.17,0.6,0,obst_id++, 0.15,0.25));
+    obst_to_publish.push_back(obstacle_def(1.0,6,0.17,0.6,0,obst_id++, 0.15,0.25));
 
+    //set of static obstacles - Depecting parked vehicles on sides
+    /*obst_to_publish.push_back(obstacle_def(2.0,2.0,0.27,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(2.3,2.3,0.20,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(2.7,2.7,0.13,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(3.1,3.1,0.05,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(3.5,3.5,-0.05,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(3.9,3.9,-0.15,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(4.3,4.3,-0.26,0.0,0,obst_id++, 0.1,0.1));*/
+    //Static
+    //obst_to_publish.push_back(obstacle_def(2.5,2.5,0.17,0.0,0,obst_id++,0.1,0.2));
+    obst_odom_1 = getNodeHandle().advertise<nav_msgs::Odometry>("/obst_odom_1",10);
   }
 
   void ObstaclePublisher::callbackTimer(const ros::TimerEvent &){
@@ -49,14 +62,24 @@ namespace fub_obstacle_publisher{
       obst_list.header.seq = gSeqNum++;
       //stack the obstacles definition into obstacles
       for (size_t i = 0; i < obst_to_publish.size(); i++) {
+        double direction =1;
+        if(obst_to_publish[i].obst_end<obst_to_publish[i].obst_start)
+          direction = -1;
         autonomos_obstacle_msgs::Obstacle new_obstacle;
         new_obstacle.id = i;
         new_obstacle.header.stamp = t_now;
         new_obstacle.header.frame_id = "map";
         new_obstacle.header.seq = i;
         double var_abs_vel = obst_to_publish[i].obst_vel;
-        obst_to_publish[i].obst_cur_s += time_period_loop*obst_to_publish[i].obst_vel;//s = s+vt;
-        obst_to_publish[i].obst_cur_s = (obst_to_publish[i].obst_cur_s<=obst_to_publish[i].obst_end)?obst_to_publish[i].obst_cur_s:obst_to_publish[i].obst_end;
+        //Logic to stop the dynamic obstacle suddenly
+        if(obst_to_publish[i].obst_cur_s > 5.6){
+          var_abs_vel=0;
+        }
+        obst_to_publish[i].obst_cur_s += time_period_loop*obst_to_publish[i].obst_vel*direction;//s = s+vt;
+        if(direction>=0)
+          obst_to_publish[i].obst_cur_s = (obst_to_publish[i].obst_cur_s<=obst_to_publish[i].obst_end)?obst_to_publish[i].obst_cur_s:obst_to_publish[i].obst_end;
+        else
+          obst_to_publish[i].obst_cur_s = (obst_to_publish[i].obst_cur_s>=obst_to_publish[i].obst_end)?obst_to_publish[i].obst_cur_s:obst_to_publish[i].obst_end;
         tf::Point pt = m_vehicle_path.getXY(FrenetCoordinate(obst_to_publish[i].obst_cur_s,obst_to_publish[i].obst_d,0,0));
         // obstacle yaw - wrt to map
         double obstacle_map_yaw = obst_to_publish[i].obst_yaw;
@@ -67,6 +90,7 @@ namespace fub_obstacle_publisher{
           }
         }
         //Obstacle odometry
+        obstacle_map_yaw = (direction>=0)?obstacle_map_yaw:M_PI+obstacle_map_yaw;
         geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(obstacle_map_yaw);
         nav_msgs::Odometry odom;
         odom.header.stamp = t_now;
@@ -80,6 +104,10 @@ namespace fub_obstacle_publisher{
         odom.twist.twist.linear.y = 0;
         odom.twist.twist.angular.z = 0;
         new_obstacle.odom = odom;
+
+        /*Publish odometry of each obstacle for tracking in simulation*/
+        obst_odom_1.publish(odom);
+
         //TwistWithCovariance
         geometry_msgs::TwistWithCovariance abs_vel;
         abs_vel.twist.linear.x = var_abs_vel;
