@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="route_planner" type="route_planner.py" name="RNDF_High_level_Route_Planner" output="screen">
+    </node>
+</launch>
