@@ -33,24 +33,43 @@ namespace fub_obstacle_publisher{
     m_timer = getNodeHandle().createTimer(timerPeriod, &ObstaclePublisher::callbackTimer, this);
     obstacles_list = getNodeHandle().advertise<autonomos_obstacle_msgs::Obstacles>("/obstacles",10);
     int obst_id =0;
-    // obst_start, obst_end, obst_d, obst_vel, obst_yaw wrt to road, obst_id, obst width, obst length
+    // obst_start_s, obst_end_s, obst_d, obst_vel, obst_yaw wrt to road, obst_id, obst width, obst length
     //Dynamic
     //in oppsite direction
-    //obst_to_publish.push_back(obstacle_def(9.0,0.1,-0.20,0.3,0,obst_id++, 0.15,0.25));
-    //In same direction
-    obst_to_publish.push_back(obstacle_def(1.0,6,-0.17,0.6,0,obst_id++, 0.15,0.25));
-    obst_to_publish.push_back(obstacle_def(1.0,6,0.17,0.6,0,obst_id++, 0.15,0.25));
+    //obst_to_publish.push_back(obstacle_def(7.0,0.1,-0.2,0.8,0,obst_id++, 0.20,0.25));
 
-    //set of static obstacles - Depecting parked vehicles on sides
-    /*obst_to_publish.push_back(obstacle_def(2.0,2.0,0.27,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(2.3,2.3,0.20,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(2.7,2.7,0.13,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(3.1,3.1,0.05,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(3.5,3.5,-0.05,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(3.9,3.9,-0.15,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(4.3,4.3,-0.26,0.0,0,obst_id++, 0.1,0.1));*/
+    //two dynamic obstacles in same direction
+    //obst_to_publish.push_back(obstacle_def(1.0,6,-0.17,0.6,0,obst_id++, 0.15,0.25));
+    //obst_to_publish.push_back(obstacle_def(1.0,6,0.17,0.6,0,obst_id++, 0.15,0.25));
+
+    //slow moving in same lane
+    obst_to_publish.push_back(obstacle_def(1.5,20,-0.17,0.5,0,obst_id++, 0.15,0.25));
+    obst_to_publish.push_back(obstacle_def(6.0,20,-0.17,0.5,0,obst_id++, 0.15,0.25));
+
+    //set of static obstacles - blocked lane
+    /*
+    obst_to_publish.push_back(obstacle_def(4.5,4.5,0.27,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(4.5,4.5,0.20,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(4.5,4.5,0.13,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(4.5,4.5,0.05,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(4.5,4.5,-0.05,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(4.5,4.5,-0.15,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(4.5,4.5,-0.26,0.0,0,obst_id++, 0.1,0.1));
+    //*/
+
+    //set of static obstacles - parked vehicles protruding into lane
+/*    obst_to_publish.push_back(obstacle_def(2.1,2.1,0.25,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(2.5,2.5,0.25,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(2.9,2.9,0.27,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(3.2,3.2,0.27,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(3.5,3.5,0.30,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(3.8,3.8,0.30,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(4.1,4.1,0.25,0.0,0,obst_id++, 0.1,0.1));*/
+
+
     //Static
-    //obst_to_publish.push_back(obstacle_def(2.5,2.5,0.17,0.0,0,obst_id++,0.1,0.2));
+    //obst_to_publish.push_back(obstacle_def(5.0,5.0,0.20,0.0,0,obst_id++,0.1,0.2));
+
     obst_odom_1 = getNodeHandle().advertise<nav_msgs::Odometry>("/obst_odom_1",10);
   }
 

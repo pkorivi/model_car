@@ -1,0 +1,3 @@
+catkin_make ObstaclePublisher
+
+roslaunch obstacle_publisher obstacle_publisher.launch

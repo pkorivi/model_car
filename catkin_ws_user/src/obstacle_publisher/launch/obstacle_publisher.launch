@@ -4,4 +4,5 @@
 	<node pkg="nodelet" type="nodelet" args="load ObstaclePublisher/ObstaclePublisher op_nodelet_manager"
     name="ObstaclePublisher" output="screen">
 	</node>
+	<include file="$(find autonomos_obstacle_msgs)/launch/ObjectVisualizer.launch"/>
 </launch>
