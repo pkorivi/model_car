@@ -120,6 +120,10 @@ namespace fub_motion_planner{
       unsigned int gPubSeqNum=0;
       //target d value - lane selection - updated in click point callback
       double gTargetd = 0.17;
+      //vehicle length to front from rear axle
+      double kLengthForward = 0.25;
+      //vehicle length to back from rear axle
+      double kLengthBackward = 0.10;
   };
 } // namespace sample_nodelet_ns
 

@@ -124,6 +124,7 @@ namespace fub_motion_planner{
               std::cout <<"obst Id "<<obst.id <<" x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d th"<<obst_frenet.s<<" "<<obst_frenet.d<<" "<<obst_frenet.th <<" vel "<<obstVel.x<<" direc "<<direction <<'\n';
               double d_val1 = polyeval_m( d_coeffs,intersection.front());
               double d_val2 = polyeval_m( d_coeffs,intersection.back());
+              //TODO add the dmin and dmax by finding min max of the d, if s positions for min max falls in the intersection
               std::cout << "intersection  "<<intersection.front()<<"  "<<intersection.back() <<"  d_ego "<<d_val1<<" "<<d_val2<<" obs_D "<<obst_frenet.d << '\n';
               if((fabs(d_val1 - obst_frenet.d)> d_min_diff)&&   //start of intersection
                   (fabs(d_val2 - obst_frenet.d)> d_min_diff)&&  //end of intersection
@@ -146,15 +147,38 @@ namespace fub_motion_planner{
                   }
 
                   double ego_t2 = kLookAheadTime, obst_t2 = kLookAheadTime; // Assign to max
-                  //check from back as the value is mostl likely in the end
-                  for (i = s_pts.size()-2; i >=0; i--) {
+                  //check from back as the value is mostl likely in the end, size-1 representing last element
+                  for (i = s_pts.size()-1; i >=0; i--) {
                     if((intersection.back()>=s_pts[i]) && (fabs(d_pts[i] - obst_frenet.d)<= d_min_diff)){
-                      ego_t2 = (i+1)*pt_duration; // Margin as higher end of time
-                      obst_t2 = fabs(s_pts[i+1] - obst_frenet.s)/obstVel.x ; //TODO safer to keep here i instead of i+1 while behind the obstacle and +1 while infront of obstacle choose what to do
+                      ego_t2 = (i)*pt_duration; // Margin as higher end of time
+                      obst_t2 = fabs(s_pts[i] - obst_frenet.s)/obstVel.x ; //TODO safer to keep here i instead of i+1 while behind the obstacle and +1 while infront of obstacle choose what to do
                       break;
                     } //found where time starts
                   }
+                  /*
+                  //TODO Enable this code for dynamic obstacle checking - to work better
+                  double ego_velocity = (s_pts[i]-s_pts[i-1])/pt_duration;
+                  ego_velocity = ego_velocity>0.1?ego_velocity:0.1; //No reason just making it 0.1 such that there is some traction
+                  double ego_t1_f = 0 ,ego_t1_b=0,ego_t2_f=0,ego_t2_b=0;
+                  double obst_t1_f =0,obst_t1_b=0,obst_t2_f=0,obst_t2_b=0;
 
+                  ego_t1_f = ego_t1 - kLengthForward/ego_velocity;
+                  ego_t1_b = ego_t1 + kLengthBackward/ego_velocity;
+                  ego_t2_f = ego_t2 - kLengthForward/ego_velocity;
+                  ego_t2_b = ego_t2 + kLengthBackward/ego_velocity;
+
+                  double obstacle_length_half = (fabs(obst.bounding_box_min.x)+fabs(obst.bounding_box_max.x))/2;
+                  obst_t1_f = obst_t1 - obstacle_length_half/obstVel.x;
+                  obst_t1_b = obst_t1 + obstacle_length_half/obstVel.x;
+                  obst_t2_f = obst_t2 - obstacle_length_half/obstVel.x;
+                  obst_t2_b = obst_t2 + obstacle_length_half/obstVel.x;
+
+                  double t1_diff = std::min(ego_t1_f-obst_t1_f,ego_t1_f- obst_t1_b,ego_t1_b-obst_t1_f,ego_t1_b- obst_t1_b);
+                  double t2_diff = std::min(ego_t2_f-obst_t2_f,ego_t2_f- obst_t2_b,ego_t2_b-obst_t2_f,ego_t2_b- obst_t2_b);
+                  //chnage to below if
+                  //if(t1_diff*t2_diff>0)
+                  //double minimum_time_diff = std::min(fabs(t1_diff),fabs(t2_diff));
+                  //*/
                   std::cout << "ego t "<<ego_t1<<" "<<ego_t2 <<"  obs t "<<obst_t1<<" "<<obst_t2 <<'\n';
                   if((ego_t1-obst_t1)*(ego_t2-obst_t2) >0 ){
                     //Same sign for time difference - No collision
