@@ -111,7 +111,7 @@ namespace fub_motion_planner{
       // safety width for car - car width = 0.1, safety 0.5 and this should be added to hald width of obstacle
       const double kSafetyWidth = 0.15;
       //Safety distance in terms of time
-      const double kSafetyTimeDiff = 1;
+      const double kSafetyTimeDiff = 2;
       //Safety Time cost multiple
       const double kSafetyTimeDiffCostMul = 3;
       //Min velocity to consider obstacle moving

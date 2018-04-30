@@ -3,6 +3,14 @@
 
 namespace fub_motion_planner{
 
+  /** Function for passing to std::min for finding absolute minimum
+  **
+  ** @param msg
+  */
+  bool abs_min_comp(double a, double b){
+	   return fabs(a)<fabs(b)?1:0;
+  }
+
   /** Function for obstacle collision check checking
   **
   ** @param msg
@@ -155,7 +163,8 @@ namespace fub_motion_planner{
                       break;
                     } //found where time starts
                   }
-                  /*
+                  std::cout << "ego t "<<ego_t1<<" "<<ego_t2 <<"  obs t "<<obst_t1<<" "<<obst_t2 <<'\n';
+                  ///*
                   //TODO Enable this code for dynamic obstacle checking - to work better
                   double ego_velocity = (s_pts[i]-s_pts[i-1])/pt_duration;
                   ego_velocity = ego_velocity>0.1?ego_velocity:0.1; //No reason just making it 0.1 such that there is some traction
@@ -166,23 +175,33 @@ namespace fub_motion_planner{
                   ego_t1_b = ego_t1 + kLengthBackward/ego_velocity;
                   ego_t2_f = ego_t2 - kLengthForward/ego_velocity;
                   ego_t2_b = ego_t2 + kLengthBackward/ego_velocity;
-
+                  std::cout << "ego_times"<<ego_t1_f<<" "<< ego_t1_b<<" "<< ego_t2_f<<" "<< ego_t2_b << '\n';
                   double obstacle_length_half = (fabs(obst.bounding_box_min.x)+fabs(obst.bounding_box_max.x))/2;
                   obst_t1_f = obst_t1 - obstacle_length_half/obstVel.x;
                   obst_t1_b = obst_t1 + obstacle_length_half/obstVel.x;
                   obst_t2_f = obst_t2 - obstacle_length_half/obstVel.x;
                   obst_t2_b = obst_t2 + obstacle_length_half/obstVel.x;
+                  std::cout << "obst_times"<<obst_t1_f<<" "<< obst_t1_b<<" "<< obst_t2_f<<" "<< obst_t2_b << '\n';
 
-                  double t1_diff = std::min(ego_t1_f-obst_t1_f,ego_t1_f- obst_t1_b,ego_t1_b-obst_t1_f,ego_t1_b- obst_t1_b);
-                  double t2_diff = std::min(ego_t2_f-obst_t2_f,ego_t2_f- obst_t2_b,ego_t2_b-obst_t2_f,ego_t2_b- obst_t2_b);
+                  //find minimum magnitude time difference - just using min will give maximum magnitude ngative number
+                  double t1_diff = std::min({ego_t1_f-obst_t1_f,ego_t1_f- obst_t1_b,ego_t1_b-obst_t1_f,ego_t1_b- obst_t1_b},abs_min_comp);
+
+                  double t2_diff = std::min({ego_t2_f-obst_t2_f,ego_t2_f- obst_t2_b,ego_t2_b-obst_t2_f,ego_t2_b- obst_t2_b},abs_min_comp);
+
+                  std::cout << "t1 diff "<<t1_diff <<"  t2 diff "<<t2_diff<<'\n';
                   //chnage to below if
                   //if(t1_diff*t2_diff>0)
                   //double minimum_time_diff = std::min(fabs(t1_diff),fabs(t2_diff));
                   //*/
-                  std::cout << "ego t "<<ego_t1<<" "<<ego_t2 <<"  obs t "<<obst_t1<<" "<<obst_t2 <<'\n';
-                  if((ego_t1-obst_t1)*(ego_t2-obst_t2) >0 ){
+                  //old
+                  //if((ego_t1-obst_t1)*(ego_t2-obst_t2) >0 ){
+                  //new
+                  if(t1_diff*t2_diff>0){
                     //Same sign for time difference - No collision
-                    double minimum_time_diff = std::min(fabs(ego_t1-obst_t1),fabs(ego_t2-obst_t2));
+                    //old
+                    //double minimum_time_diff = std::min(fabs(ego_t1-obst_t1),fabs(ego_t2-obst_t2));
+                    //new
+                    double minimum_time_diff = std::min(fabs(t1_diff),fabs(t2_diff));
                     //If the  minimum time difference is >2s then all good, safe to derivative
                     //If the time is less than 2, add a proportional cost to how close it gets to obstacle
                     cost += (minimum_time_diff>kSafetyTimeDiff)?0:(kSafetyTimeDiff-minimum_time_diff)*kSafetyTimeDiffCostMul; //add cost to all obstacles
