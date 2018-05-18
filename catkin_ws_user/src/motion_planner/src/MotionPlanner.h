@@ -32,16 +32,16 @@ namespace fub_motion_planner{
   */
   class target_state{
   	public:
-  		double d_eval;
-  		double s_tgt;
-  		double v_tgt;
-  		double a_tgt;
-  		double cost =0;
-  		bool evaluated = false;
-  		nav_msgs::Path path;
-      int id;
-      double s_reched = 0;
-
+  		double d_eval; // current lateral dimension target
+  		double s_tgt;  // destination s value
+  		double v_tgt;  // target velocity
+  		double a_tgt;  // target acceleration
+  		double cost =0; // cost of sample
+  		bool evaluated = false; // is the sample evaluated?
+  		nav_msgs::Path path;    // for storing the calculated path
+      int id = 0;             // Id of the sample
+      double s_reached = 0;   // s_achieved by trajectory
+      double s_turn= 0;       // set this value if the d_tgt has to be achieved in shorter distance
   		target_state(double s_tgt, double d_eval, double v_tgt, double a_tgt, double cost, int idx){
   			this->d_eval = d_eval;
   			this->s_tgt = s_tgt;
@@ -79,6 +79,7 @@ namespace fub_motion_planner{
       //Subscriber Lane information
       ros::Subscriber m_subscribe_click_point;
       double prev_d_target=0;
+      target_state prev_tgt_state;
       //index - global variable for creating index to different target states in evaluation
       int index =1;
       /*Function to create trajectory*/

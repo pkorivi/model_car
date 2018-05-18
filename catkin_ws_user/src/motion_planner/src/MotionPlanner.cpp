@@ -9,7 +9,7 @@
 #include "CollisionCheck.cpp"
 
 namespace fub_motion_planner{
-  MotionPlanner::MotionPlanner(){
+  MotionPlanner::MotionPlanner():prev_tgt_state(0,0,0,0,0,0){
     //ROS_INFO("MotionPlanner Constructor");
   }
 
@@ -54,7 +54,6 @@ namespace fub_motion_planner{
   @params: reference to target state from list, current velocity, target lane, previous planner target lateral target position
   **/
   //TODO may be add a cost of previous acceleration current acceleration - to see the impact
-
   void MotionPlanner::calc_cost(target_state &tgt, double vel_current, double d_tgt,double prev_d_tgt){
   	double vel_achvd = vel_current + tgt.a_tgt*kLookAheadTime;
   	if(tgt.a_tgt >=0)
@@ -220,6 +219,17 @@ namespace fub_motion_planner{
         //Initialize index for target states
         index =1;
         //Create target states for trajectory creation
+        //initial sample - old trajectory
+        // some preconditions to use old plan, there was a plan,
+        if((prev_tgt_state.s_turn > 0) && (fabs(curr_frenet_coordi.s - prev_tgt_state.s_reached) > 0.3) && (prev_tgt_state.cost <5)){
+          //give some negative weight to this plan to promote it over other plans
+          target_state tgt(s_target,prev_tgt_state.d_eval,prev_tgt_state.v_tgt,prev_tgt_state.a_tgt,-0.1,index++);
+          calc_cost(tgt, vel_current, d_target, prev_d_target);
+          //choose same tunring point as previous plans
+          tgt.s_turn = prev_tgt_state.s_turn;
+          final_states.push_back(tgt);
+        }
+
         if(vel_current<=vel_target){
       		for(int j=0; j<=2;j++){
       			for(auto d_eval : d_ranges){
@@ -266,7 +276,7 @@ namespace fub_motion_planner{
         //Sort the target states as per pre assigned costs
         sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
       				return ts1.cost < ts2.cost;});
-        //print current state as debug 
+        //print current state as debug
         ROS_INFO("cur v,s,d,th %.2f,%.2f,%.2f,%.2f ,x,y,yaw %.2f,%.2f,%.3f odom x,y %.3f,%.3f ",vel_current,curr_frenet_coordi.s, \
           curr_frenet_coordi.d,curr_frenet_coordi.th,current_pos_map[0],current_pos_map[1],current_vehicle_state.getVehicleYaw(),\
           current_vehicle_state.m_vehicle_position[0],current_vehicle_state.m_vehicle_position[1]);
@@ -302,6 +312,13 @@ namespace fub_motion_planner{
         mp_traj2.publish(p1);
         convert_path_to_fub_traj(p1,current_vehicle_state.getVehicleYaw());
         prev_d_target = final_states.front().d_eval;
+
+        //Store previous target state for next usage
+        prev_tgt_state = final_states.front();
+        if(prev_tgt_state.s_turn == 0){
+          prev_tgt_state.s_turn = prev_tgt_state.s_reached;
+        }
+
         ROS_INFO("Time taken: %f", (double)(clock() - tStart)/CLOCKS_PER_SEC);
       }//if path exists
       else{

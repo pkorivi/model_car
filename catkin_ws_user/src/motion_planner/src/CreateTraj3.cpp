@@ -186,13 +186,20 @@ namespace fub_motion_planner{
       tgt.path = m_sampled_traj;
       tgt.cost += cost;
       //last point reached in s
-      tgt.s_reched = spts.back();
+      tgt.s_reached = spts.back();
 
       return cost;
     }
 
     //calculate coefficients for lateral movement
-    std::vector<double> d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target,frenet_val.th, spts.front(), spts.back());
+    std::vector<double> d_coeffs;
+    if (tgt.s_turn > 0) {
+      //If s_turn is defined use it else use end of the trajectory
+      d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target,frenet_val.th, spts.front(), tgt.s_turn);
+    }else{
+     d_coeffs = evaluate_d_coeffs(frenet_val.d,d_target,frenet_val.th, spts.front(), spts.back());
+    }
+
     if(std::isnan(d_coeffs[0])||std::isnan(d_coeffs[1])||std::isnan(d_coeffs[2])||std::isnan(d_coeffs[3])){
       ROS_ERROR("Nan in evaluation of d coeffs - traj planner");
       std::cout << "dcoeffs "<<d_coeffs[0]<<"," <<d_coeffs[1]<<"," <<d_coeffs[2]<<"," <<d_coeffs[3]<<"  car_d "<<frenet_val.d\
@@ -203,16 +210,23 @@ namespace fub_motion_planner{
     ecl::Array<double> ecl_ts(kNumberOfSamples);
     ecl::Array<double> ecl_x(kNumberOfSamples);
     ecl::Array<double> ecl_y(kNumberOfSamples);
+    double d_val1=0;
     //create xy sample points - making splines in x.y is beneficial over s,d as it will help maintain continuity in steering angle for controller to follow
     for (size_t i = 0; i < kNumberOfSamples; i++) {
-      double d_val1 = polyeval_m( d_coeffs, spts[i]);
+
+      //If the previous plan is followed then after the s_turn the vehicle will be with d_target path
+      if((tgt.s_turn > 0) && (spts[i]>=tgt.s_turn)){
+        d_val1 = d_target;
+      }
+      else{//normal condition for deval_coeffs
+        d_val1 = polyeval_m( d_coeffs, spts[i]);
+      }
       dpts.push_back(d_val1);
       tf::Point xy = m_vehicle_path.getXY(FrenetCoordinate(spts[i],d_val1,0,0)); //TODO check yaw stuff
       //ECL spline poilts
       ecl_x[i] = xy[0];
       ecl_y[i] = xy[1];
       ecl_ts[i] = i*t_sample;
-
     }
 
     cost += CollisionCheck(current_state,spts,dpts,d_coeffs);
@@ -221,11 +235,9 @@ namespace fub_motion_planner{
 
     ecl::CubicSpline mSpline_x;
     ecl::CubicSpline mSpline_y;
-    //ecl::CubicSpline mSpline_z; //TODO check if needed
     //TODO - last two points are change in velocity for x, y- follow as per fub controller soon
     mSpline_x = ecl::CubicSpline::ContinuousDerivatives(ecl_ts, ecl_x, v_current*cos(c_yaw), (ecl_x[kNumberOfSamples-1] - ecl_x[kNumberOfSamples-2])/t_sample);
     mSpline_y = ecl::CubicSpline::ContinuousDerivatives(ecl_ts, ecl_y, v_current*sin(c_yaw), (ecl_y[kNumberOfSamples-1] - ecl_y[kNumberOfSamples-2])/t_sample);
-    //mSpline_z = ecl::CubicSpline::ContinuousDerivatives(x_set, y_set_z, frontVelocity.getZ(), backVelocity.getZ());
     //ROS_INFO("mp xy %.3f,%.3f conv_map_xy %.3f,%.3f, spline x,y %.3f,%.3f, v_xy %.3f,%.3f ",current_pos_map[0],current_pos_map[1],ecl_x[0],ecl_y[0],mSpline_x(0),mSpline_y(0),v_current*cos(c_yaw),v_current*sin(c_yaw));
     nav_msgs::Path m_sampled_traj;
     m_sampled_traj.header.stamp = ros::Time::now();
@@ -244,7 +256,7 @@ namespace fub_motion_planner{
       examplePose.pose.position.x = x_val;
       examplePose.pose.position.y = y_val;
       //Currently this velocity is used in trajectory converted to publish velocity at a point
-      examplePose.pose.position.z = 0;//v_fit;//i*t_sample;//v_fit;//v(t_pt); //velocity saved in z direction
+      examplePose.pose.position.z = v_fit;//i*t_sample;//v_fit;//v(t_pt); //velocity saved in z direction
       examplePose.pose.orientation.x = 0.0;//a_val;//0.0f;//a(t_pt); // save accleration in orientation //TODO - calculate double derivative for acceleration
       examplePose.pose.orientation.y = 0.0f;
       examplePose.pose.orientation.z = 0.0f;
@@ -256,16 +268,16 @@ namespace fub_motion_planner{
     //Publish as path with velocity in z dimension
     traj_pub.publish(m_sampled_traj);
     //last point reached in s
-    tgt.s_reched = spts[kNumberOfSamples-1];
+    tgt.s_reached = spts[kNumberOfSamples-1];
 
     //Add cost if s_reached is more than target over threshold
     //TODO make this threshold as a constant or in config file
-    if(tgt.s_reched > s_target+kThresholdDist)
-      cost += fabs(tgt.s_reched - s_target+kThresholdDist);
+    if(tgt.s_reached > s_target+kThresholdDist)
+      cost += fabs(tgt.s_reached - s_target+kThresholdDist);
 
     //Reduce cost if target is reached //TODO make the low trajectories evaluated when one of the traj reaches end
     if((tgt.v_tgt==0)){
-      if((fabs(tgt.s_reched - s_target) <= kThresholdDist)){
+      if((fabs(tgt.s_reached - s_target) <= kThresholdDist)){
         cost -= 1; //Promote these trajectories which reach end with zero velocity
       }
       else
