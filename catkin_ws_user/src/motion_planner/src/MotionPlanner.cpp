@@ -1,9 +1,9 @@
 /*
- * sample_nodelet_class.cpp
-
+Motion planner - The core class that depends on vehicle state, vehicle path classes
+to calculate the trajectory for ego to follow
  */
-#include "MotionPlanner.h"
 
+#include "MotionPlanner.h"
 //TODO - make them independent cpp files
 #include "CreateTraj.cpp"
 #include "CollisionCheck.cpp"

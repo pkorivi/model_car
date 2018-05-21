@@ -1,5 +1,5 @@
 /*
-
+Vehicle State class - Holds vehicle state data, obstacle information needed for planning
  */
 #include "VehicleState.h"
 

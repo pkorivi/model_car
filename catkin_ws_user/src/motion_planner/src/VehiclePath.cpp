@@ -1,6 +1,7 @@
-//TODO Create a calss to receive the route planner data and do all conversions for frenet and stuff.
-// All fucntions to x,y. path, whats the width so much will be done here.
-
+/*
+Vehicle Path class - Holds global path received from route planner, all conversion
+functions between Frenet and Catresian coordinate system. Functions for speed limit calculation.
+ */
 #include "VehiclePath.h"
 namespace fub_motion_planner{
   VehiclePath::VehiclePath(){}
