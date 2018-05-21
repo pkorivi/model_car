@@ -5,7 +5,7 @@
 #include "MotionPlanner.h"
 
 //TODO - make them independent cpp files
-#include "CreateTraj3.cpp"
+#include "CreateTraj.cpp"
 #include "CollisionCheck.cpp"
 
 namespace fub_motion_planner{

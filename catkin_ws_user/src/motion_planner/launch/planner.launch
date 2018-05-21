@@ -1,6 +1,6 @@
 <launch>
     
-    <include file="$(find motion_planner)/launch/mp_test.launch"/>
+    <include file="$(find motion_planner)/launch/motion_planner.launch"/>
     <include file="$(find fub_controller)/launch/ControllerModelCar.launch"/>
     <include file="$(find route_planner)/launch/route_planner.launch"/>
 </launch>

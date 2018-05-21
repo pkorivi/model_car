@@ -1,0 +1,7 @@
+<launch>
+	<node pkg="nodelet" type="nodelet" args="manager"
+    name="mp_nodelet_manager" output="screen" />
+	<node pkg="nodelet" type="nodelet" args="load MotionPlanner/MotionPlanner mp_nodelet_manager"
+    name="MotionPlanner" output="screen">
+	</node>
+</launch>
