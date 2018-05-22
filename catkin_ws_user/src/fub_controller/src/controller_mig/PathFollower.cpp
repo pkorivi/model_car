@@ -40,7 +40,7 @@ void PathFollower::updateSplineAndClosestPoints(VehicleState const & currentVehi
 
     mClosestPointInSpace.setX(mSpline.getX(mClosestParamInSpace));
     mClosestPointInSpace.setY(mSpline.getY(mClosestParamInSpace));
-    mClosestPointInSpace.setZ(mSpline.getZ(mClosestParamInSpace));
+    mClosestPointInSpace.setZ(mSpline.getZ(mClosestParamInSpace));   
 
     publishClosestPointInSpaceMarker();
 
@@ -75,7 +75,7 @@ void PathFollower::calcSteeringLookaheadPoint(VehicleState const & currentVehicl
     double lookaheadTime = mConfig.steering_lookahead_time;
 
     double param = fmax(mSpline.getFirstParam(), fmin(mClosestParamInSpace + lookaheadTime, mSpline.getLastParam()));
-
+	
     mSteeringLookaheadPoint.setX(mSpline.getX(param));
     mSteeringLookaheadPoint.setY(mSpline.getY(param));
     mSteeringLookaheadPoint.setZ(mSpline.getZ(param));
@@ -204,7 +204,7 @@ void PathFollower::publishSteeringLookAheadPointMarker() const
 {
     //TODO make this a marker array
     if (mSteeringLookAheadPointPublisher.getNumSubscribers() == 0) {
-        return;
+        return ;
     }
 
     //publish ros marker for the steering lookahead point

@@ -115,7 +115,7 @@ void ControllerMig::update(VehicleState const & currentVehicleState)
         steerAngle = steerAngle * 3.0;
     }
 */
-    ROS_INFO("cur_state:  x,y %.3f,%.3f   vel: %.3f  yaw:%.3f odom_time %.3f",currentVehicleState.mVehiclePosition[0],\
+    //ROS_INFO("cur_state:  x,y %.3f,%.3f   vel: %.3f  yaw:%.3f odom_time %.3f",currentVehicleState.mVehiclePosition[0],\
           currentVehicleState.mVehiclePosition[1], currentVehicleState.mCurrentSpeedFrontAxleCenter,currentVehicleState.getVehicleYaw(),\
            currentVehicleState.mLastOdomTimeStampReceived.toSec());
     publish(currentVehicleState);
@@ -150,8 +150,19 @@ void ControllerMig::publishWantedSpeedAndFrontWheelAngle(double speed, double wh
         */
 
         //Condition - This should be 0.5 on car and 0 on simulator
-        //TODO - set a speed limit on max value also
-        speed = speed<mConfig.min_speed?mConfig.min_speed:speed;
+        //speed = speed<mConfig.min_speed?mConfig.min_speed:speed;
+	if (speed <0){ 
+          speed = fabs(speed)<mConfig.min_speed?-mConfig.min_speed:speed;
+	  speed = fabs(speed)>mConfig.max_speed?-mConfig.max_speed:speed;
+	}
+        else if(speed >0){
+          speed = speed<mConfig.min_speed?mConfig.min_speed:speed;
+          speed = speed>mConfig.max_speed?mConfig.max_speed:speed;
+	}	
+	else{//empty path - stop the robot
+	   speed =0;
+	}
+
         wantedSpeedMsg.data        = static_cast<int16_t>(speed *(-308.26));
         mWantedSpeedPublisher.publish(wantedSpeedMsg);
 
@@ -164,8 +175,14 @@ void ControllerMig::publishWantedSpeedAndFrontWheelAngle(double speed, double wh
         int16_t speed_pub =  static_cast<int16_t>(speed *(-308.26));
         int16_t steer_pub =  static_cast<int16_t>(mConfig.steer_center + (mConfig.steer_direction-1)*(mConfig.steer_max * wheelAngle)) ;
         ROS_INFO("Commanded Values: steer_pb %d  norm_str %.3f   speed_pb %d   raw_spd %.3f ",steer_pub,wheelAngle,speed_pub, speed);
+        //ROS_INFO("cur_state:  x,y %.3f,%.3f   vel: %.3f  yaw:%.3f odom_time %.3f",currentVehicleState.mVehiclePosition[0],\
+                  currentVehicleState.mVehiclePosition[1], currentVehicleState.mCurrentSpeedFrontAxleCenter,currentVehicleState.getVehicleYaw(),\
+                   currentVehicleState.mLastOdomTimeStampReceived.toSec());
         //TODO remove till here
-        wantedAngleMsg.data = static_cast<int16_t>(mConfig.steer_center + (mConfig.steer_direction-1)*(mConfig.steer_max * wheelAngle)) ;
+
+        int angle_val = (mConfig.steer_center + (mConfig.steer_direction-1)*(mConfig.steer_max * wheelAngle)) ;
+	angle_val = std::min(angle_val, 180);
+	wantedAngleMsg.data = static_cast<int16_t>(std::max(angle_val, 0));
         mWantedSteeringAnglePublisher.publish(wantedAngleMsg);
 }
 

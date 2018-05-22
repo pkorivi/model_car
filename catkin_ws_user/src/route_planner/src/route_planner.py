@@ -17,7 +17,8 @@ import matplotlib.pyplot as plt
 from nav_msgs.msg import Path
 from nav_msgs.msg import Odometry
 import tf
-
+import rospkg
+import sys
 
 #Different weights for straight edge and turning edge.
 #This can be modified for path such that to optimize distance or time
@@ -122,11 +123,20 @@ def create_graph():
     #pullData = open('/home/korivi/model_car/catkin_ws_user/src/route_planner/src/rndf_1_way_simulator.txt',"r").read()
 
     #Used in the testing currently
-    pullData = open('/home/korivi/model_car/catkin_ws_user/src/route_planner/src/rndf_map_1_wap_lab.txt',"r").read()
+    #pullData = open('/home/pradeep/model_car/catkin_ws_user/src/route_planner/src/rndf_map_1_wap_lab.txt',"r").read()
     #Map with 0,0 at left bottom - coodinates as per visual GPS
     #pullData = open('/home/korivi/model_car/catkin_ws_user/src/route_planner/src/rndf_map_1_wap_lab_vgps_map.txt',"r").read()
     #RNDF for custom map_1_way_loop
-    #pullData = open('/home/korivi/model_car/catkin_ws_user/src/route_planner/src/rndf_custom_map_1_way.txt',"r").read()
+
+    #pullData = open('/home/pradeep/model_car/catkin_ws_user/src/route_planner/src/rndf_custom_map_1_way.txt',"r").read()
+    rndf_file_path = ''
+    if len(sys.argv) > 1:
+        rndf_file_path = sys.argv[1]
+    else:
+        rospack = rospkg.RosPack()
+        rndf_file_path = rospack.get_path('route_planner') + '/src/rndf_custom_map_1_way.txt'
+    print "rndf_file_path : ",rndf_file_path
+    pullData = open(rndf_file_path,"r").read()
 
     #pullData = open('/home/korivi/model_car/catkin_ws_user/src/route_planner/src/sample_map_origin_map_1.txt',"r").read()
     dataArray = pullData.split('\n')

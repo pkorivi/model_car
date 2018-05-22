@@ -1,4 +1,10 @@
 <launch>
-  <node pkg="route_planner" type="route_planner.py" name="RNDF_High_level_Route_Planner" output="screen">
+  <!-- rndf_map_1_wap_lab.txt -  current lab rndf, the center lane of both lane is used as reference path
+       rndf_custom_map_1_way  - Custom Map with larger radius of curvature
+       rndf_map_1_wap_lab_vgps_map.txt for rndf using VGPS
+       rndf_2_way_road.txt for two way road of lab map
+       rndf_1_way_simulator.txt - One way map of the seat_simulator     -->
+  <arg name="rndf_file" default="$(find route_planner)/src/rndf_map_1_way_lab.txt"/>
+  <node pkg="route_planner" type="route_planner.py" name="RNDF_High_level_Route_Planner" output="screen" args="$(arg rndf_file)">
     </node>
 </launch>
