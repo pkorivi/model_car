@@ -107,7 +107,7 @@ namespace fub_motion_planner{
             //push PoseStamped into Path
             m_obst_traj.poses.push_back(examplePose);
           }
-          obst_path_1.publish(m_obst_traj);
+          obstacle_path.publish(m_obst_traj);
           //end of obstacle traj publishing
           /* TODO - Remove
           std::cout << "debug" << '\n';

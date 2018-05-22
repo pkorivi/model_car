@@ -63,17 +63,11 @@ namespace fub_motion_planner{
       VehiclePath m_vehicle_path;
       TfListener m_tf_listener;
       //Pushlishers
-      ros::Publisher m_mp_traj;
-      ros::Publisher mp_traj1;
-      ros::Publisher mp_traj2;
-      ros::Publisher mp_traj3;
-      ros::Publisher mp_traj4;
+      ros::Publisher mp_traj_eval;
+      ros::Publisher mp_traj_selected;
       ros::Publisher mp_final_traj;
       //Publishers to vizualize obstacle paths
-      ros::Publisher obst_path_1;
-      //TODO - remove these in the end
-      ros::Publisher obst_path_2;
-      ros::Publisher obst_path_3;
+      ros::Publisher obstacle_path;
       //Publisher to indicate the sub path has been completed
       ros::Publisher sub_path_complete_indicate;
       //Subscriber Lane information
@@ -83,7 +77,7 @@ namespace fub_motion_planner{
       //index - global variable for creating index to different target states in evaluation
       int index =1;
       /*Function to create trajectory*/
-      double create_traj_const_acc_xy_spline_3(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
+      double create_traj_const_acc_xy_spline(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
                target_state &tgt,tf::Point current_pos_map, FrenetCoordinate curr_frenet_coordi);
 
       // timer to trigger the execution of the motion planner periodically

@@ -5,10 +5,10 @@ TODO - Adjust the weights to give proper predictions
 //(D,S,V,A,COST)
 //target_state tgt(m_vehicle_path.frenet_path.back().s,d_target,v_target,a_target,0);
 //calc_cost(tgt, current_vehicle_state.m_current_speed_front_axle_center, d_target, prev_d_target);
-//create_traj_spline(current_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-//create_traj_const_acc(current_vehicle_state,m_prev_vehicle_state,mp_traj2,v_target,a_target,d_target,v_max,v_min,polynomial_order);
-//double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_target,a_target,d_target,v_max,v_min,polynomial_order, tgt);
-//double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj1,v_max,v_min,polynomial_order, tgt);
+//create_traj_spline(current_vehicle_state,mp_traj_eval,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+//create_traj_const_acc(current_vehicle_state,m_prev_vehicle_state,mp_traj_selected,v_target,a_target,d_target,v_max,v_min,polynomial_order);
+//double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj_eval,v_target,a_target,d_target,v_max,v_min,polynomial_order, tgt);
+//double cost_val = create_traj_const_acc_xy_polyeval_2(current_vehicle_state,m_prev_vehicle_state,mp_traj_eval,v_max,v_min,polynomial_order, tgt);
 
 
 different calls for different planners implemented

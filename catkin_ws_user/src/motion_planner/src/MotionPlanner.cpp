@@ -19,23 +19,21 @@ namespace fub_motion_planner{
 
   void MotionPlanner::onInit(){
       NODELET_INFO("MotionPlanner - %s", __FUNCTION__);
-      //csetup the vehicle state and vehicle path nodes
+      //setup the vehicle state and vehicle path nodes
       m_vehicle_state.setup(getNodeHandle());
       m_vehicle_path.setup(getNodeHandle());
       //TODO change execution frequency to a bigger value and also parameter of a config file
       ros::Duration timerPeriod = ros::Duration(1);
-      mp_final_traj = getNodeHandle().advertise<fub_trajectory_msgs::Trajectory>("/model_car/trajectory", 1);
-      //TODO remove these and put proper naming convention and keep only required ones
-      m_mp_traj = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj", 1);
-      mp_traj1 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_1", 1);
-      mp_traj2 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_2", 1);
-      mp_traj3 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_3", 20);
-      mp_traj4 = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_4", 1);
       m_timer = getNodeHandle().createTimer(timerPeriod, &MotionPlanner::callbackTimer, this);
-      //TODO Initialize obstacle publishers - Remove at end
-      obst_path_1 = getNodeHandle().advertise<nav_msgs::Path>("/obstacle_path1", 10);
-      obst_path_2 = getNodeHandle().advertise<nav_msgs::Path>("/obstacle_path2", 10);
-      obst_path_3 = getNodeHandle().advertise<nav_msgs::Path>("/obstacle_path3", 10);
+      //Final Trajetory in the format needed for the fub controller
+      mp_final_traj = getNodeHandle().advertise<fub_trajectory_msgs::Trajectory>("/model_car/trajectory", 1);
+      // Initialize Trajectory Publishers - xyv path for vizualization in ROS
+      // all evaluated trajectories
+      mp_traj_eval = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_evaluated", 1);
+      // final selected trajectory
+      mp_traj_selected = getNodeHandle().advertise<nav_msgs::Path>("/motionplanner/traj_selected", 1);
+      //Initialize obstacle publishers
+      obstacle_path = getNodeHandle().advertise<nav_msgs::Path>("/obstacle_path", 10);
       //subscribe to click point to change target lane
       m_subscribe_click_point = getNodeHandle().subscribe("/clicked_point", 1, &MotionPlanner::ClickPointCallback, this, ros::TransportHints().tcpNoDelay());
       //publisher to inform route planner that the sub path has been calculated
@@ -187,11 +185,11 @@ namespace fub_motion_planner{
         //Stop the car if it leaves the track- with some buffer - emergency
         if(fabs(curr_frenet_coordi.d) > 0.45){
           target_state emergency_tgt(s_target,curr_frenet_coordi.d,0,acc_prof[7], 0,0);
-          double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1, emergency_tgt ,current_pos_map,curr_frenet_coordi);
+          double cost_val = create_traj_const_acc_xy_spline(current_vehicle_state,m_prev_vehicle_state,mp_traj_eval, emergency_tgt ,current_pos_map,curr_frenet_coordi);
           nav_msgs::Path emer_path = emergency_tgt.path;
           m_vehicle_path.route_path_exists = false;
           ROS_ERROR("vehicle out of the path - triggering emergency stop");
-          mp_traj2.publish(emer_path);
+          mp_traj_selected.publish(emer_path);
           convert_path_to_fub_traj(emer_path,current_vehicle_state.getVehicleYaw());
           m_vehicle_path.route_path_exists = false;
           return;
@@ -284,10 +282,10 @@ namespace fub_motion_planner{
       	while(final_states.front().evaluated != true){
       		//TODO change to insertion sort - this vector is almost sorted
       		//create_traj(final_states.front());
-          double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1, final_states.front(),current_pos_map,curr_frenet_coordi);
+          double cost_val = create_traj_const_acc_xy_spline(current_vehicle_state,m_prev_vehicle_state,mp_traj_eval, final_states.front(),current_pos_map,curr_frenet_coordi);
           //std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
-          ROS_INFO("Traj Eval ID: %d, cost %.2f ,tgt a,v,s,d %.2f,%.2f,%.2f,%.2f !!",final_states.front().id,final_states.front().cost,\
-            final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
+          ROS_INFO("Traj Eval ID: %d, cost %.2f ,tgt a,v,s,d. s_turn %.2f,%.2f,%.2f,%.2f,%.2f !!",final_states.front().id,final_states.front().cost,\
+            final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval,final_states.front().s_turn );
       		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
          				return ts1.cost < ts2.cost;});
       	}
@@ -303,13 +301,13 @@ namespace fub_motion_planner{
         }
         else{ //No path exists - emergency breaking
           target_state emergency_tgt(s_target,curr_frenet_coordi.d,0,acc_prof[7], 0,0);
-          double cost_val = create_traj_const_acc_xy_spline_3(current_vehicle_state,m_prev_vehicle_state,mp_traj1, emergency_tgt ,current_pos_map,curr_frenet_coordi);
+          double cost_val = create_traj_const_acc_xy_spline(current_vehicle_state,m_prev_vehicle_state,mp_traj_eval, emergency_tgt ,current_pos_map,curr_frenet_coordi);
           p1 = emergency_tgt.path;
           m_vehicle_path.route_path_exists = false;
           ROS_ERROR("No Path found - Publishing stopping path :: update to choose the profile with max deceleration - recheck this");
         }
         //Final Path
-        mp_traj2.publish(p1);
+        mp_traj_selected.publish(p1);
         convert_path_to_fub_traj(p1,current_vehicle_state.getVehicleYaw());
         prev_d_target = final_states.front().d_eval;
 

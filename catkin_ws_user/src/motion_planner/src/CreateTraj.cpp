@@ -48,7 +48,7 @@ namespace fub_motion_planner{
   ** target state, current point on map, current frenet coordinate
   ** Read through the Thesis document for full concept on implementation
   **/
-  double MotionPlanner::create_traj_const_acc_xy_spline_3(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
+  double MotionPlanner::create_traj_const_acc_xy_spline(VehicleState current_state,VehicleState prev_state, ros::Publisher&  traj_pub, \
            target_state &tgt,tf::Point current_pos_map, FrenetCoordinate frenet_val){
 
     clock_t tStart = clock();
