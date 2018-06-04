@@ -1,6 +1,8 @@
 #include "ros/ros.h"
 #include <std_msgs/Int16.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/UInt8.h>
+
 class auto_control
 {
   private:
@@ -22,7 +24,7 @@ class auto_control
     float angle;
     float last_angle;
 
-    std_msgs::Int16 desired_steering;
+    std_msgs::UInt8 desired_steering;
     std_msgs::Int16 desired_speed;
 
   public:
@@ -37,7 +39,7 @@ class auto_control
       priv_nh_.param<float>("maximum_steering", maximum_steering_, 90);
       priv_nh_.param<float>("minimum_steering", minimum_steering_, -90);
       sub_curvature_ = nh_.subscribe( "/lane_model/angle", 1,  &auto_control::curvatureCallback,this);
-      pub_steering_= nh.advertise<std_msgs::Int16>(nh.resolveName("/manual_control/steering"), 1);
+      pub_steering_= nh.advertise<std_msgs::UInt8>(nh.resolveName("/steering"), 1);
       pub_speed_= nh.advertise<std_msgs::Int16>(nh.resolveName("/manual_control/speed"), 1);
       ROS_ERROR("Started control node.");
     }
