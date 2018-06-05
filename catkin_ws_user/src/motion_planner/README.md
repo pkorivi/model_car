@@ -8,6 +8,7 @@ The motion planner depends on
 #### External libraries
 * ecl_lib - for creating splines
 * Eigen - for solving equations
+* networkx - for creating graph from rndf and calculating shortest path
 
 #### Model car Packages
 * route_planner -  for high level path
@@ -17,7 +18,10 @@ The motion planner depends on
 
 ### Launching the Planner
 * compile the above mentioned dependencies and the motion planner packages.
-* `roslaunch motion_planner planner.launch` launches all the required packages - route_planner. motion_planner and controller. They can be launched individually also.
+* `roslaunch motion_planner planner.launch` launches all the required packages - route_planner, motion_planner and controller. They can be launched individually also.
+
+#### Tip
+It may not possible to install networkx on model car, in this situation please install on your local PC and launch `route_planner` from local PC and `motion_planner and fub_controller` on modelcar. 
 
 ### Executing the plan
 * route_planner reads the rndf information from the provided rndf file and constructs the graph.
@@ -33,4 +37,4 @@ The motion planner depends on
 * Improve Collision detection - especially for lateral moving objects and create different mechanism for handling intersections.
 * Improve heuristics in assigning pre-costs to the planner.
 * Improve the velocity planning, and handling in sharp curves.
-* Improve the controller to create smooth control of the vehicle. 
+* Improve the controller to create smooth control of the vehicle.
