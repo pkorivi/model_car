@@ -43,28 +43,32 @@ namespace fub_obstacle_publisher{
     //obst_to_publish.push_back(obstacle_def(1.0,6,0.17,0.6,0,obst_id++, 0.15,0.25));
 
     //slow moving in same lane
+    /*
     obst_to_publish.push_back(obstacle_def(1.5,20,-0.17,0.5,0,obst_id++, 0.15,0.25));
     obst_to_publish.push_back(obstacle_def(6.0,20,-0.17,0.5,0,obst_id++, 0.15,0.25));
+    */
 
     //set of static obstacles - blocked lane
     /*
-    obst_to_publish.push_back(obstacle_def(4.5,4.5,0.27,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(4.5,4.5,0.20,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(4.5,4.5,0.13,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(4.5,4.5,0.05,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(4.5,4.5,-0.05,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(4.5,4.5,-0.15,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(4.5,4.5,-0.26,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(7.5,7.5,0.27,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(7.5,7.5,0.20,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(7.5,7.5,0.13,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(7.5,7.5,0.05,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(7.5,7.5,-0.05,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(7.5,7.5,-0.15,0.0,0,obst_id++, 0.1,0.1));
+    obst_to_publish.push_back(obstacle_def(7.5,7.5,-0.26,0.0,0,obst_id++, 0.1,0.1));
     //*/
 
     //set of static obstacles - parked vehicles protruding into lane
-/*    obst_to_publish.push_back(obstacle_def(2.1,2.1,0.25,0.0,0,obst_id++, 0.1,0.1));
+    ///*
+    obst_to_publish.push_back(obstacle_def(2.1,2.1,0.25,0.0,0,obst_id++, 0.1,0.1));
     obst_to_publish.push_back(obstacle_def(2.5,2.5,0.25,0.0,0,obst_id++, 0.1,0.1));
     obst_to_publish.push_back(obstacle_def(2.9,2.9,0.27,0.0,0,obst_id++, 0.1,0.1));
     obst_to_publish.push_back(obstacle_def(3.2,3.2,0.27,0.0,0,obst_id++, 0.1,0.1));
     obst_to_publish.push_back(obstacle_def(3.5,3.5,0.30,0.0,0,obst_id++, 0.1,0.1));
     obst_to_publish.push_back(obstacle_def(3.8,3.8,0.30,0.0,0,obst_id++, 0.1,0.1));
-    obst_to_publish.push_back(obstacle_def(4.1,4.1,0.25,0.0,0,obst_id++, 0.1,0.1));*/
+    obst_to_publish.push_back(obstacle_def(4.1,4.1,0.25,0.0,0,obst_id++, 0.1,0.1));
+    //*/
 
 
     //Static

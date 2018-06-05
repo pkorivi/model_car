@@ -129,11 +129,11 @@ namespace fub_motion_planner{
               continue; //go to next obstacle
             }
             else{ //check for collision in d where s is intersecting
-              std::cout <<"obst Id "<<obst.id <<" x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d th"<<obst_frenet.s<<" "<<obst_frenet.d<<" "<<obst_frenet.th <<" vel "<<obstVel.x<<" direc "<<direction <<'\n';
+              //std::cout <<"obst Id "<<obst.id <<" x, y "<<obstPos[0]<<" "<<obstPos[1]<<" s, d th"<<obst_frenet.s<<" "<<obst_frenet.d<<" "<<obst_frenet.th <<" vel "<<obstVel.x<<" direc "<<direction <<'\n';
               double d_val1 = polyeval_m( d_coeffs,intersection.front());
               double d_val2 = polyeval_m( d_coeffs,intersection.back());
               //TODO add the dmin and dmax by finding min max of the d, if s positions for min max falls in the intersection
-              std::cout << "intersection  "<<intersection.front()<<"  "<<intersection.back() <<"  d_ego "<<d_val1<<" "<<d_val2<<" obs_D "<<obst_frenet.d << '\n';
+              //std::cout << "intersection  "<<intersection.front()<<"  "<<intersection.back() <<"  d_ego "<<d_val1<<" "<<d_val2<<" obs_D "<<obst_frenet.d << '\n';
               if((fabs(d_val1 - obst_frenet.d)> d_min_diff)&&   //start of intersection
                   (fabs(d_val2 - obst_frenet.d)> d_min_diff)&&  //end of intersection
                   (fabs((d_val1+d_val2)/2 - obst_frenet.d)> d_min_diff)){ //in middle of intersection also road is free
@@ -163,7 +163,7 @@ namespace fub_motion_planner{
                       break;
                     } //found where time starts
                   }
-                  std::cout << "ego t "<<ego_t1<<" "<<ego_t2 <<"  obs t "<<obst_t1<<" "<<obst_t2 <<'\n';
+                  //std::cout << "ego t "<<ego_t1<<" "<<ego_t2 <<"  obs t "<<obst_t1<<" "<<obst_t2 <<'\n';
                   ///*
                   //TODO Enable this code for dynamic obstacle checking - to work better
                   double ego_velocity = (s_pts[i]-s_pts[i-1])/pt_duration;
@@ -175,20 +175,20 @@ namespace fub_motion_planner{
                   ego_t1_b = ego_t1 + kLengthBackward/ego_velocity;
                   ego_t2_f = ego_t2 - kLengthForward/ego_velocity;
                   ego_t2_b = ego_t2 + kLengthBackward/ego_velocity;
-                  std::cout << "ego_times"<<ego_t1_f<<" "<< ego_t1_b<<" "<< ego_t2_f<<" "<< ego_t2_b << '\n';
+                  //std::cout << "ego_times"<<ego_t1_f<<" "<< ego_t1_b<<" "<< ego_t2_f<<" "<< ego_t2_b << '\n';
                   double obstacle_length_half = (fabs(obst.bounding_box_min.x)+fabs(obst.bounding_box_max.x))/2;
                   obst_t1_f = obst_t1 - obstacle_length_half/obstVel.x;
                   obst_t1_b = obst_t1 + obstacle_length_half/obstVel.x;
                   obst_t2_f = obst_t2 - obstacle_length_half/obstVel.x;
                   obst_t2_b = obst_t2 + obstacle_length_half/obstVel.x;
-                  std::cout << "obst_times"<<obst_t1_f<<" "<< obst_t1_b<<" "<< obst_t2_f<<" "<< obst_t2_b << '\n';
+                  //std::cout << "obst_times"<<obst_t1_f<<" "<< obst_t1_b<<" "<< obst_t2_f<<" "<< obst_t2_b << '\n';
 
                   //find minimum magnitude time difference - just using min will give maximum magnitude ngative number
                   double t1_diff = std::min({ego_t1_f-obst_t1_f,ego_t1_f- obst_t1_b,ego_t1_b-obst_t1_f,ego_t1_b- obst_t1_b},abs_min_comp);
 
                   double t2_diff = std::min({ego_t2_f-obst_t2_f,ego_t2_f- obst_t2_b,ego_t2_b-obst_t2_f,ego_t2_b- obst_t2_b},abs_min_comp);
 
-                  std::cout << "t1 diff "<<t1_diff <<"  t2 diff "<<t2_diff<<'\n';
+                  //std::cout << "t1 diff "<<t1_diff <<"  t2 diff "<<t2_diff<<'\n';
                   //chnage to below if
                   //if(t1_diff*t2_diff>0)
                   //double minimum_time_diff = std::min(fabs(t1_diff),fabs(t2_diff));

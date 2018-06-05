@@ -275,19 +275,21 @@ namespace fub_motion_planner{
         sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
       				return ts1.cost < ts2.cost;});
         //print current state as debug
-        ROS_INFO("cur v,s,d,th %.2f,%.2f,%.2f,%.2f ,x,y,yaw %.2f,%.2f,%.3f odom x,y %.3f,%.3f ",vel_current,curr_frenet_coordi.s, \
+        //ROS_INFO("cur v,s,d,th %.2f,%.2f,%.2f,%.2f ,x,y,yaw %.2f,%.2f,%.3f odom x,y %.3f,%.3f ",vel_current,curr_frenet_coordi.s, \
           curr_frenet_coordi.d,curr_frenet_coordi.th,current_pos_map[0],current_pos_map[1],current_vehicle_state.getVehicleYaw(),\
           current_vehicle_state.m_vehicle_position[0],current_vehicle_state.m_vehicle_position[1]);
+        int no_of_traj_evaluated =0;
         //Create the trajectories till the forward most trajectory is of lowest cost and is evaluated.
       	while(final_states.front().evaluated != true){
       		//TODO change to insertion sort - this vector is almost sorted
       		//create_traj(final_states.front());
           double cost_val = create_traj_const_acc_xy_spline(current_vehicle_state,m_prev_vehicle_state,mp_traj_eval, final_states.front(),current_pos_map,curr_frenet_coordi);
           //std::cout <<" ID: "<<final_states.front().id <<" cost :  " << final_states.front().cost<< "  "<< final_states.front().evaluated<< '\n';
-          ROS_INFO("Traj Eval ID: %d, cost %.2f ,tgt a,v,s,d. s_turn %.2f,%.2f,%.2f,%.2f,%.2f !!",final_states.front().id,final_states.front().cost,\
+          //ROS_INFO("Traj Eval ID: %d, cost %.2f ,tgt a,v,s,d. s_turn %.2f,%.2f,%.2f,%.2f,%.2f !!",final_states.front().id,final_states.front().cost,\
             final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval,final_states.front().s_turn );
       		sort( final_states.begin(),final_states.end(), [ ](const target_state& ts1, const target_state& ts2){
          				return ts1.cost < ts2.cost;});
+                no_of_traj_evaluated++;
       	}
 
         //Publish the final chosen trajectory
@@ -297,7 +299,7 @@ namespace fub_motion_planner{
           p1 = final_states.front().path;
           //ROS_INFO("Final Published ID: %d, cost %.3f cur v,s,d %.3f,%.3f,%.3f , tgt a,v,s,d %.3f,%.3f,%.3f,%.3f !!",final_states.front().id,final_states.front().cost,vel_current,curr_frenet_coordi.s, \
           curr_frenet_coordi.d,final_states.front().a_tgt,final_states.front().v_tgt,final_states.front().s_tgt,final_states.front().d_eval );
-          ROS_INFO("Final published %d",final_states.front().id);
+          //ROS_INFO("Final published %d",final_states.front().id);
         }
         else{ //No path exists - emergency breaking
           target_state emergency_tgt(s_target,curr_frenet_coordi.d,0,acc_prof[7], 0,0);
@@ -317,7 +319,7 @@ namespace fub_motion_planner{
           prev_tgt_state.s_turn = prev_tgt_state.s_reached;
         }
 
-        ROS_INFO("Time taken: %f", (double)(clock() - tStart)/CLOCKS_PER_SEC);
+        ROS_INFO("Time taken, traj_count : %f , %d ", (double)(clock() - tStart)/CLOCKS_PER_SEC , no_of_traj_evaluated);
       }//if path exists
       else{
         ROS_INFO("waiting for route path");
