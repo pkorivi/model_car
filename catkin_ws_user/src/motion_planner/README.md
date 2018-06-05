@@ -6,28 +6,29 @@ The package implements trajectory planner module for the model car. This package
 The motion planner depends on
 
 #### External libraries
-* ecl_lib - for creating splines
-* Eigen - for solving equations
-* networkx - for creating graph from rndf and calculating shortest path
+* `ecl_lib` - for creating splines
+* `Eigen` - for solving equations
+* `networkx` - for creating graph from rndf and calculating shortest path
 
 #### Model car Packages
-* route_planner -  for high level path
-* fub_controller - for converting the x,y,t coordinates into corresponding speed and steering controls
-* autonomos_obstacle_msgs - for obstacle information
-* fub_trajectory_msgs - for transmitting the path to fub_controller package.
+* `route_planner` -  for high level path
+* `fub_controller` - for converting the x,y,t coordinates into corresponding speed and steering controls
+* `autonomos_obstacle_msgs` - for obstacle information
+* `fub_trajectory_msgs` - for transmitting the path to fub_controller package.
 
 ### Launching the Planner
 * compile the above mentioned dependencies and the motion planner packages.
 * `roslaunch motion_planner planner.launch` launches all the required packages - route_planner, motion_planner and controller. They can be launched individually also.
 
 #### Tip
-It may not possible to install networkx on model car, in this situation please install on your local PC and launch `route_planner` from local PC and `motion_planner and fub_controller` on modelcar. 
+* It may not possible to install networkx on model car, in this situation please install on your local PC and launch `route_planner` from local PC and `motion_planner and fub_controller` on modelcar.
+* Use `obstacle_publisher` to publish static and dynamic obstacles to create various scenarios for driving
 
 ### Executing the plan
 * route_planner reads the rndf information from the provided rndf file and constructs the graph.
 * Use 2D-Nav goal to publish a final pose or publish the destination pose on `/move_base_simple/goal`.
 * Motion planner receives the sub path (the portion of the route path which is on same segment as the ego) and starts calculating trajectory.
-* To change the lane publish /clicked_point either using Rviz or anything else.
+* To change the lane publish `/clicked_point` either using Rviz or anything else.
 * Adjust the parameters in `ControllerMig.cfg` of `fub_controller` to tune the behaviour.
 
 
@@ -38,3 +39,17 @@ It may not possible to install networkx on model car, in this situation please i
 * Improve heuristics in assigning pre-costs to the planner.
 * Improve the velocity planning, and handling in sharp curves.
 * Improve the controller to create smooth control of the vehicle.
+
+### Installing ecl library
+* Create a catkin workspace for ecl_lib - ~/ecl_lib/src
+* Download all the folders/packages from below 3 links into src folder.
+ecl_core - https://github.com/stonier/ecl_core
+ecl_lite - https://github.com/stonier/ecl_lite
+ecl_tools- https://github.com/stonier/ecl_tools
+
+* Compilation of linear_algebra needs sophus -  http://wiki.ros.org/sophus
+* make and source the files to start using them.
+
+### Networkx installation
+* Follow the below guide to install networkx, current project uses networkx with python2.7
+https://networkx.github.io/documentation/stable/
